@@ -244,6 +244,14 @@ class MobilePad:
         for axis in (e.ABS_X,e.ABS_Y,e.ABS_HAT0X,e.ABS_HAT0Y): self.ui.write(e.EV_ABS,axis,0)
         self.ui.syn()
 
+    def tap_button(self, code):
+        """Hold a virtual controller button long enough for SDL to poll it."""
+        self.ui.write(e.EV_KEY, code, 1)
+        self.ui.syn()
+        time.sleep(.18)
+        self.ui.write(e.EV_KEY, code, 0)
+        self.ui.syn()
+
     def emit_directions(self, x, y):
         """Mirror directions as arrow keys for frontend compatibility."""
         wanted = set()
@@ -321,6 +329,7 @@ class DisabledPad:
     def emit(self, _message): pass
     def release(self): pass
     def tap_key(self, _code): pass
+    def tap_button(self, _code): pass
     def tap_direction(self, _x, _y): pass
 
 
@@ -830,8 +839,12 @@ async def action(request):
         set_config_line("/opt/retropie/configs/all/retroarch.cfg", "input_player1_joypad_index", index)
         return web.json_response({"ok": True, "message": f"Mobile controller set as Player 1 (index {index})"})
     if name == "launch-enter":
+        # EmulationStation's keyboard profile can accept arrows while dropping
+        # Enter on some SDL/KMS builds.  Send both configured confirm paths;
+        # each is a real held tap rather than a browser-length pulse.
+        PAD.tap_button(e.BTN_SOUTH)
         PAD.tap_key(e.KEY_ENTER)
-        return web.json_response({"ok": True, "message": "Enter sent to RetroPie launcher"})
+        return web.json_response({"ok": True, "message": "Confirm sent to EmulationStation"})
     if name == "launch-back":
         PAD.tap_key(e.KEY_ESC)
         return web.json_response({"ok": True, "message": "Back sent to RetroPie launcher"})

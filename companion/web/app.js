@@ -185,6 +185,13 @@ $$("[data-button]").forEach((b) => {
     downAt = performance.now();
     b.setPointerCapture?.(e.pointerId);
     b.classList.add("active");
+    // EmulationStation can miss the virtual joypad's very short browser tap.
+    // Menu confirm/back use the dedicated keyboard action endpoint instead;
+    // games still receive the normal held gamepad button below.
+    if (!lastStatus?.game && ["a", "start", "b"].includes(code)) {
+      navigator.vibrate?.(12);
+      return;
+    }
     send({ type: "button", code, pressed: true });
     navigator.vibrate?.(12);
   };
@@ -192,6 +199,10 @@ $$("[data-button]").forEach((b) => {
     if (editing) return;
     e.preventDefault();
     b.classList.remove("active");
+    if (!lastStatus?.game && ["a", "start", "b"].includes(code)) {
+      action(code === "b" ? "launch-back" : "launch-enter");
+      return;
+    }
     const release = () => send({ type: "button", code, pressed: false }),
       wait = Math.max(0, 80 - (performance.now() - downAt));
     setTimeout(release, wait);
@@ -1238,7 +1249,7 @@ document.addEventListener(
   { passive: false },
 );
 if ("serviceWorker" in navigator)
-  navigator.serviceWorker.register("/static/sw.js");
+  navigator.serviceWorker.register("/static/sw.js?v=25");
 syncPadMode();
 setTheme(localStorage.dwPadTheme || "arcade");
 if (token) enter();
