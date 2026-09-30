@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Translate the quarter-turned cabinet encoder into Arena Brawl keys."""
 
-import json
 import os
 from pathlib import Path
 import subprocess
@@ -15,16 +14,7 @@ def emit(action: str, key: str) -> None:
                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
 
 
-assignments = Path("/opt/retropie/configs/all/controller-assignments.json")
 device_path = "/dev/input/by-id/usb-DragonRise_Inc._Generic_USB_Joystick-event-joystick"
-try:
-    identity = json.loads(assignments.read_text(encoding="utf-8")).get("player1", "")
-    candidate = "/dev/input/by-id/" + identity.replace("-joystick", "-event-joystick")
-    if identity and Path(candidate).exists():
-        device_path = candidate
-except (OSError, ValueError, TypeError):
-    pass
-
 device = InputDevice(device_path)
 if "DragonRise" in device.name:
     device.grab()

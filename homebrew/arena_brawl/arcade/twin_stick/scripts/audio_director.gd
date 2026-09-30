@@ -25,6 +25,13 @@ func _ready() -> void:
             var index = AudioServer.bus_count - 1
             AudioServer.set_bus_name(index, bus_name)
             AudioServer.set_bus_send(index, "Master")
+    var master_index = AudioServer.get_bus_index("Master")
+    if master_index >= 0 and AudioServer.get_bus_effect_count(master_index) == 0:
+        var limiter = AudioEffectLimiter.new()
+        limiter.ceiling_db = -2.0
+        limiter.threshold_db = -7.0
+        AudioServer.add_bus_effect(master_index, limiter)
+    AudioServer.set_bus_volume_db(AudioServer.get_bus_index("BrawlSFX"), -3.0)
     for entry in _json("sfx_manifest").get("sounds", []):
         sound_map[entry["id"]] = entry
     for entry in _json("announcer_lines").get("lines", []):
@@ -125,7 +132,7 @@ func play_sfx(id: String, pitch: float = 1.0) -> void:
     for player in pool:
         if not player.playing:
             player.stream = stream
-            player.volume_db = float(entry.get("volume_db", -8)) + (7.0 if id.contains("fire") or id.contains("laser") else 4.0)
+            player.volume_db = float(entry.get("volume_db", -8)) + (4.0 if id.contains("fire") or id.contains("laser") else 2.0)
             if id == "flame_loop":
                 player.volume_db = -18.0
             player.pitch_scale = clampf(pitch, 0.8, 1.2)

@@ -119,7 +119,8 @@ func _new_player(index: int, point: Vector2) -> Dictionary:
         "weapon": "pulse_pistol", "fire_timer": 0.0, "aim": Vector2.UP,
         "move": Vector2.ZERO, "dir": "s", "invuln": 2.5,
         "respawn": 0.0, "damage_flash": 0.0, "buffs": {}, "anim_time": 0.0,
-        "fire_held": false, "lock_held": false, "locked_aim": Vector2.UP}
+        "fire_held": false, "lock_held": false, "locked_aim": Vector2.UP,
+        "continue_timer": 0.0}
 
 func _input(event: InputEvent) -> void:
     if control_wizard_open:
@@ -450,6 +451,7 @@ func _load_difficulty() -> void:
     var config = ConfigFile.new()
     if config.load("user://arena_brawl_game.cfg") == OK:
         difficulty = String(config.get_value("game", "difficulty", "normal"))
+        p2_enabled = bool(config.get_value("game", "two_players", true))
     match difficulty:
         "easy":
             enemy_health_scale = 0.78
@@ -498,6 +500,16 @@ func _update_players(dt: float) -> void:
         if p["id"] == 1 and not p2_enabled:
             continue
         if p["lives"] <= 0:
+            p["continue_timer"] = maxf(0.0, p["continue_timer"] - dt)
+            if p["continue_timer"] > 0 and _continue_requested(int(p["id"]), pads):
+                p["lives"] = 3
+                p["health"] = 100.0
+                p["respawn"] = 0.0
+                p["invuln"] = 3.0
+                p["pos"] = Vector2(280 + p["id"] * 208, 545)
+                p["continue_timer"] = 0.0
+                audio.announce_sequence(["voice_contestant_1.wav" if p["id"] == 0 else "voice_contestant_2.wav", "voice_go.wav"])
+                _effect("enemy_spawn", p["pos"], 1.0)
             continue
         p["invuln"] = maxf(0, p["invuln"] - dt)
         p["damage_flash"] = maxf(0, p["damage_flash"] - dt)
@@ -577,6 +589,24 @@ func _update_players(dt: float) -> void:
         p["pos"] = _clamp_room(p["pos"] + move * speed * dt)
         if firing and p["fire_timer"] <= 0:
             _fire_player(p)
+    var anyone_alive = false
+    var continue_available = false
+    for p in players:
+        if p["id"] == 1 and not p2_enabled:
+            continue
+        anyone_alive = anyone_alive or p["lives"] > 0
+        continue_available = continue_available or p["continue_timer"] > 0
+    if not anyone_alive and not continue_available and not game_over:
+        game_over = true
+        audio.play_music("game_over")
+
+func _continue_requested(player_id: int, pads: Array) -> bool:
+    if player_id == 1 and Input.is_physical_key_pressed(KEY_U):
+        return true
+    if player_id >= pads.size():
+        return false
+    var device = pads[player_id]
+    return Input.is_joy_button_pressed(device, JOY_BUTTON_A) or Input.is_joy_button_pressed(device, JOY_BUTTON_START)
 
 func _fire_player(p: Dictionary) -> void:
     if shots.size() > 420:
@@ -617,13 +647,8 @@ func _hurt_player(p: Dictionary, amount: float) -> void:
         _effect("explosion_medium", p["pos"], 0.8)
         audio.play_sfx("player_death")
         audio.announce("player_death")
-        var remaining = 0
-        for player in players:
-            if player["id"] == 0 or p2_enabled:
-                remaining += player["lives"]
-        if remaining == 0:
-            game_over = true
-            audio.play_music("game_over")
+        if p["lives"] <= 0:
+            p["continue_timer"] = 10.0
     elif p["health"] < 30:
         audio.announce("player_low_health")
 
@@ -1064,6 +1089,9 @@ func _hud() -> void:
         if p["armor"] > 0:
             draw_rect(Rect2(x, 48, 245 * p["armor"] / 100, 4), Color(.1, .6, 1))
         _label("LIVES %d" % p["lives"], Vector2(x, 70), 14, color)
+        if p["lives"] <= 0 and p["continue_timer"] > 0:
+            _label("CONTINUE? %d" % ceili(p["continue_timer"]), Vector2(x, 70), 16, Color(1, .35, .65))
+            _label("PRESS FIRE", Vector2(x + 116, 70), 14, Color(1, .8, .2))
         _label(weapons[p["weapon"]]["display_name"], Vector2(x, 92), 14)
     _label("ARENA BRAWL", Vector2(384, 70), 22, Color(.5, .8, .95), true)
     _label("WAVE %02d/20" % (wave_index + 1), Vector2(384, 104), 18, Color(1, .35, .85), true)

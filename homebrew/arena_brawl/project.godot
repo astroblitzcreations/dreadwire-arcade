@@ -3,7 +3,7 @@ config_version=5
 
 [application]
 config/name="Dreadwire Crew: Arena Brawl"
-run/main_scene="res://arcade/twin_stick/scenes/TwinStickTest.tscn"
+run/main_scene="res://arcade/twin_stick/scenes/TitleScreen.tscn"
 config/features=PackedStringArray("4.6")
 boot_splash/show_image=false
 boot_splash/bg_color=Color(0.01, 0.015, 0.04, 1)
@@ -23,4 +23,3 @@ textures/default_filters/use_nearest_mipmap_filter=false
 textures/canvas_textures/default_texture_filter=0
 2d/snap/snap_2d_transforms_to_pixel=true
 2d/snap/snap_2d_vertices_to_pixel=true
-
