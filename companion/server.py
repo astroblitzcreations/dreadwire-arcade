@@ -45,7 +45,7 @@ PARTY_QUEUE = []
 PARTY_CHAT = []
 GAME_SELECTION = {}
 SCREEN_LOCK = asyncio.Lock()
-PACKAGE_VERSION = "1.1.3"
+PACKAGE_VERSION = "1.1.4"
 UPDATE_CONFIG = Path("/etc/dreadwire/update.json")
 
 UPLOADS = {
@@ -696,15 +696,57 @@ async def screen_stream(request):
         # crosses menu -> runcommand -> emulator -> menu display modes.
         try:
             while request.transport is not None and not request.transport.is_closing():
-                game_mode = bool(current_game())
+                game_name = current_game()
+                retroarch_mode = any(proc.info.get("name") == "retroarch" for proc in psutil.process_iter(["name"]))
+                x11_mode = game_name in {"Void Run", "Speedbike", "Trippy Gold Maze"}
                 # The legacy /dev/fb0 exists on current Raspberry Pi OS but is a
                 # zero-filled compatibility buffer, not the active KMS plane.
                 # Release kmsgrab during runcommand/xinit's ownership handoff,
                 # then reopen it against the new menu/game plane.
-                if not game_mode and display_transition_active():
+                if retroarch_mode:
+                    screenshot_dir = Path("/opt/retropie/configs/all/retroarch/screenshots")
+                    before = time.time()
+                    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                    try: sock.sendto(b"SCREENSHOT", ("127.0.0.1", 55355))
+                    finally: sock.close()
+                    captured = None
+                    for _ in range(12):
+                        candidates = [path for path in screenshot_dir.glob("*.png") if path.stat().st_mtime >= before - .05]
+                        if candidates:
+                            captured = max(candidates, key=lambda path: path.stat().st_mtime)
+                            break
+                        await asyncio.sleep(.025)
+                    if captured:
+                        try:
+                            image = None
+                            for _ in range(12):
+                                try:
+                                    def read_finished_png():
+                                        with Image.open(captured) as opened:
+                                            opened.load()
+                                            return opened.copy()
+                                    image = await asyncio.to_thread(read_finished_png)
+                                    break
+                                except (OSError, ValueError):
+                                    await asyncio.sleep(.025)
+                            if image is None:
+                                await asyncio.sleep(.05)
+                                continue
+                            image = image.convert("RGB").transpose(Image.Transpose.ROTATE_270)
+                            image.thumbnail((288, 384), Image.Resampling.BILINEAR)
+                            output = BytesIO(); image.save(output, "JPEG", quality=68, optimize=False)
+                            frame = output.getvalue()
+                            header = (b"--ffmpeg\r\nContent-Type: image/jpeg\r\nContent-Length: "
+                                      + str(len(frame)).encode() + b"\r\n\r\n")
+                            await response.write(header + frame + b"\r\n")
+                        finally:
+                            captured.unlink(missing_ok=True)
                     await asyncio.sleep(.12)
                     continue
-                if game_mode:
+                if not x11_mode and display_transition_active():
+                    await asyncio.sleep(.12)
+                    continue
+                if x11_mode:
                     # Godot homebrew owns an already-upright 768x1024 X11 desktop.
                     # KMS has no downloadable hardware frame while GLX owns it.
                     capture_args = (
@@ -743,8 +785,10 @@ async def screen_stream(request):
                             await response.write(header + frame + b"\r\n")
                             # Restart capture as soon as a launch begins or the
                             # active renderer changes so its pixel format stays valid.
-                            if bool(current_game()) != game_mode or (not game_mode and display_transition_active()): break
-                        if bool(current_game()) != game_mode or (not game_mode and display_transition_active()): break
+                            changed = (current_game() in {"Void Run", "Speedbike", "Trippy Gold Maze"}) != x11_mode
+                            if changed or (not x11_mode and display_transition_active()): break
+                        changed = (current_game() in {"Void Run", "Speedbike", "Trippy Gold Maze"}) != x11_mode
+                        if changed or (not x11_mode and display_transition_active()): break
                 finally:
                     if process.returncode is None:
                         process.terminate()
