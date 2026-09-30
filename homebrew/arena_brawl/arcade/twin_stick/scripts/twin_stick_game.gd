@@ -56,6 +56,7 @@ var control_wizard_hold_button := -1
 var control_wizard_hold_time := 0.0
 var controller_mappings: Dictionary = {}
 var player_controllers: Array[String] = ["", ""]
+var mobile_pad_labels: Dictionary = {}
 var joy_axis_latched: Dictionary = {}
 var music_enabled := true
 var sfx_enabled := true
@@ -632,8 +633,10 @@ func _ordered_pads() -> Array:
     # exposes four always-present virtual pads and Linux may expose both a
     # wired xpad receiver and a Bluetooth Xbox pad; neither should displace
     # the active wireless Xbox or the DragonRise cabinet encoder.
+    _refresh_mobile_pad_labels()
     var pads = Input.get_connected_joypads().filter(func(device):
-        return not Input.get_joy_name(device).to_lower().begins_with("dreadwire player"))
+        var device_name = Input.get_joy_name(device).to_lower().strip_edges()
+        return not device_name.begins_with("dreadwire player") or mobile_pad_labels.has(device_name))
     pads.sort_custom(func(a, b):
         var an = Input.get_joy_name(a).to_lower()
         var bn = Input.get_joy_name(b).to_lower()
@@ -648,7 +651,25 @@ func _is_cabinet_pad(device: int) -> bool:
     return "dragonrise" in name or (int(info.get("vendor_id", -1)) == 0x79 and int(info.get("product_id", -1)) == 0x06)
 
 func _pad_label(device: int) -> String:
-    return "BUILT-IN CABINET (DragonRise)" if _is_cabinet_pad(device) else Input.get_joy_name(device).strip_edges()
+    var device_name = Input.get_joy_name(device).strip_edges()
+    if _is_cabinet_pad(device):
+        return "BUILT-IN CABINET (DragonRise)"
+    return String(mobile_pad_labels.get(device_name.to_lower(), device_name))
+
+func _refresh_mobile_pad_labels() -> void:
+    mobile_pad_labels.clear()
+    var path = "/run/dreadwire/mobile-controllers.json"
+    if not FileAccess.file_exists(path):
+        return
+    var parsed = JSON.parse_string(FileAccess.get_file_as_string(path))
+    if not parsed is Dictionary:
+        return
+    var controllers: Dictionary = parsed.get("controllers", {})
+    for player in controllers:
+        var record: Dictionary = controllers[player]
+        var slot = int(player)
+        if slot >= 1 and slot <= 4:
+            mobile_pad_labels["dreadwire player %d" % slot] = String(record.get("label", "Mobile Player %d" % slot))
 
 func _physical_pad_names() -> Array[String]:
     var names: Array[String] = []

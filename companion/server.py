@@ -335,6 +335,22 @@ class DisabledPad:
 
 PADS = [MobilePad(player) for player in range(1, 5)] if REMOTE_INPUT_ENABLED else [DisabledPad() for _ in range(4)]
 PAD = PADS[0]
+MOBILE_CONTROLLER_STATE = Path("/run/dreadwire/mobile-controllers.json")
+MOBILE_CONTROLLER_CLIENTS = {player: {} for player in range(1, 5)}
+
+
+def publish_mobile_controllers():
+    """Expose only live phone pads so games can label them without touching physical pads."""
+    active = {}
+    for player, clients in MOBILE_CONTROLLER_CLIENTS.items():
+        if clients:
+            # The most recently connected browser owns the visible label for this slot.
+            name = next(reversed(clients.values()))
+            active[str(player)] = {"name": name, "label": f"{name} - Mobile"}
+    MOBILE_CONTROLLER_STATE.parent.mkdir(parents=True, exist_ok=True)
+    temporary = MOBILE_CONTROLLER_STATE.with_suffix(".tmp")
+    temporary.write_text(json.dumps({"controllers": active, "updated": time.time()}))
+    temporary.replace(MOBILE_CONTROLLER_STATE)
 
 LEGACY_BUTTONS = {
     e.BTN_TRIGGER: e.BTN_SOUTH, e.BTN_THUMB: e.BTN_EAST,
@@ -1385,19 +1401,27 @@ async def party_qr(_):
 
 
 async def controller(request):
-    await require(request)
+    session = await require(request)
     try: player=max(1,min(4,int(request.query.get("player","1"))))
     except ValueError: player=1
     pad=PADS[player-1]
     ws = web.WebSocketResponse(heartbeat=10, max_msg_size=65536); await ws.prepare(request)
     WS_CLIENTS.add(ws)
-    await ws.send_json({"ready": True, "index": mobile_js_index(player), "player":player})
+    display_name = str(session.get("name") or f"Guest-{player}")[:40]
+    MOBILE_CONTROLLER_CLIENTS[player][id(ws)] = display_name
+    publish_mobile_controllers()
+    await ws.send_json({"ready": True, "index": mobile_js_index(player), "player":player,
+                        "name":display_name, "label":f"{display_name} - Mobile"})
     try:
         async for msg in ws:
             if msg.type == WSMsgType.TEXT:
                 try: pad.emit(json.loads(msg.data))
                 except (ValueError, TypeError, KeyError): pass
-    finally: WS_CLIENTS.discard(ws); pad.release()
+    finally:
+        WS_CLIENTS.discard(ws)
+        MOBILE_CONTROLLER_CLIENTS[player].pop(id(ws), None)
+        publish_mobile_controllers()
+        pad.release()
     return ws
 
 
