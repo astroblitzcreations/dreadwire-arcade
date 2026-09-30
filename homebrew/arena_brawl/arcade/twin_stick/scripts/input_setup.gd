@@ -9,7 +9,7 @@ static func install() -> void:
         "brawl_p2_up": KEY_UP, "brawl_p2_down": KEY_DOWN,
         "brawl_p2_aim_left": KEY_J, "brawl_p2_aim_right": KEY_L,
         "brawl_p2_aim_up": KEY_I, "brawl_p2_aim_down": KEY_K,
-        "brawl_p2_fire": KEY_SPACE
+        "brawl_p2_fire": KEY_U
     }
     for action in keys:
         if InputMap.has_action(action):

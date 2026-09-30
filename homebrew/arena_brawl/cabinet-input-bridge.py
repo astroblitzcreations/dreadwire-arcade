@@ -29,15 +29,22 @@ device = InputDevice(device_path)
 if "DragonRise" in device.name:
     device.grab()
 
+try:
+    input_devices = Path("/proc/bus/input/devices").read_text(encoding="utf-8", errors="ignore").lower()
+except OSError:
+    input_devices = ""
+xbox_connected = "x-box" in input_devices or "xbox" in input_devices
+fire_key = "u" if xbox_connected else "space"
 buttons = {
-    ecodes.BTN_TRIGGER: "space", ecodes.BTN_THUMB: "space",
-    ecodes.BTN_THUMB2: "space", ecodes.BTN_TOP: "space",
-    ecodes.BTN_TOP2: "space", ecodes.BTN_BASE: "space",
-    ecodes.BTN_BASE2: "p", ecodes.BTN_BASE3: "space",
-    ecodes.BTN_BASE4: "space", ecodes.BTN_PINKIE: "Escape",
+    ecodes.BTN_TRIGGER: fire_key, ecodes.BTN_THUMB: fire_key,
+    ecodes.BTN_THUMB2: fire_key, ecodes.BTN_TOP: fire_key,
+    ecodes.BTN_TOP2: fire_key, ecodes.BTN_BASE: fire_key,
+    ecodes.BTN_BASE2: "p", ecodes.BTN_BASE3: fire_key,
+    ecodes.BTN_BASE4: fire_key, ecodes.BTN_PINKIE: "Escape",
 }
 axis_state = {ecodes.ABS_X: None, ecodes.ABS_Y: None}
-axis_keys = ({ecodes.ABS_X: ("w", "s"), ecodes.ABS_Y: ("d", "a")}
+axis_keys = ({ecodes.ABS_X: (("Up", "Down") if xbox_connected else ("w", "s")),
+              ecodes.ABS_Y: (("Right", "Left") if xbox_connected else ("d", "a"))}
              if "DragonRise" in device.name else
              {ecodes.ABS_X: ("a", "d"), ecodes.ABS_Y: ("w", "s")})
 
