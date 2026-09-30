@@ -12,6 +12,9 @@ var voice_player: AudioStreamPlayer
 var voice_delay: float = 0.0
 var last_voice: String = ""
 var music_muted: bool = false
+var sfx_muted: bool = false
+var voice_muted: bool = false
+const SMASH = "res://arcade/twin_stick/assets/audio/smashtv/"
 
 func _ready() -> void:
     for bus_name in ["BrawlSFX", "BrawlMusic", "BrawlVoice"]:
@@ -29,6 +32,46 @@ func _ready() -> void:
         voice_map[category].append(entry)
     for entry in _json("music_manifest").get("tracks", []):
         music_map[entry["id"]] = entry
+    # User-supplied original arcade samples. The numbered source archive has
+    # no semantic filenames, so these are curated by sound role and may be
+    # adjusted later without changing gameplay code.
+    var smash_sfx = {
+        "pulse_fire": "sfx_01.wav", "automatic_fire": "sfx_02.wav",
+        "shotgun_fire": "sfx_03.wav", "plasma_fire": "sfx_04.wav",
+        "rail_fire": "sfx_05.wav", "rocket_launch": "sfx_06.wav",
+        "flame_loop": "sfx_07.wav", "arc_discharge": "sfx_08.wav",
+        "twin_pulse_fire": "sfx_09.wav", "orbit_fire": "sfx_10.wav",
+        "bullet_hit_enemy": "sfx_12.wav", "bullet_hit_metal": "sfx_13.wav",
+        "explosion_small": "sfx_16.wav", "explosion_medium": "sfx_17.wav",
+        "explosion_large": "sfx_18.wav", "enemy_death": "sfx_19.wav",
+        "player_hurt": "sfx_20.wav", "player_death": "sfx_21.wav",
+        "health_pickup": "sfx_28.wav", "weapon_pickup": "sfx_29.wav",
+        "credits_pickup": "sfx_30.wav", "extra_life": "sfx_31.wav",
+        "jackpot": "sfx_32.wav", "prize_pickup": "sfx_33.wav",
+        "door_open": "sfx_37.wav", "door_close": "sfx_38.wav",
+        "wave_clear": "sfx_41.wav", "menu_move": "sfx_43.wav",
+        "menu_select": "sfx_44.wav", "pause": "sfx_45.wav",
+        "game_start": "sfx_47.wav", "game_over": "sfx_48.wav"
+    }
+    for id in smash_sfx:
+        if sound_map.has(id):
+            sound_map[id]["variants"] = [SMASH + smash_sfx[id]]
+    var smash_voice = {
+        "game_start": ["voice_good_luck.wav", "voice_go.wav", "voice_lets_go.wav"],
+        "wave_start": ["voice_contestant_1.wav", "voice_contestant_2.wav"],
+        "pickup": ["voice_big_money.wav", "voice_big_prizes.wav"],
+        "big_kill": ["voice_total_carnage.wav", "voice_yeah.wav"],
+        "player_death": ["voice_aaargh.wav", "voice_urk.wav"],
+        "jackpot": ["voice_bingo.wav", "voice_dollar.wav"],
+        "room_clear": ["voice_whoo.wav", "voice_woo.wav"],
+        "boss_start": ["voice_youll_need_it.wav"],
+        "final_boss": ["voice_total_carnage.wav"],
+        "victory": ["voice_big_money.wav", "voice_big_prizes.wav"]
+    }
+    for category in smash_voice:
+        voice_map[category] = []
+        for filename in smash_voice[category]:
+            voice_map[category].append({"id": filename, "path": SMASH + filename, "cooldown_seconds": 4.0})
     for i in range(20):
         var player = AudioStreamPlayer.new()
         player.bus = "BrawlSFX"
@@ -36,7 +79,7 @@ func _ready() -> void:
         pool.append(player)
     music_player = AudioStreamPlayer.new()
     music_player.bus = "BrawlMusic"
-    music_player.volume_db = -16.0
+    music_player.volume_db = -9.0
     add_child(music_player)
     voice_player = AudioStreamPlayer.new()
     voice_player.bus = "BrawlVoice"
@@ -60,7 +103,7 @@ func _process(delta: float) -> void:
     voice_delay = maxf(0.0, voice_delay - delta)
 
 func play_sfx(id: String, pitch: float = 1.0) -> void:
-    if not sound_map.has(id):
+    if sfx_muted or not sound_map.has(id):
         return
     var now = Time.get_ticks_msec()
     # Per-effect voice limits stop overlapping automatic-fire samples from swamping the mix.
@@ -84,7 +127,7 @@ func play_sfx(id: String, pitch: float = 1.0) -> void:
     # Busy pool: skip this one-shot instead of allocating unlimited audio nodes.
 
 func announce(category: String, priority: bool = false) -> void:
-    if not voice_map.has(category):
+    if voice_muted or not voice_map.has(category):
         return
     if not priority and (voice_delay > 0.0 or voice_player.playing):
         return
@@ -119,6 +162,21 @@ func play_music(id: String) -> void:
 func toggle_music() -> void:
     music_muted = not music_muted
     music_player.stream_paused = music_muted
+
+func set_music_enabled(enabled: bool) -> void:
+    music_muted = not enabled
+    music_player.stream_paused = music_muted
+
+func set_sfx_enabled(enabled: bool) -> void:
+    sfx_muted = not enabled
+    if sfx_muted:
+        for player in pool:
+            player.stop()
+
+func set_voice_enabled(enabled: bool) -> void:
+    voice_muted = not enabled
+    if voice_muted:
+        voice_player.stop()
 
 func stop_all() -> void:
     for player in pool:

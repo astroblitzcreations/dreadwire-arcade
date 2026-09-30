@@ -44,6 +44,21 @@ var texture_seed: int = 0
 var shake: float = 0.0
 var next_enemy_uid: int = 1
 var exit_armed_until: float = 0.0
+const PAUSE_ITEMS = ["RESUME GAME", "RESTART GAME", "RECONFIGURE CONTROLS", "MUSIC", "SOUND EFFECTS", "VOICE", "CONTROLLER HELP", "EXIT TO ARCADE"]
+const CONTROL_ACTIONS = ["MOVE UP", "MOVE DOWN", "MOVE LEFT", "MOVE RIGHT", "FIRE / LOCK AIM", "PAUSE", "SELECT", "START"]
+var pause_selection := 0
+var control_wizard_open := false
+var control_wizard_step := 0
+var control_wizard_device := -1
+var control_wizard_name := ""
+var control_wizard_hold_button := -1
+var control_wizard_hold_time := 0.0
+var controller_mappings: Dictionary = {}
+var joy_axis_latched: Dictionary = {}
+var music_enabled := true
+var sfx_enabled := true
+var voice_enabled := true
+var controller_help_timer := 0.0
 
 func _ready() -> void:
     texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -62,6 +77,7 @@ func _ready() -> void:
     waves = library.data("waves")
     audio = AUDIO.new()
     add_child(audio)
+    _load_controller_mappings()
     _make_crt()
     restart()
 
@@ -92,17 +108,30 @@ func _new_player(index: int, point: Vector2) -> Dictionary:
         "health": 100.0, "armor": 0.0, "lives": 3, "score": 0,
         "weapon": "pulse_pistol", "fire_timer": 0.0, "aim": Vector2.UP,
         "move": Vector2.ZERO, "dir": "s", "invuln": 2.5,
-        "respawn": 0.0, "damage_flash": 0.0, "buffs": {}, "anim_time": 0.0}
+        "respawn": 0.0, "damage_flash": 0.0, "buffs": {}, "anim_time": 0.0,
+        "fire_held": false, "locked_aim": Vector2.UP}
 
 func _input(event: InputEvent) -> void:
+    if control_wizard_open:
+        if _capture_control_event(event):
+            get_viewport().set_input_as_handled()
+        return
     if event is InputEventKey and event.pressed and not event.echo:
+        if demo_paused:
+            match event.physical_keycode:
+                KEY_UP, KEY_W: _move_pause_selection(-1)
+                KEY_DOWN, KEY_S: _move_pause_selection(1)
+                KEY_ENTER, KEY_KP_ENTER, KEY_SPACE: _activate_pause_item()
+                KEY_ESCAPE, KEY_P: _set_pause(false)
+            get_viewport().set_input_as_handled()
+            return
         match event.physical_keycode:
             KEY_ESCAPE:
                 close_requested.emit()
                 if close_requested.get_connections().is_empty():
                     get_tree().quit()
             KEY_P:
-                demo_paused = not demo_paused
+                _set_pause(not demo_paused)
             KEY_R:
                 restart()
             KEY_TAB:
@@ -135,14 +164,27 @@ func _input(event: InputEvent) -> void:
                     players[0]["health"] = 100.0
                     _cycle_weapon(players[0])
         get_viewport().set_input_as_handled()
+    elif event is InputEventJoypadMotion:
+        _handle_menu_axis(event)
     elif event is InputEventJoypadButton and event.pressed:
-        if event.button_index == JOY_BUTTON_START:
+        var mapped = _mapped_button_action(Input.get_joy_name(event.device).to_lower(), event.button_index)
+        if demo_paused:
+            if mapped in ["MOVE UP", "MOVE LEFT"]:
+                _move_pause_selection(-1)
+            elif mapped in ["MOVE DOWN", "MOVE RIGHT"]:
+                _move_pause_selection(1)
+            elif mapped in ["FIRE / LOCK AIM", "START"] or event.button_index in [JOY_BUTTON_A, JOY_BUTTON_X, JOY_BUTTON_START]:
+                _activate_pause_item()
+            elif event.button_index == JOY_BUTTON_B:
+                _set_pause(false)
+            get_viewport().set_input_as_handled()
+            return
+        if mapped in ["PAUSE", "START"] or event.button_index == JOY_BUTTON_START:
             if Input.is_joy_button_pressed(event.device, JOY_BUTTON_BACK):
                 _request_exit()
                 get_viewport().set_input_as_handled()
                 return
-            demo_paused = not demo_paused
-            audio.play_sfx("pause")
+            _set_pause(true)
             get_viewport().set_input_as_handled()
     elif event is InputEventMouseButton and event.pressed:
         if event.button_index == MOUSE_BUTTON_WHEEL_UP:
@@ -156,6 +198,12 @@ func _cycle_weapon(player: Dictionary) -> void:
 
 func _process(delta: float) -> void:
     var dt = minf(delta, 0.04)
+    controller_help_timer = maxf(0.0, controller_help_timer - dt)
+    if control_wizard_open and control_wizard_hold_button >= 0:
+        control_wizard_hold_time += dt
+        if control_wizard_hold_time >= 0.9:
+            control_wizard_hold_button = -1
+            _advance_control_wizard()
     if not demo_paused and not game_over and not victory:
         game_time += dt
         _update_players(dt)
@@ -176,6 +224,158 @@ func _request_exit() -> void:
     exit_armed_until = now + 2.0
     _popup("PRESS START + SELECT AGAIN TO EXIT", Vector2(384, 500), Color(1.0, 0.85, 0.2))
     audio.play_sfx("pause")
+
+func _set_pause(open: bool) -> void:
+    demo_paused = open
+    pause_selection = 0
+    if not control_wizard_open and sfx_enabled:
+        audio.play_sfx("pause")
+    queue_redraw()
+
+func _move_pause_selection(amount: int) -> void:
+    pause_selection = wrapi(pause_selection + amount, 0, PAUSE_ITEMS.size())
+    if sfx_enabled:
+        audio.play_sfx("menu_move")
+    queue_redraw()
+
+func _activate_pause_item() -> void:
+    if sfx_enabled:
+        audio.play_sfx("menu_select")
+    match pause_selection:
+        0: _set_pause(false)
+        1:
+            restart()
+            _set_pause(false)
+        2: _start_control_wizard()
+        3:
+            music_enabled = not music_enabled
+            audio.set_music_enabled(music_enabled)
+        4:
+            sfx_enabled = not sfx_enabled
+            audio.set_sfx_enabled(sfx_enabled)
+        5:
+            voice_enabled = not voice_enabled
+            audio.set_voice_enabled(voice_enabled)
+        6: controller_help_timer = 6.0
+        7: get_tree().quit()
+    queue_redraw()
+
+func _start_control_wizard() -> void:
+    control_wizard_open = true
+    control_wizard_step = 0
+    control_wizard_device = -1
+    control_wizard_name = ""
+    control_wizard_hold_button = -1
+    demo_paused = true
+    queue_redraw()
+
+func _capture_control_event(event: InputEvent) -> bool:
+    if event is InputEventJoypadMotion and absf(event.axis_value) >= 0.62:
+        control_wizard_device = event.device
+        control_wizard_name = Input.get_joy_name(event.device).to_lower().strip_edges()
+        _store_control_binding(CONTROL_ACTIONS[control_wizard_step], "axis,%d,%d" % [event.axis, 1 if event.axis_value > 0 else -1])
+        _advance_control_wizard()
+        return true
+    if event is InputEventJoypadButton:
+        if event.pressed:
+            control_wizard_device = event.device
+            control_wizard_name = Input.get_joy_name(event.device).to_lower().strip_edges()
+            control_wizard_hold_button = event.button_index
+            control_wizard_hold_time = 0.0
+        elif control_wizard_hold_button == event.button_index:
+            if control_wizard_hold_time < 0.9:
+                _store_control_binding(CONTROL_ACTIONS[control_wizard_step], "button,%d" % event.button_index)
+                _advance_control_wizard()
+            control_wizard_hold_button = -1
+        return true
+    if event is InputEventKey:
+        if event.pressed and not event.echo:
+            control_wizard_device = -1
+            control_wizard_name = "keyboard"
+            _store_control_binding(CONTROL_ACTIONS[control_wizard_step], "key,%d" % event.physical_keycode)
+            _advance_control_wizard()
+        return true
+    return false
+
+func _advance_control_wizard() -> void:
+    control_wizard_step += 1
+    control_wizard_hold_button = -1
+    control_wizard_hold_time = 0.0
+    if control_wizard_step >= CONTROL_ACTIONS.size():
+        control_wizard_open = false
+        _save_controller_mappings()
+        controller_help_timer = 5.0
+    queue_redraw()
+
+func _store_control_binding(action: String, binding: String) -> void:
+    var name = control_wizard_name if not control_wizard_name.is_empty() else "device_%d" % control_wizard_device
+    if not controller_mappings.has(name):
+        controller_mappings[name] = {}
+    controller_mappings[name][action] = binding
+
+func _mapped_button_action(device_name: String, button: int) -> String:
+    var mappings: Dictionary = controller_mappings.get(device_name.strip_edges(), {})
+    for action in CONTROL_ACTIONS:
+        if String(mappings.get(action, "")) == "button,%d" % button:
+            return action
+    return ""
+
+func _mapped_action_pressed(device_name: String, device: int, action: String) -> bool:
+    var binding = String((controller_mappings.get(device_name.strip_edges(), {}) as Dictionary).get(action, ""))
+    var parts = binding.split(",")
+    if parts.size() == 2 and parts[0] == "button":
+        return Input.is_joy_button_pressed(device, int(parts[1]))
+    if parts.size() == 3 and parts[0] == "axis":
+        return Input.get_joy_axis(device, int(parts[1])) * int(parts[2]) > 0.55
+    return false
+
+func _mapped_move_vector(device_name: String, device: int) -> Vector2:
+    var result = Vector2.ZERO
+    if _mapped_action_pressed(device_name, device, "MOVE LEFT"): result.x -= 1
+    if _mapped_action_pressed(device_name, device, "MOVE RIGHT"): result.x += 1
+    if _mapped_action_pressed(device_name, device, "MOVE UP"): result.y -= 1
+    if _mapped_action_pressed(device_name, device, "MOVE DOWN"): result.y += 1
+    return result.normalized()
+
+func _handle_menu_axis(event: InputEventJoypadMotion) -> void:
+    if not demo_paused:
+        return
+    var key = "%d:%d" % [event.device, event.axis]
+    var active = absf(event.axis_value) >= 0.62
+    var was_active = bool(joy_axis_latched.get(key, false))
+    joy_axis_latched[key] = active
+    if not active or was_active:
+        return
+    var mapped = ""
+    var name = Input.get_joy_name(event.device).to_lower().strip_edges()
+    var mappings: Dictionary = controller_mappings.get(name, {})
+    for action in CONTROL_ACTIONS:
+        var parts = String(mappings.get(action, "")).split(",")
+        if parts.size() == 3 and parts[0] == "axis" and int(parts[1]) == event.axis and int(parts[2]) == (1 if event.axis_value > 0 else -1):
+            mapped = action
+            break
+    if mapped in ["MOVE UP", "MOVE LEFT"]:
+        _move_pause_selection(-1)
+    elif mapped in ["MOVE DOWN", "MOVE RIGHT"]:
+        _move_pause_selection(1)
+    elif event.axis in [JOY_AXIS_LEFT_X, JOY_AXIS_LEFT_Y]:
+        _move_pause_selection(1 if event.axis_value > 0 else -1)
+
+func _save_controller_mappings() -> void:
+    var config = ConfigFile.new()
+    for device_name in controller_mappings:
+        for action in controller_mappings[device_name]:
+            config.set_value(device_name, action, controller_mappings[device_name][action])
+    config.save("user://arena_brawl_controls.cfg")
+
+func _load_controller_mappings() -> void:
+    var config = ConfigFile.new()
+    if config.load("user://arena_brawl_controls.cfg") != OK:
+        return
+    for section in config.get_sections():
+        controller_mappings[section] = {}
+        for key in config.get_section_keys(section):
+            controller_mappings[section][key] = config.get_value(section, key)
 
 func _active_players() -> Array:
     var output: Array = []
@@ -253,10 +453,21 @@ func _update_players(dt: float) -> void:
             if right.length() > 0:
                 aim = right.normalized()
                 firing = true
-            var action_fire = Input.is_joy_button_pressed(device, JOY_BUTTON_A) or Input.is_joy_button_pressed(device, JOY_BUTTON_X)
+            var device_name = Input.get_joy_name(device).to_lower()
+            var custom_move = _mapped_move_vector(device_name, device)
+            if custom_move.length() > 0.1:
+                move = custom_move
+            var mapped_fire = _mapped_action_pressed(device_name, device, "FIRE / LOCK AIM")
+            var action_fire = mapped_fire or Input.is_joy_button_pressed(device, JOY_BUTTON_A) or Input.is_joy_button_pressed(device, JOY_BUTTON_X)
             firing = firing or action_fire or Input.get_joy_axis(device, JOY_AXIS_TRIGGER_RIGHT) > 0.3
-            if firing and right.length() <= 0.1 and left.length() > 0.1:
-                aim = left.normalized()
+            # Single-stick arcade controls: begin firing in the current travel
+            # direction, then keep that direction locked while the button is
+            # held so movement and shooting remain independent like Smash TV.
+            if action_fire and not bool(p["fire_held"]):
+                p["locked_aim"] = move.normalized() if move.length() > 0.1 else p["aim"]
+            p["fire_held"] = action_fire
+            if action_fire and right.length() <= 0.1:
+                aim = p["locked_aim"]
         p["move"] = move
         p["aim"] = aim if aim.length() > 0.01 else Vector2.UP
         if move.length() > 0.01:
@@ -287,7 +498,8 @@ func _fire_player(p: Dictionary) -> void:
             "life": w["lifetime"], "pierce": w["piercing"] or p["buffs"].has("piercing"),
             "splash": w["splash_radius"], "chain": w["chain_targets"], "hit_ids": []})
     if w["id"] != "flame_projector" or int(game_time * 10) % 5 == 0:
-        audio.play_sfx(w["sound"], randf_range(0.96, 1.04))
+        if sfx_enabled:
+            audio.play_sfx(w["sound"], randf_range(0.96, 1.04))
     _effect("muzzle_plasma" if w["projectile"] == "plasma" else "muzzle_pulse", origin + p["aim"] * 34, 0.20, angle)
 
 func _hurt_player(p: Dictionary, amount: float) -> void:
@@ -767,8 +979,40 @@ func _hud() -> void:
         _label("FPS %d | ENEMIES %d | SHOTS %d" % [Engine.get_frames_per_second(), enemies.size(), shots.size()], Vector2(16, 1015), 13, Color(1, .85, .3))
     if demo_paused or game_over or victory:
         draw_rect(Rect2(0, 128, 768, 896), Color(.015, .025, .05, .86))
-        _label("CHAMPIONS!" if victory else "GAME OVER" if game_over else "PAUSED", Vector2(384, 450), 52, Color(1, .76, .22), true)
-        _label("START: RESUME    R: RESTART    ESC: EXIT", Vector2(384, 515), 20, Color.WHITE, true)
+        if demo_paused:
+            _draw_pause_menu()
+        else:
+            _label("CHAMPIONS!" if victory else "GAME OVER", Vector2(384, 450), 52, Color(1, .76, .22), true)
+            _label("START: RESUME    R: RESTART    ESC: EXIT", Vector2(384, 515), 20, Color.WHITE, true)
+
+func _draw_pause_menu() -> void:
+    var panel = Rect2(104, 180, 560, 760)
+    draw_rect(panel, Color(.008, .012, .04, .98))
+    draw_rect(panel, Color(.1, .85, 1), false, 4)
+    _label("ARENA BRAWL PAUSED", Vector2(384, 232), 32, Color(1, .78, .2), true)
+    if control_wizard_open:
+        _label("CONTROLLER SETUP", Vector2(384, 335), 28, Color(.2, .9, 1), true)
+        _label("PRESS: " + CONTROL_ACTIONS[control_wizard_step], Vector2(384, 430), 30, Color.WHITE, true)
+        _label("DEVICE: " + (control_wizard_name.to_upper() if not control_wizard_name.is_empty() else "WAITING..."), Vector2(384, 485), 17, Color(.6, .8, .95), true)
+        _label("HOLD ANY ALREADY-MAPPED BUTTON", Vector2(384, 600), 17, Color(1, .82, .3), true)
+        _label("FOR 1 SECOND TO SKIP THIS CONTROL", Vector2(384, 628), 17, Color(1, .82, .3), true)
+        _label("Mappings are saved only for Arena Brawl", Vector2(384, 770), 16, Color(.65, .7, .82), true)
+        return
+    for i in range(PAUSE_ITEMS.size()):
+        var row = Rect2(155, 270 + i * 67, 458, 50)
+        var selected = i == pause_selection
+        draw_rect(row, Color(.08, .48, .72, .5) if selected else Color(.025, .04, .1, .9))
+        draw_rect(row, Color(1, .82, .18) if selected else Color(.12, .32, .48), false, 2)
+        var label = PAUSE_ITEMS[i]
+        if i == 3: label = "MUSIC: " + ("ON" if music_enabled else "OFF")
+        elif i == 4: label = "SOUND EFFECTS: " + ("ON" if sfx_enabled else "OFF")
+        elif i == 5: label = "ANNOUNCER VOICE: " + ("ON" if voice_enabled else "OFF")
+        _label(label, row.position + Vector2(row.size.x / 2, 33), 20, Color.WHITE, true)
+    if controller_help_timer > 0:
+        _label("MOVE + HOLD FIRE = LOCK SHOT DIRECTION", Vector2(384, 852), 16, Color(.4, 1, .75), true)
+        _label("DUAL STICK: LEFT MOVES • RIGHT AIMS/FIRES", Vector2(384, 880), 16, Color(.4, 1, .75), true)
+    else:
+        _label("D-PAD / STICK: MOVE    A: SELECT    B: BACK", Vector2(384, 885), 15, Color(.58, .75, .9), true)
 
 func _make_crt() -> void:
     crt_layer = CanvasLayer.new()
