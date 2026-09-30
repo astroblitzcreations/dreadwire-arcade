@@ -44,13 +44,14 @@ var texture_seed: int = 0
 var shake: float = 0.0
 var next_enemy_uid: int = 1
 var exit_armed_until: float = 0.0
-const PAUSE_ITEMS = ["RESUME GAME", "RESTART GAME", "RECONFIGURE CONTROLS", "PLAYER 1 CONTROLLER", "PLAYER 2 CONTROLLER", "MUSIC", "SOUND EFFECTS", "VOICE", "CONTROLLER HELP", "EXIT TO ARCADE"]
+const PAUSE_ITEMS = ["RESUME GAME", "RESTART GAME", "RECONFIGURE PLAYER 1", "RECONFIGURE PLAYER 2", "PLAYER 1 CONTROLLER", "PLAYER 2 CONTROLLER", "MUSIC", "SOUND EFFECTS", "VOICE", "CONTROLLER HELP", "EXIT TO ARCADE"]
 const CONTROL_ACTIONS = ["MOVE UP", "MOVE DOWN", "MOVE LEFT", "MOVE RIGHT", "FIRE", "LOCK AIM", "PAUSE", "SELECT", "START"]
 var pause_selection := 0
 var control_wizard_open := false
 var control_wizard_step := 0
 var control_wizard_device := -1
 var control_wizard_name := ""
+var control_wizard_player := 0
 var control_wizard_hold_button := -1
 var control_wizard_hold_time := 0.0
 var controller_mappings: Dictionary = {}
@@ -265,31 +266,32 @@ func _activate_pause_item() -> void:
         1:
             restart()
             _set_pause(false)
-        2: _start_control_wizard()
-        3: _cycle_player_controller(0, 1)
-        4: _cycle_player_controller(1, 1)
-        5: _adjust_pause_setting(10)
+        2: _start_control_wizard(0)
+        3: _start_control_wizard(1)
+        4: _cycle_player_controller(0, 1)
+        5: _cycle_player_controller(1, 1)
         6: _adjust_pause_setting(10)
         7: _adjust_pause_setting(10)
-        8: controller_help_timer = 6.0
-        9: get_tree().quit()
+        8: _adjust_pause_setting(10)
+        9: controller_help_timer = 6.0
+        10: get_tree().quit()
     queue_redraw()
 
 func _adjust_pause_setting(amount: int) -> void:
     match pause_selection:
-        3: _cycle_player_controller(0, amount)
-        4: _cycle_player_controller(1, amount)
-        5:
+        4: _cycle_player_controller(0, amount)
+        5: _cycle_player_controller(1, amount)
+        6:
             music_volume = clampi(music_volume + amount, 0, 100)
             music_enabled = music_volume > 0
             audio.set_music_enabled(music_enabled)
             audio.set_music_volume(music_volume)
-        6:
+        7:
             sfx_volume = clampi(sfx_volume + amount, 0, 100)
             sfx_enabled = sfx_volume > 0
             audio.set_sfx_enabled(sfx_enabled)
             audio.set_sfx_volume(sfx_volume)
-        7:
+        8:
             voice_volume = clampi(voice_volume + amount, 0, 100)
             voice_enabled = voice_volume > 0
             audio.set_voice_enabled(voice_enabled)
@@ -298,26 +300,28 @@ func _adjust_pause_setting(amount: int) -> void:
     _save_controller_mappings()
     queue_redraw()
 
-func _start_control_wizard() -> void:
+func _start_control_wizard(player_id: int) -> void:
+    _refresh_player_controllers()
+    control_wizard_player = player_id
     control_wizard_open = true
     control_wizard_step = 0
-    control_wizard_device = -1
-    control_wizard_name = ""
+    control_wizard_device = _assigned_pad(player_id)
+    control_wizard_name = Input.get_joy_name(control_wizard_device).to_lower().strip_edges() if control_wizard_device >= 0 else ""
     control_wizard_hold_button = -1
     demo_paused = true
     queue_redraw()
 
 func _capture_control_event(event: InputEvent) -> bool:
     if event is InputEventJoypadMotion and absf(event.axis_value) >= 0.62:
-        control_wizard_device = event.device
-        control_wizard_name = Input.get_joy_name(event.device).to_lower().strip_edges()
+        if event.device != control_wizard_device:
+            return true
         _store_control_binding(CONTROL_ACTIONS[control_wizard_step], "axis,%d,%d" % [event.axis, 1 if event.axis_value > 0 else -1])
         _advance_control_wizard()
         return true
     if event is InputEventJoypadButton:
+        if event.device != control_wizard_device:
+            return true
         if event.pressed:
-            control_wizard_device = event.device
-            control_wizard_name = Input.get_joy_name(event.device).to_lower().strip_edges()
             control_wizard_hold_button = event.button_index
             control_wizard_hold_time = 0.0
         elif control_wizard_hold_button == event.button_index:
@@ -327,7 +331,7 @@ func _capture_control_event(event: InputEvent) -> bool:
             control_wizard_hold_button = -1
         return true
     if event is InputEventKey:
-        if event.pressed and not event.echo:
+        if control_wizard_device < 0 and event.pressed and not event.echo:
             control_wizard_device = -1
             control_wizard_name = "keyboard"
             _store_control_binding(CONTROL_ACTIONS[control_wizard_step], "key,%d" % event.physical_keycode)
@@ -1188,7 +1192,7 @@ func _draw_pause_menu() -> void:
     draw_rect(panel, Color(.1, .85, 1), false, 4)
     _label("ARENA BRAWL PAUSED", Vector2(384, 232), 32, Color(1, .78, .2), true)
     if control_wizard_open:
-        _label("CONTROLLER SETUP", Vector2(384, 335), 28, Color(.2, .9, 1), true)
+        _label("PLAYER %d CONTROLLER SETUP" % (control_wizard_player + 1), Vector2(384, 335), 28, Color(.2, .9, 1), true)
         _label("PRESS: " + CONTROL_ACTIONS[control_wizard_step], Vector2(384, 430), 30, Color.WHITE, true)
         _label("DEVICE: " + (control_wizard_name.to_upper() if not control_wizard_name.is_empty() else "WAITING..."), Vector2(384, 485), 17, Color(.6, .8, .95), true)
         _label("HOLD ANY ALREADY-MAPPED BUTTON", Vector2(384, 600), 17, Color(1, .82, .3), true)
@@ -1196,18 +1200,18 @@ func _draw_pause_menu() -> void:
         _label("Mappings are saved only for Arena Brawl", Vector2(384, 770), 16, Color(.65, .7, .82), true)
         return
     for i in range(PAUSE_ITEMS.size()):
-        var row = Rect2(155, 252 + i * 58, 458, 46)
+        var row = Rect2(155, 248 + i * 52, 458, 42)
         var selected = i == pause_selection
         draw_rect(row, Color(.08, .48, .72, .5) if selected else Color(.025, .04, .1, .9))
         draw_rect(row, Color(1, .82, .18) if selected else Color(.12, .32, .48), false, 2)
         var label = PAUSE_ITEMS[i]
-        if i == 3: label = "P1: " + (player_controllers[0] if not player_controllers[0].is_empty() else "UNASSIGNED")
-        elif i == 4: label = "P2: " + (player_controllers[1] if not player_controllers[1].is_empty() else "UNASSIGNED")
-        elif i == 5: label = "MUSIC VOLUME: %d%%" % music_volume
-        elif i == 6: label = "SOUND EFFECTS: %d%%" % sfx_volume
-        elif i == 7: label = "ANNOUNCER VOICE: %d%%" % voice_volume
+        if i == 4: label = "P1: " + (player_controllers[0] if not player_controllers[0].is_empty() else "UNASSIGNED")
+        elif i == 5: label = "P2: " + (player_controllers[1] if not player_controllers[1].is_empty() else "UNASSIGNED")
+        elif i == 6: label = "MUSIC VOLUME: %d%%" % music_volume
+        elif i == 7: label = "SOUND EFFECTS: %d%%" % sfx_volume
+        elif i == 8: label = "ANNOUNCER VOICE: %d%%" % voice_volume
         if label.length() > 36: label = label.substr(0, 33) + "..."
-        _label(label, row.position + Vector2(row.size.x / 2, 33), 20, Color.WHITE, true)
+        _label(label, row.position + Vector2(row.size.x / 2, 29), 19, Color.WHITE, true)
     if controller_help_timer > 0:
         _label("MOVE + HOLD FIRE = LOCK SHOT DIRECTION", Vector2(384, 852), 16, Color(.4, 1, .75), true)
         _label("DUAL STICK: LEFT MOVES • RIGHT AIMS/FIRES", Vector2(384, 880), 16, Color(.4, 1, .75), true)
