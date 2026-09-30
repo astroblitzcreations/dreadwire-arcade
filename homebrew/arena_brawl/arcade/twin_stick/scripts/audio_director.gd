@@ -11,6 +11,8 @@ var music_player: AudioStreamPlayer
 var voice_player: AudioStreamPlayer
 var voice_delay: float = 0.0
 var last_voice: String = ""
+var voice_queue: Array[AudioStream] = []
+var voice_gap: float = 0.0
 var music_muted: bool = false
 var sfx_muted: bool = false
 var voice_muted: bool = false
@@ -59,7 +61,7 @@ func _ready() -> void:
     var smash_voice = {
         "game_start": ["voice_good_luck.wav", "voice_go.wav", "voice_lets_go.wav"],
         "wave_start": ["voice_contestant_1.wav", "voice_contestant_2.wav"],
-        "pickup": ["voice_big_money.wav", "voice_big_prizes.wav"],
+        "pickup": ["voice_big_money.wav", "voice_big_prizes.wav", "voice_i_love_it.wav"],
         "big_kill": ["voice_total_carnage.wav", "voice_yeah.wav"],
         "player_death": ["voice_aaargh.wav", "voice_urk.wav"],
         "jackpot": ["voice_bingo.wav", "voice_dollar.wav"],
@@ -72,18 +74,18 @@ func _ready() -> void:
         voice_map[category] = []
         for filename in smash_voice[category]:
             voice_map[category].append({"id": filename, "path": SMASH + filename, "cooldown_seconds": 4.0})
-    for i in range(20):
+    for i in range(32):
         var player = AudioStreamPlayer.new()
         player.bus = "BrawlSFX"
         add_child(player)
         pool.append(player)
     music_player = AudioStreamPlayer.new()
     music_player.bus = "BrawlMusic"
-    music_player.volume_db = -9.0
+    music_player.volume_db = -12.0
     add_child(music_player)
     voice_player = AudioStreamPlayer.new()
     voice_player.bus = "BrawlVoice"
-    voice_player.volume_db = -6.0
+    voice_player.volume_db = 1.5
     add_child(voice_player)
 
 func _json(id: String) -> Dictionary:
@@ -101,13 +103,18 @@ func _stream(path: String) -> AudioStream:
 
 func _process(delta: float) -> void:
     voice_delay = maxf(0.0, voice_delay - delta)
+    voice_gap = maxf(0.0, voice_gap - delta)
+    if not voice_player.playing and voice_gap <= 0.0 and not voice_queue.is_empty():
+        voice_player.stream = voice_queue.pop_front()
+        voice_player.play()
+        voice_gap = 0.12
 
 func play_sfx(id: String, pitch: float = 1.0) -> void:
     if sfx_muted or not sound_map.has(id):
         return
     var now = Time.get_ticks_msec()
     # Per-effect voice limits stop overlapping automatic-fire samples from swamping the mix.
-    if now - int(recent.get(id, -10000)) < (95 if id.contains("fire") else 45):
+    if now - int(recent.get(id, -10000)) < (125 if id.contains("fire") else 45):
         return
     recent[id] = now
     var entry = sound_map[id]
@@ -118,7 +125,7 @@ func play_sfx(id: String, pitch: float = 1.0) -> void:
     for player in pool:
         if not player.playing:
             player.stream = stream
-            player.volume_db = float(entry.get("volume_db", -8))
+            player.volume_db = float(entry.get("volume_db", -8)) + (7.0 if id.contains("fire") or id.contains("laser") else 4.0)
             if id == "flame_loop":
                 player.volume_db = -18.0
             player.pitch_scale = clampf(pitch, 0.8, 1.2)
@@ -144,6 +151,19 @@ func announce(category: String, priority: bool = false) -> void:
     voice_player.play()
     last_voice = chosen["id"]
     voice_delay = float(chosen.get("cooldown_seconds", 4.0))
+
+func announce_sequence(paths: Array[String], priority: bool = true) -> void:
+    if voice_muted:
+        return
+    if priority:
+        voice_player.stop()
+        voice_queue.clear()
+    for path in paths:
+        var stream = _stream(SMASH + path)
+        if stream != null:
+            voice_queue.append(stream)
+    voice_delay = 0.0
+    voice_gap = 0.0
 
 func play_music(id: String) -> void:
     if not music_map.has(id):
@@ -177,6 +197,7 @@ func set_voice_enabled(enabled: bool) -> void:
     voice_muted = not enabled
     if voice_muted:
         voice_player.stop()
+        voice_queue.clear()
 
 func set_music_volume(percent: int) -> void:
     _set_bus_volume("BrawlMusic", percent)
@@ -202,3 +223,4 @@ func stop_all() -> void:
         music_player.stop()
     if is_instance_valid(voice_player):
         voice_player.stop()
+    voice_queue.clear()

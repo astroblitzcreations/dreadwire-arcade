@@ -62,6 +62,12 @@ var music_volume := 80
 var sfx_volume := 85
 var voice_volume := 90
 var controller_help_timer := 0.0
+var difficulty := "normal"
+var enemy_health_scale := 1.0
+var enemy_speed_scale := 0.88
+var enemy_fire_scale := 1.18
+var enemy_damage_scale := 0.85
+var enemy_count_scale := 0.9
 
 func _ready() -> void:
     texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -80,6 +86,7 @@ func _ready() -> void:
     waves = library.data("waves")
     audio = AUDIO.new()
     add_child(audio)
+    _load_difficulty()
     _load_controller_mappings()
     _make_crt()
     restart()
@@ -102,7 +109,7 @@ func restart() -> void:
     if audio != null:
         audio.stop_all()
         audio.play_music("arena_combat_01")
-        audio.announce("game_start", true)
+        audio.announce_sequence(["voice_contestant_1.wav", "voice_good_luck.wav", "voice_youll_need_it.wav"])
     for i in range(weapon_ids.size()):
         drops.append({"kind": "weapon", "id": weapon_ids[i], "pos": Vector2(155 + (i % 5) * 115, 820 + int(i / 5) * 72), "life": 40.0})
 
@@ -439,6 +446,34 @@ func _active_players() -> Array:
             output.append(p)
     return output
 
+func _load_difficulty() -> void:
+    var config = ConfigFile.new()
+    if config.load("user://arena_brawl_game.cfg") == OK:
+        difficulty = String(config.get_value("game", "difficulty", "normal"))
+    match difficulty:
+        "easy":
+            enemy_health_scale = 0.78
+            enemy_speed_scale = 0.72
+            enemy_fire_scale = 1.42
+            enemy_damage_scale = 0.65
+            enemy_count_scale = 0.72
+        "afraid":
+            enemy_health_scale = 0.58
+            enemy_speed_scale = 0.58
+            enemy_fire_scale = 1.75
+            enemy_damage_scale = 0.45
+            enemy_count_scale = 0.55
+
+func _ordered_pads() -> Array:
+    var pads = Input.get_connected_joypads()
+    pads.sort_custom(func(a, b):
+        var an = Input.get_joy_name(a).to_lower()
+        var bn = Input.get_joy_name(b).to_lower()
+        var arank = 0 if "xbox" in an or "x-box" in an else 2 if "dragonrise" in an else 1
+        var brank = 0 if "xbox" in bn or "x-box" in bn else 2 if "dragonrise" in bn else 1
+        return arank < brank)
+    return pads
+
 func _nearest_player(point: Vector2) -> Dictionary:
     var result: Dictionary = {}
     var best = INF
@@ -458,7 +493,7 @@ func _direction(vector: Vector2) -> String:
     return DIRS[index]
 
 func _update_players(dt: float) -> void:
-    var pads = Input.get_connected_joypads()
+    var pads = _ordered_pads()
     for p in players:
         if p["id"] == 1 and not p2_enabled:
             continue
@@ -479,6 +514,7 @@ func _update_players(dt: float) -> void:
                 p["invuln"] = 3.0
                 p["pos"] = Vector2(280 + p["id"] * 208, 545)
                 audio.play_sfx("player_respawn")
+                audio.announce_sequence(["voice_contestant_1.wav" if p["id"] == 0 else "voice_contestant_2.wav", "voice_go.wav"])
                 _effect("enemy_spawn", p["pos"], 1.0)
             continue
         var prefix = "brawl_p1_" if p["id"] == 0 else "brawl_p2_"
@@ -620,7 +656,7 @@ func _begin_wave() -> void:
     hazards.clear()
     var doors = [Vector2(384, 180), Vector2(384, 940), Vector2(58, 555), Vector2(710, 555)]
     var pool: Array = wave["enemy_pool"]
-    var count = int(wave["count"])
+    var count = maxi(1, roundi(int(wave["count"]) * enemy_count_scale))
     if not str(wave["boss"]).is_empty():
         count = maxi(4, count / 3)
         _spawn_enemy(wave["boss"], Vector2(384, 260), true)
@@ -643,9 +679,14 @@ func _spawn_enemy(id: String, point: Vector2, is_boss: bool) -> void:
     if enemies.size() >= 120:
         return
     var definition: Dictionary = boss_defs[id] if is_boss else enemy_defs[id]
+    var health = float(definition["health"]) * enemy_health_scale
+    var speed = float(definition["speed"]) * enemy_speed_scale
+    if is_boss and id == "enforcer":
+        health *= 0.78
+        speed *= 0.78
     enemies.append({"id": id, "uid": next_enemy_uid, "pos": _clamp_room(point, 28), "vel": Vector2.ZERO,
-        "boss": is_boss, "hp": float(definition["health"]), "max_hp": float(definition["health"]),
-        "speed": float(definition["speed"]), "radius": float(definition["radius"]), "dir": "s",
+        "boss": is_boss, "hp": health, "max_hp": health,
+        "speed": speed, "radius": float(definition["radius"]), "dir": "s",
         "timer": randf_range(1.0, 2.2), "flash": 0.0, "attack_flash": 0.0, "spawn": 0.7,
         "attack_index": 0, "score": definition["score"], "anim_time": randf() * 2})
     next_enemy_uid += 1
@@ -656,7 +697,7 @@ func _enemy_shot(enemy: Dictionary, direction: Vector2, kind: String = "enemy_bo
         return
     var origin: Vector2 = enemy["pos"] + Vector2(0, -15)
     shots.append({"pos": origin, "old": origin, "vel": direction * speed, "owner": -1,
-        "kind": kind, "damage": 14.0 if not enemy["boss"] else 20.0,
+        "kind": kind, "damage": (14.0 if not enemy["boss"] else 20.0) * enemy_damage_scale,
         "life": 5.0, "pierce": false, "splash": 0.0, "chain": 0, "hit_ids": []})
 
 func _update_enemies(dt: float) -> void:
@@ -694,17 +735,17 @@ func _update_enemies(dt: float) -> void:
         if enemy["boss"]:
             var attack = enemy["attack_index"] % 3
             enemy["attack_index"] += 1
-            enemy["timer"] = 1.4 if enemy["hp"] < enemy["max_hp"] * 0.4 else 2.2
+            enemy["timer"] = (1.7 if enemy["hp"] < enemy["max_hp"] * 0.4 else 2.6) * enemy_fire_scale
             if enemy["id"] == "enforcer":
                 if attack == 0:
-                    for j in range(11):
-                        _enemy_shot(enemy, aim.rotated((j - 5) * 0.13), "enemy_bolt", 290)
+                    for j in range(7):
+                        _enemy_shot(enemy, aim.rotated((j - 3) * 0.16), "enemy_bolt", 245)
                 elif attack == 1:
                     _spawn_hazard("crusher", target["pos"])
                     enemy["pos"] = _clamp_room(enemy["pos"] + aim * 65, 48)
                 else:
-                    for j in range(16):
-                        _enemy_shot(enemy, Vector2.from_angle(j * TAU / 16), "enemy_bolt", 215)
+                    for j in range(10):
+                        _enemy_shot(enemy, Vector2.from_angle(j * TAU / 10), "enemy_bolt", 185)
             elif enemy["id"] == "prize_crusher":
                 for j in range(8):
                     _enemy_shot(enemy, Vector2.from_angle(j * TAU / 8 + game_time), "rocket", 175)
@@ -840,7 +881,7 @@ func _update_drops(dt: float) -> void:
                     "prize_box":
                         p["score"] += 10000
                         p["weapon"] = weapon_ids[randi() % weapon_ids.size()]
-                        audio.announce("jackpot")
+                        audio.announce_sequence(["voice_big_money.wav", "voice_big_prizes.wav", "voice_i_love_it.wav"])
                     _: p["buffs"][id] = 12.0
                 audio.play_sfx("extra_life" if id == "extra_life" else "health_pickup" if id == "health" else "credits_pickup")
                 _popup(id.replace("_", " ").to_upper(), p["pos"] + Vector2(0, -48), Color(1, .75, .25))

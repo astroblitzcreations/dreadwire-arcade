@@ -13,17 +13,17 @@ func _ready() -> void:
     logo.position = Vector2(120, 170)
     logo.mouse_filter = Control.MOUSE_FILTER_IGNORE
     add_child(logo)
-    for i in range(3):
+    var modes = ["NORMAL MODE", "EASY MODE", "AFRAID MODE", "QUIT"]
+    for i in range(modes.size()):
         var button = Button.new()
-        button.text = ["ENTER THE ARENA", "BROWSE ANIMATIONS", "QUIT"][i]
-        button.position = Vector2(465, 405 + i * 72)
+        button.text = modes[i]
+        button.position = Vector2(465, 365 + i * 68)
         button.size = Vector2(350, 56)
         button.add_theme_font_size_override("font_size", 22)
         add_child(button)
-        if i == 0:
-            button.pressed.connect(func(): get_tree().change_scene_to_file(BASE + "scenes/TwinStickTest.tscn"))
-        elif i == 1:
-            button.pressed.connect(func(): get_tree().change_scene_to_file(BASE + "scenes/AssetBrowser.tscn"))
+        if i < 3:
+            var selected_mode: String = ["normal", "easy", "afraid"][i]
+            button.pressed.connect(func(): _start_mode(selected_mode))
         else:
             button.pressed.connect(func(): get_tree().quit())
     music = AudioStreamPlayer.new()
@@ -34,3 +34,9 @@ func _ready() -> void:
     music.volume_db = -16
     add_child(music)
     music.play()
+
+func _start_mode(mode: String) -> void:
+    var config = ConfigFile.new()
+    config.set_value("game", "difficulty", mode)
+    config.save("user://arena_brawl_game.cfg")
+    get_tree().change_scene_to_file(BASE + "scenes/TwinStickTest.tscn")
