@@ -27,6 +27,12 @@ install -d -m 0755 \
   "${ES_REAL}"
 install -m 0755 "${KIT}/homebrew/void_run/build/void-run.arm64" \
   "${ROOT}/opt/dreadwire/void-run/void-run.arm64"
+install -m 0755 "${KIT}/homebrew/void_run/cabinet-input-bridge.py" \
+  "${ROOT}/opt/dreadwire/void-run/cabinet-input-bridge.py"
+install -m 0755 "${KIT}/homebrew/void_run/root-xclient.sh" \
+  "${ROOT}/opt/dreadwire/void-run/root-xclient.sh"
+install -m 0755 "${KIT}/homebrew/void_run/xclient.sh" \
+  "${ROOT}/opt/dreadwire/void-run/xclient.sh"
 install -m 0755 "${KIT}/homebrew/launchers/Void Run.sh" \
   "${ROOT}/home/pi/RetroPie/roms/homebrew/Void Run.sh"
 install -m 0755 "${KIT}/homebrew/tools/install-python-tools.sh" \

@@ -27,6 +27,9 @@ apt-get install -y --no-install-recommends \
 
 install -d -m 0755 "${APP_DIR}" "${ROM_DIR}" "${ES_DIR}"
 install -m 0755 "${VOID_RUN_SOURCE}" "${APP_DIR}/void-run.arm64"
+install -m 0755 "${KIT_DIR}/homebrew/void_run/cabinet-input-bridge.py" "${APP_DIR}/cabinet-input-bridge.py"
+install -m 0755 "${KIT_DIR}/homebrew/void_run/root-xclient.sh" "${APP_DIR}/root-xclient.sh"
+install -m 0755 "${KIT_DIR}/homebrew/void_run/xclient.sh" "${APP_DIR}/xclient.sh"
 install -m 0755 "${KIT_DIR}/homebrew/launchers/Void Run.sh" \
   "${ROM_DIR}/Void Run.sh"
 
@@ -39,4 +42,3 @@ chown -R "${ARCADE_USER}:${ARCADE_USER}" "${ROM_DIR}" "${ES_DIR}"
 
 echo "Installed Dreadwire Crew / Homebrew and Void Run."
 echo "Restart EmulationStation, then open the HOMEBREW system."
-

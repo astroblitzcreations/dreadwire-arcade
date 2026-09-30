@@ -242,7 +242,10 @@ class Jukebox:
                         "pgrep", "-f",
                         "/opt/retropie/supplementary/runcommand/runcommand.sh|"
                         "/opt/retropie/emulators/|"
-                        "/opt/dreadwire/void-run/void-run.arm64",
+                        "/opt/dreadwire/void-run/void-run.arm64|"
+                        "/opt/dreadwire/arena-brawl/arena-brawl.arm64|"
+                        "/opt/dreadwire/speedbike/speedbike.arm64|"
+                        "/opt/dreadwire/goldmaze/goldmaze.arm64",
                     ],
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
