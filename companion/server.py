@@ -29,6 +29,7 @@ CONFIG = ROOT / "config.json"
 TOKENS: dict[str, dict] = {}
 STARTED = time.monotonic()
 REMOTE_INPUT_ENABLED = os.environ.get("DREADWIRE_REMOTE_INPUT", "1") == "1"
+MIRROR_PHYSICAL_INPUT = os.environ.get("DREADWIRE_MIRROR_PHYSICAL", "0") == "1"
 STATE_DIR = Path("/var/lib/dreadwire-companion")
 BATTERY_STATE = STATE_DIR / "battery.json"
 USER_DB = STATE_DIR / "users.db"
@@ -44,7 +45,7 @@ PARTY_QUEUE = []
 PARTY_CHAT = []
 GAME_SELECTION = {}
 SCREEN_LOCK = asyncio.Lock()
-PACKAGE_VERSION = "1.1.2"
+PACKAGE_VERSION = "1.1.3"
 UPDATE_CONFIG = Path("/etc/dreadwire/update.json")
 
 UPLOADS = {
@@ -374,7 +375,7 @@ async def mirror_physical_controller(path, player):
     except (OSError, asyncio.CancelledError): pass
 
 async def physical_controller_context(app):
-    if not REMOTE_INPUT_ENABLED:
+    if not REMOTE_INPUT_ENABLED or not MIRROR_PHYSICAL_INPUT:
         yield
         return
     tasks = {}
@@ -1114,7 +1115,9 @@ async def launch_sequence(selection):
     run("/usr/local/bin/dreadwire-musicctl.py","gamepause")
     run("systemctl","stop","getty@tty1.service")
     await asyncio.sleep(1)
-    process=subprocess.Popen(["openvt","-c","1","-f","-s","-w","--","runuser","-u","pi","--",
+    game_unit="dreadwire-game-"+secrets.token_hex(5)
+    process=subprocess.Popen(["systemd-run","--quiet","--wait","--collect","--unit",game_unit,
+                              "openvt","-c","1","-f","-s","-w","--","runuser","-u","pi","--",
                               "/opt/retropie/supplementary/runcommand/runcommand.sh","0","_SYS_",system,str(rom)],
                              stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,start_new_session=True)
     await asyncio.sleep(5)

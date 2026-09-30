@@ -1,9 +1,9 @@
-const C = "dreadwire-v21";
+const C = "dreadwire-v22";
 const A = [
   "/",
-  "/static/app.css?v=21",
+  "/static/app.css?v=22",
   "/static/controller-layout.css?v=15",
-  "/static/app.js?v=21",
+  "/static/app.js?v=22",
   "/static/icon.svg",
 ];
 self.addEventListener("install", (event) =>

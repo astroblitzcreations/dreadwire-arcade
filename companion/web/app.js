@@ -1020,6 +1020,7 @@ async function loadUsers() {
 $("#loadUsers").onclick = loadUsers;
 let partySocket = null;
 let selectedGame = null;
+let remoteHandoffId = null;
 function drawGameChoice(choice) {
   selectedGame = choice || null;
   $("#gameChoice").hidden = !choice;
@@ -1037,6 +1038,14 @@ function drawParty(state) {
   document.body.dataset.arcadeMode = state.mode || "classic";
   $("#arcadeModeLabel").textContent = (state.mode || "classic").toUpperCase();
   drawGameChoice(state.selected_game);
+  const choice = state.selected_game;
+  if (choice && choice.status !== "selected" && remoteHandoffId !== choice.id) {
+    remoteHandoffId = choice.id;
+    toast(`Launching ${choice.title} — opening Remote Play`);
+    document.querySelector('[data-tab="remote"]')?.click();
+    scheduleRemoteResync(1200);
+  }
+  if (!choice) remoteHandoffId = null;
   const invited = state.invited;
   const mine = invited && invited.name === session?.name;
   $("#turnInvite").hidden = !mine;
