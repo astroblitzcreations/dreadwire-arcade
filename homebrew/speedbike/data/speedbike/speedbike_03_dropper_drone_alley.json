@@ -1,0 +1,30 @@
+{
+  "stage_id": "speedbike_03_dropper_drone_alley",
+  "display_name": "Dropper Drone Alley",
+  "music": "speedbike_scrap",
+  "background": "badlands_ridge",
+  "base_speed": 760,
+  "speed_ramp": 9.6,
+  "duration": 32,
+  "patterns": [
+    {"t": 0.8, "kind": "warning", "message": "DROPPER DRONE ALLEY"},
+    {"t": 2.8, "kind": "dropper_drone", "lane": 1, "drop_shape": "center", "barrier_width": 102},
+    {"t": 4.8, "kind": "dropper_drone", "lane": 3, "drop_shape": "low", "drop_lane": 3},
+    {"t": 6.3, "kind": "drone", "lane": 2, "enemy_type": "sheet_interceptor"},
+    {"t": 7.6, "kind": "checkpoint"},
+    {"t": 9.0, "kind": "powerup_carrier", "lane": 1},
+    {"t": 10.2, "kind": "dropper_drone", "lane": 2, "drop_shape": "center_gap", "gap_lane": 1, "barrier_width": 110},
+    {"t": 11.8, "kind": "pit", "width": 126, "required_jump_height": 38},
+    {"t": 13.1, "kind": "dropper_drone", "lane": 4, "drop_shape": "center_gap", "gap_lane": 3, "barrier_width": 110},
+    {"t": 14.8, "kind": "drone", "lane": 0, "enemy_type": "rifle_flyer"},
+    {"t": 16.2, "kind": "checkpoint"},
+    {"t": 17.6, "kind": "dropper_drone", "lane": 1, "enemy_type": "sheet_dropper", "drop_shape": "center", "barrier_width": 114},
+    {"t": 18.8, "kind": "dropper_drone", "lane": 3, "drop_shape": "center", "barrier_width": 114},
+    {"t": 20.2, "kind": "pit", "width": 122, "required_jump_height": 36},
+    {"t": 21.5, "kind": "low_barricade", "lane": 2, "width": 120},
+    {"t": 22.8, "kind": "powerup_carrier", "lane": 4},
+    {"t": 24.4, "kind": "checkpoint"},
+    {"t": 25.8, "kind": "drone", "lane": 2, "enemy_type": "interceptor"},
+    {"t": 26.8, "kind": "dropper_drone", "lane": 2, "drop_shape": "center_gap", "gap_lane": 2, "barrier_width": 118}
+  ]
+}

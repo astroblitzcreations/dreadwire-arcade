@@ -1,0 +1,9 @@
+[Unit]
+Description=Dreadwire Arcade signed release updater
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/dreadwire-update.py
+Nice=10

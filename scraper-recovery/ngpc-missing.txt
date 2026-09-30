@@ -1,0 +1,10 @@
+./01.SNK VS CAPCOM top combat.ngc
+./04.SVC shock card fighter 1 SNK.ngc
+./17.Pac-man.ngc
+./18.Alloy warhead 1 mission.ngc
+./24. The king of fighters R - 2.ngc
+./27.Unlimited healing.ngc
+./37.Outside the royal order of knights.ngc
+./43.Professional wrestling.ngc
+./45.Join puzzles.ngc
+./50.Dark weapon beast nightmare.ngc

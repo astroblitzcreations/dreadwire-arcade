@@ -1,0 +1,147 @@
+<?xml version='1.0' encoding='utf-8'?>
+<gameList>
+  <game>
+    <path>./5 in 1 Sega Arcade Classics.m3u</path>
+    <name>5 in 1 Sega Arcade Classics</name>
+    <thumbnail />
+    <image>./media/fallback/9a13ec25cad8.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./Dragon's Lair.m3u</path>
+    <name>Dragon's Lair</name>
+    <thumbnail />
+    <image>./media/fallback/0dd9ddf8907c.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./Dune.m3u</path>
+    <name>Dune</name>
+    <thumbnail />
+    <image>./media/fallback/721b6ade77f6.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./Earthworm Jim Special Edition.m3u</path>
+    <name>Earthworm Jim Special Edition</name>
+    <thumbnail />
+    <image>./media/fallback/25985f3ee3b5.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./Ecco - The Tides of Time.m3u</path>
+    <name>Ecco - The Tides of Time</name>
+    <thumbnail />
+    <image>./media/fallback/03944716e254.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./NBA Jam.m3u</path>
+    <name>NBA Jam</name>
+    <thumbnail />
+    <image>./media/fallback/ea5882b86313.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./Night Trap.m3u</path>
+    <name>Night Trap</name>
+    <thumbnail />
+    <image>./media/fallback/012c7fabd920.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./Samurai Shodown.m3u</path>
+    <name>Samurai Shodown</name>
+    <thumbnail />
+    <image>./media/fallback/223f290ac62f.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./Sonic CD.m3u</path>
+    <name>Sonic CD</name>
+    <thumbnail />
+    <image>./media/fallback/64714ce59cf3.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+</gameList>

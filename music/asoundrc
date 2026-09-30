@@ -1,0 +1,28 @@
+pcm.arcademix_raw {
+    type dmix
+    ipc_key 314159
+    ipc_perm 0666
+    slave {
+        pcm "hw:CARD=vc4hdmi0,DEV=0"
+        format S16_LE
+        rate 48000
+        channels 2
+        period_size 1024
+        buffer_size 8192
+    }
+}
+
+pcm.arcademix {
+    type plug
+    slave.pcm "arcademix_raw"
+}
+
+pcm.!default {
+    type plug
+    slave.pcm "hdmi:CARD=vc4hdmi0,DEV=0"
+}
+
+ctl.!default {
+    type hw
+    card vc4hdmi0
+}

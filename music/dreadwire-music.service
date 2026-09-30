@@ -1,0 +1,17 @@
+[Unit]
+Description=Dreadwire Arcade random-looping jukebox
+After=sound.target
+
+[Service]
+Type=simple
+User=pi
+RuntimeDirectory=dreadwire-music
+RuntimeDirectoryMode=0755
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+Environment=PULSE_SERVER=unix:/run/user/1000/pulse/native
+ExecStart=/usr/local/bin/dreadwire-musicd.py
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

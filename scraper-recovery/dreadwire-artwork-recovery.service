@@ -1,0 +1,16 @@
+[Unit]
+Description=Dreadwire arcade artwork recovery
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=pi
+Nice=15
+CPUQuota=12%
+IOSchedulingClass=idle
+ExecCondition=/bin/sh -c '! grep -q "^complete " /home/pi/artwork-recovery.status 2>/dev/null'
+ExecStart=/home/pi/recover-artwork.sh
+
+[Install]
+WantedBy=multi-user.target

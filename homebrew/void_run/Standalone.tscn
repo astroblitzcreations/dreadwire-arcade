@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://standalone.gd" id="1_wrapper"]
+[ext_resource type="PackedScene" path="res://VoidRunGame.tscn" id="2_game"]
+
+[node name="VoidRunStandalone" type="Node"]
+script = ExtResource("1_wrapper")
+game_scene = ExtResource("2_game")
+

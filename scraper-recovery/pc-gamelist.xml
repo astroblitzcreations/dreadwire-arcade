@@ -1,0 +1,115 @@
+<?xml version='1.0' encoding='utf-8'?>
+<gameList>
+  <game>
+    <path>./Command and Conquer (1995)(Westwood Studios).zip</path>
+    <name>Command and Conquer (1995)(Westwood Studios)</name>
+    <thumbnail />
+    <image>./media/fallback/6afca9dfce1b.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./Command and Conquer Red Alert (1996)(Westwood Studios).zip</path>
+    <name>Command and Conquer Red Alert (1996)(Westwood Studios)</name>
+    <thumbnail />
+    <image>./media/fallback/ad72211d7026.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./Duke Nukem 3D (1996)(3D Realms).zip</path>
+    <name>Duke Nukem 3D (1996)(3D Realms)</name>
+    <thumbnail />
+    <image>./media/fallback/a0319df991d5.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./Warcraft 2 Beyond The Dark Portal (1996)(Blizzard Entertainment).zip</path>
+    <name>Warcraft 2 Beyond The Dark Portal (1996)(Blizzard Entertainment)</name>
+    <thumbnail />
+    <image>./media/fallback/3c6edb57b8d0.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./Warcraft 2 Tides Of Darkness (1995)(Blizzard Entertainment).zip</path>
+    <name>Warcraft 2 Tides Of Darkness (1995)(Blizzard Entertainment)</name>
+    <thumbnail />
+    <image>./media/fallback/8353601cc19d.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./Warcraft Orcs And Humans 1.2 (1994)(Blizzard Entertainment).zip</path>
+    <name>Warcraft Orcs And Humans 1.2 (1994)(Blizzard Entertainment)</name>
+    <thumbnail />
+    <image>./media/fallback/b5371f6c015b.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./Wolfenstein 3d (1992)(Activision Publishing Inc).zip</path>
+    <name>Wolfenstein 3d (1992)(Activision Publishing Inc)</name>
+    <thumbnail />
+    <image>./media/fallback/5b064e3c91eb.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+</gameList>

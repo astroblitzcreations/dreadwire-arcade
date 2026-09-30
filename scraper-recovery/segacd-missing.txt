@@ -1,0 +1,9 @@
+./5 in 1 Sega Arcade Classics.m3u
+./Dragon's Lair.m3u
+./Dune.m3u
+./Earthworm Jim Special Edition.m3u
+./Ecco - The Tides of Time.m3u
+./NBA Jam.m3u
+./Night Trap.m3u
+./Samurai Shodown.m3u
+./Sonic CD.m3u

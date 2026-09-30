@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/sprites/speedbike/obstacles/ramp_triple_boost.png" id="1_triple_ramp"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_triple_ramp"]
+size = Vector2(392, 96)
+
+[node name="SpeedbikeTripleBoostRamp" type="Area2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_triple_ramp")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_triple_ramp")

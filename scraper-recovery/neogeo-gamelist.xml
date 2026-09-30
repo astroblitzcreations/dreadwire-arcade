@@ -1,0 +1,227 @@
+<?xml version='1.0' encoding='utf-8'?>
+<gameList>
+  <game>
+    <path>./aof.zip</path>
+    <name>aof</name>
+    <thumbnail />
+    <image>./media/fallback/74804ecae671.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./aof2.zip</path>
+    <name>aof2</name>
+    <thumbnail />
+    <image>./media/fallback/33f22167c2f8.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./aof3.zip</path>
+    <name>Art of Fighting 3: The Path of the Warrior</name>
+    <thumbnail />
+    <image>./media/screenshots/aof3.png</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate>19960101T000000</releasedate>
+    <developer>SNK</developer>
+    <publisher>SNK</publisher>
+    <genre>Arcade, Beatemup, Fighter, Horizontal, Sideways</genre>
+    <players>2</players>
+  </game>
+  <game>
+    <path>./kod.zip</path>
+    <name>King of Dragons, The</name>
+    <thumbnail />
+    <image>./media/screenshots/kod.png</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate>19910101T000000</releasedate>
+    <developer>Capcom</developer>
+    <publisher>Capcom</publisher>
+    <genre>Arcade, Beatemup, Fantasy, Fighter, Horizontal, Sideways</genre>
+    <players>3</players>
+  </game>
+  <game>
+    <path>./kof94.zip</path>
+    <name>King of Fighters '94, The</name>
+    <thumbnail />
+    <image>./media/screenshots/kof94.png</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate>19940101T000000</releasedate>
+    <developer>SNK</developer>
+    <publisher>SNK</publisher>
+    <genre>Action, Arcade, Beatemup, Horizontal, Neogeo, Sideways</genre>
+    <players>2</players>
+  </game>
+  <game>
+    <path>./kof95.zip</path>
+    <name>King of Fighters '95, The</name>
+    <thumbnail />
+    <image>./media/screenshots/kof95.png</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate>19950101T000000</releasedate>
+    <developer>SNK</developer>
+    <publisher>SNK</publisher>
+    <genre>Action, Arcade, Beatemup, Horizontal, Neogeo, Sideways</genre>
+    <players>2</players>
+  </game>
+  <game>
+    <path>./kof96.zip</path>
+    <name>King of Fighters '96, The</name>
+    <thumbnail />
+    <image>./media/screenshots/kof96.png</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate>19960101T000000</releasedate>
+    <developer>SNK</developer>
+    <publisher>SNK</publisher>
+    <genre>Action, Arcade, Beatemup, Horizontal, Neogeo, Sideways</genre>
+    <players>2</players>
+  </game>
+  <game>
+    <path>./kof97.zip</path>
+    <name>King of Fighters '97, The</name>
+    <thumbnail />
+    <image>./media/screenshots/kof97.png</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate>19970101T000000</releasedate>
+    <developer>SNK</developer>
+    <publisher>SNK</publisher>
+    <genre>Action, Arcade, Beatemup, Horizontal, Neogeo, Sideways</genre>
+    <players>2</players>
+  </game>
+  <game>
+    <path>./kof99.zip</path>
+    <name>King of Fighters '99: Millenium Battle, The</name>
+    <thumbnail />
+    <image>./media/screenshots/kof99.png</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate>19990101T000000</releasedate>
+    <developer>SNK</developer>
+    <publisher>SNK</publisher>
+    <genre>Action, Arcade, Beatemup, Horizontal, Neogeo, Sideways</genre>
+    <players>2</players>
+  </game>
+  <game>
+    <path>./kotm.zip</path>
+    <name>King of the Monsters</name>
+    <thumbnail />
+    <image>./media/screenshots/kotm.png</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate>19910101T000000</releasedate>
+    <developer>SNK</developer>
+    <publisher>SNK</publisher>
+    <genre>Action, Arcade, Beatemup, Fighting, Horizontal, Sideways</genre>
+    <players>2</players>
+  </game>
+  <game>
+    <path>./kotm2.zip</path>
+    <name>King of the Monsters 2: The Next Thing</name>
+    <thumbnail />
+    <image>./media/screenshots/kotm2.png</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate>19920101T000000</releasedate>
+    <developer>SNK</developer>
+    <publisher>SNK</publisher>
+    <genre>Action, Arcade, Beatemup, Fighting, Horizontal, Sideways</genre>
+    <players>2</players>
+  </game>
+  <game>
+    <path>./kof98.zip</path>
+    <name>kof98</name>
+    <thumbnail />
+    <image>./media/fallback/c6d3acbe8550.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./mslug.zip</path>
+    <name>Metal Slug: Super Vehicle-001</name>
+    <thumbnail />
+    <image>./media/screenshots/mslug.png</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate>19960101T000000</releasedate>
+    <developer>Nazca Corporation</developer>
+    <publisher>SNK / Nazca Corporation</publisher>
+    <genre>Action, Arcade, Horizontal, Neogeo, Platfrom, Shooter, Sideways</genre>
+    <players>2</players>
+  </game>
+  <game>
+    <path>./neogeo.zip</path>
+    <name>neogeo</name>
+    <thumbnail />
+    <image>./media/fallback/35a1264b077a.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+</gameList>

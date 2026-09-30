@@ -1,0 +1,12 @@
+[Unit]
+Description=Dreadwire Argon Fan HAT temperature controller
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/dreadwire-argon-fan.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

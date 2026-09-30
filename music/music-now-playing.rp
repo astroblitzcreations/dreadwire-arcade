@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+state=/run/dreadwire-music/state.json
+if [ -r "$state" ]; then
+    message=$(python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print("♪  " + d.get("title", "Unknown") + "\n\nStatus: " + d.get("status", "unknown").upper() + "\nMusic volume: " + str(d.get("volume", 0)) + "%\n\n" + d.get("message", ""))' "$state")
+else
+    message="Jukebox is starting..."
+fi
+if [ "${1:-}" = brief ]; then
+    timeout 3 dialog --title " DREADWIRE JUKEBOX " --infobox "$message" 12 58
+else
+    dialog --title " DREADWIRE JUKEBOX " --msgbox "$message" 14 62
+fi
+clear

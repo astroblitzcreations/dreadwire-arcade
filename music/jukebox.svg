@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="640" viewBox="0 0 640 640">
+  <defs>
+    <radialGradient id="bg"><stop stop-color="#302060"/><stop offset="1" stop-color="#030718"/></radialGradient>
+    <linearGradient id="neon" x2="1" y2="1"><stop stop-color="#35f6ff"/><stop offset=".52" stop-color="#fb4fd0"/><stop offset="1" stop-color="#ffd84d"/></linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="640" height="640" rx="76" fill="url(#bg)"/>
+  <path d="M64 475h512M95 520h450M140 565h360" stroke="#174e77" stroke-width="5"/>
+  <circle cx="320" cy="295" r="190" fill="#070a18" stroke="url(#neon)" stroke-width="14" filter="url(#glow)"/>
+  <circle cx="320" cy="295" r="130" fill="none" stroke="#f34cc4" stroke-width="8" opacity=".8"/>
+  <circle cx="320" cy="295" r="68" fill="#32eaff" opacity=".9"/>
+  <circle cx="320" cy="295" r="19" fill="#fff9c7"/>
+  <path d="M435 130h52v220c0 62-38 104-92 104-45 0-78-29-78-66s31-65 75-65c16 0 30 4 43 11z" fill="url(#neon)" filter="url(#glow)"/>
+  <text x="320" y="602" text-anchor="middle" font-family="DejaVu Sans" font-size="38" font-weight="bold" fill="#fff">ARCADE JUKEBOX</text>
+</svg>

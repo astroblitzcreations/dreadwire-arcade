@@ -1,0 +1,105 @@
+./001 Pokemon Fire Red.gba
+./002 Pokemon Leaf Green.gba
+./003 Pokemon Mystery Dungeon-Red Rescue Team.gba
+./004 Super Mario Adv.gba
+./005 Mario Kart.gba
+./006 Super Mario Advance 4-Super Mario Bros.3.gba
+./007 Super Mario World 2.gba
+./008 Super Mario Advance 3-Yoshi's Island.gba
+./009 Mario & Luigi Superstar Saga.gba
+./010 Mario Vs Donkey Kong.gba
+./011 Sonic Advance.gba
+./012 Sonic Advance 2.gba
+./013 Sonic Advance 3.gba
+./014 Sonic Battle.gba
+./015 Kirby Nightmare In Dreamland.gba
+./016 Kirby And The Amazing Mirror.gba
+./017 Yggdra Union.gba
+./018 Dragon Ball-Ad Adv.gba
+./019 Gunstar Super Heroes.gba
+./020 Donkey Kong Country 1.gba
+./021 Donkey Kong Country 2.gba
+./022 Crash Bandicoot.gba
+./023 Crash Bandicoot 2.gba
+./024 Crash of the Titans.gba
+./025 Tekken Advance.gba
+./026 The King Of Fighters EX1.gba
+./027 The king of the fighter EX2.gba
+./028 Street Fighter Alpha 3.gba
+./031 Harvest Moon-Mineral Town.gba
+./032 Harvest Moon-More Friends of Mineral Town.gba
+./033 Castlevania-Circle of the Moon.gba
+./034 Castlevania-Harmony Of Dissonance.gba
+./035 Castlevania-Aria Of Sorrow.gba
+./036 The Legend Of Zelda-Link To The Past.gba
+./037 The Legend of Zelda-The Minish Cap.gba
+./038 Fire Emblem.gba
+./039 Fire Emblem-The Sacred Stones.gba
+./040 Megaman Zero 1.gba
+./041 Megaman Zero 2.gba
+./042 Megaman Zero 3.gba
+./043 Megaman Zero 4.gba
+./044 MegaMan & Bass.gba
+./045 Metal Slug Advance.gba
+./046 World Soccer Winning Eleven.gba
+./048 Final Fantasy Tactics Advance.gba
+./049 Final Fantasy IV.gba
+./050 Final Fantasy V.gba
+./051 Final Fantasy VI.gba
+./052 CT Special Forces.gba
+./053 CT Special Forces 2.gba
+./054 Rayman Advance.gba
+./055 Rayman-Hoodlums Revenge.gba
+./056 Rayman Raving Rabbits.gba
+./057 Rayman 3.gba
+./058 Max Payne.gba
+./059 Duke Nukem Advance.gba
+./060 Advance Wars 2.gba
+./061 Shining Soul.gba
+./063 Mortal Kombat Deadly Alliance.gba
+./064 Mortal Kombat Tournament Edition.gba
+./065 Summon Night-Swordcraft Story.gba
+./066 Summon Night-Swordcraft Story 2.gba
+./067 Wario Land 4.gba
+./068 Wario Ware Inc.gba
+./069 Wario Ware Twisted!.gba
+./070 Dr Mario and Puzzle League.gba
+./071 Mario Pinball Land.gba
+./072 Doom II.gba
+./073 Spiderman-Mysterio's Menace.gba
+./074 Super Robot Taisen OG 1.gba
+./075 Super Robot Taisen OG 2.gba
+./076 Drill Dozer.gba
+./077 Lunar Legend.gba
+./078 Metroid Fusion.gba
+./079 Metroid Zero Mission.gba
+./080 Monster Rancher Advance 1.gba
+./081 Monster Rancher Advance 2.gba
+./082 Tactics Ogre-The Knight of Lodis.gba
+./083 Phantasy Star Collection.gba
+./084 Shaman King-Master of Spirits.gba
+./085 Puyo Pop.gba
+./086 Shining Force-Resurrection of the Dark Dragon.gba
+./087 Driv3r.gba
+./088 Naruto - konoha senki.gba
+./089 Naruto Ninja Council 1.gba
+./090 Naruto Ninja Council 2.gba
+./091 Teenage mutant ninja turtles.gba
+./092 Teenage Mutant Ninja Turtles 2-Battle Nexus.gba
+./093 TMNT.gba
+./094 Spyro-Season of Ice.gba
+./095 Spyro 2-Season Of Flame.gba
+./096 Spyro-Attack of the Rhynocs.gba
+./097 The Legend of Spyro - A New Beginning.gba
+./098 The Legend of Spyro-The Eternal Night.gba
+./099 Shonen Jumps One Piece.gba
+./100 Prince of Persia.gba
+./101 The Sims 2.gba
+./102 The Urbz-Sims in the city.gba
+./103 Harry Potter and the Sorcerer's Stone.gba
+./104 Harry Potter and The Chamber of Secrets.gba
+./105 Harry Potter and the Prisoner of Azkaban.gba
+./106 Harry Potter and the Goblet of Fire.gba
+./108 American Idol.gba
+./109 Bionicle Heroes.gba
+./110 Charlotte's Web.gba

@@ -1,0 +1,97 @@
+./002 Pokemon-Silver Version.gbc
+./003 Pokemon-Yellow Version.gbc
+./004 Pokemon-Crystal Version.gbc
+./005 Pokemon Pinball.gbc
+./006 Pokemon Puzzle Challenge.gbc
+./007 Pokemon Trading Card Game.gbc
+./008 Super Mario Bros. Deluxe.gbc
+./010 Warioland 3.gbc
+./011 Donkey Kong Country.gbc
+./012 Dragon Warrior I and II.gbc
+./014 Dragon Warrior Monsters.gbc
+./015 Dragon Warrior Monsters 2-Cobi's Journey.gbc
+./016 Dragon Warrior Monsters 2-Tara's Adventure.gbc
+./017 Harvest Moon 2.gbc
+./018 Harvest Moon 3.gbc
+./019 Bionic Commando-Elite Forces.gbc
+./020 Legend of Zelda,The-Oracle of Ages.gbc
+./021 Legend of Zelda,The-Oracle of Seasons.gbc
+./022 Magi-Nation.gbc
+./023 Mega Man Xtreme.gbc
+./024 Mega Man Xtreme 2.gbc
+./025 Bomberman Max Blue Champion.gbc
+./026 Bomberman Max Red Challenger.gbc
+./027 Bomberman Max-Ain Special Edition.gbc
+./028 Bomberman Quest.gbc
+./029 Motocross Maniacs 2.gbc
+./030 FIFA 2000.gbc
+./031 Looney Tunes.gbc
+./032 Looney Tunes Collector-Alert!.gbc
+./033 Looney Tunes Racing.gbc
+./034 Pac-Man.gbc
+./035 Pac-Man & Pac-Attack SCE.gbc
+./036 Pac-man by Jeff Frohwein.gbc
+./037 Metal Gear Solid.gbc
+./038 A Bug's Life.gbc
+./039 Action Man.gbc
+./040 Alice in Wonderland.gbc
+./041 Aliens-Thanatos Encounter.gbc
+./042 All-Star Baseball 2001.gbc
+./043 All-Star Tennis 2000.gbc
+./044 Alone in the Dark-The New Nightmare.gbc
+./045 Animorphs.gbc
+./046 Army Men 2.gbc
+./047 Army Men Air Combat.gbc
+./048 Army Men Sarge's Heroes 2].gbc
+./049 Asterix - Search for Dogmatix.gbc
+./050 Atlantis - The Lost Empire.gbc
+./051 Austin Powers - Oh, Behave!.gbc
+./052 Azure Dreams.gbc
+./053 Barbie - Pet Rescue.gbc
+./054 Batman - Chaos in Gotham.gbc
+./055 Batman Beyond - Return of the Joker.gbc
+./056 Battle of Midway 1942.gbc
+./057 Battle Tanx.gbc
+./058 Blade.gbc
+./059 Blades of Steel.gbc
+./060 Blaster Master Enemy Below.gbc
+./061 Buffy-The Vampire Slayer.gbc
+./062 Bugs Bunny-Crazy Castle 3.gbc
+./063 Bugs Bunny-Crazy Castle 4.gbc
+./064 Buzz Lightyear of Star Command.gbc
+./065 Carmageddon.gbc
+./066 Commander Keen.gbc
+./067 Conker's Pocket Tales.gbc
+./068 Croc 1.gbc
+./069 Croc 2.gbc
+./070 Crystalis.gbc
+./071 Daffy Duck-Fowl Play.gbc
+./072 Dexter's Laboratory-Robot Rampage.gbc
+./073 Dinosaur.gbc
+./074 Dragon Tales - Dragon Wings.gbc
+./075 Driver - You Are The Wheelman.gbc
+./076 Duke Nukem.gbc
+./077 Earthworm Jim-Menace 2 the Galaxy.gbc
+./078 F1 Championship Season 2000.gbc
+./079 Frogger 1.gbc
+./080 Frogger 2.gbc
+./081 Galaga - Destination Earth.gbc
+./082 Gex - Enter the Gecko.gbc
+./083 Ghosts 'N Goblins.gbc
+./084 Godzilla - The Series-Monster Wars.gbc
+./085 Grand Theft Auto 1.gbc
+./086 Grand Theft Auto 2.gbc
+./087 Harry Potter And The Sorcerer's Stone.gbc
+./088 Heroes of Might and Magic 1.gbc
+./089 Heroes of Might and Magic 2.gbc
+./090 Hot Wheels Stunt Track Driver.gbc
+./091 Indiana Jones and the Infernal Machine.gbc
+./092 Legend of the River King 2.gbc
+./093 LEGO Alpha Team.gbc
+./094 Lego Island 2-The Brickster's Revenge.gbc
+./095 LEGO Racers.gbc
+./096 Lufia-The Legend Returns.gbc
+./097 Madden NFL 2000.gbc
+./098 Men In Black 2.gbc
+./099 Metal Walker.gbc
+./100 Mickey's Speedway USA.gbc

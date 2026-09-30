@@ -1,0 +1,220 @@
+./001 Super Mario Land.gb
+./002 Super Mario Land 2.gb
+./003 Super Mario Land 3-Wario Land.gb
+./004 Super Mario Quest.gb
+./005 Donkey Kong Land.gb
+./006 Donkey Kong Land 2.gb
+./007 Donkey Kong Land 3.gb
+./008 Donkey Kong.gb
+./009 Double Dragon.gb
+./010 Double Dragon 2.gb
+./011 Double Dragon 3.gb
+./012 Wario Blast Featuring Bomberman!.gb
+./014 Battletoads & Double Dragon.gb
+./015 Mega Man 1.gb
+./016 Mega Man 2.gb
+./017 Mega Man 3.gb
+./018 Mega Man 4.gb
+./019 Mega Man 5.gb
+./020 Contra-The Alien Wars.gb
+./021 Contra Spirits.gb
+./022 Final Fantasy Adventure.gb
+./023 Final Fantasy Legend.gb
+./024 Final Fantasy Legend II.gb
+./025 Final Fantasy Legend III.gb
+./026 The Legend of Zelda-Link's Awakening.gb
+./027 The King of Fighters-Heat of Battle.gb
+./028 The King of Fighters 95.gb
+./029 Castlevania-Legends.gb
+./030 Castlevania 2-Belmont's Revenge.gb
+./031 The Castlevania Adventure.gb
+./032 Catrap.gb
+./033 Kid Icarus-Of Myths and Monsters.gb
+./034 Motocross Maniacs.gb
+./035 Ms. Pac-Man.gb
+./036 Pac-In-Time.gb
+./037 Pac-Man.gb
+./038 Tetris DX.gb
+./039 Tetris Attack.gb
+./040 Tetris Blast.gb
+./041 Tetris Flash.gb
+./042 Tetris Plus.gb
+./043 Harvest Moon.gb
+./044 Kirby's Dream Land 2.gb
+./045 Metroid 2-Return of Samus.gb
+./046 The Amazing Spider-Man.gb
+./047 The Amazing Spider-Man 2.gb
+./048 The Amazing Spider-Man 3-Invasion of the Spider-Slayers.gb
+./049 Spider-Man and the X-Men-Arcade's Revenge.gb
+./050 Street Fighter 2.gb
+./051 Ace Striker.gb
+./052 Adventure Island 2.gb
+./053 Adventure Island.gb
+./054 Adventures of Lolo.gb
+./055 Aero Star.gb
+./056 Agro Soar.gb
+./057 Aladdin.gb
+./058 Alfred Chicken.gb
+./059 Alien 3.gb
+./060 Alien vs Predator-The Last of His Clan.gb
+./061 Alleyway.gb
+./062 Animaniacs.gb
+./063 Arkanoid.gb
+./064 Asteroids & Missile Command.gb
+./065 Asteroids.gb
+./066 Avenging Spirit.gb
+./067 B.C. Kid.gb
+./068 Batman - Return of the Joker.gb
+./069 Batman - The Animated Series.gb
+./070 Batman Forever.gb
+./071 Batman.gb
+./072 Battle Arena Toshinden.gb
+./073 Battleship.gb
+./074 Battletoads in Ragnarok's World.gb
+./075 Battletoads.gb
+./076 Beavis and Butthead.gb
+./077 Beetlejuice.gb
+./078 Best of the Best .gb
+./079 Bionic Commando.gb
+./080 Blaster Master Boy.gb
+./081 Bokemob V2.2.gb
+./082 Bomb Jack.gb
+./083 Bomberman.gb
+./084 Bonk's Adventure.gb
+./085 Brainbender.gb
+./086 Bubble Bobble Part 2.gb
+./087 Bubble Bobble.gb
+./088 Bugs Bunny-Crazy Castle II.gb
+./089 Bugs Bunny.gb
+./090 Burai Fighter Deluxe.gb
+./091 Burger Time Deluxe.gb
+./092 Bust-a-Move 2.gb
+./093 Caesars Palace.gb
+./094 Castle Quest.gb
+./095 Chessmaster.gb
+./096 Cool Spot.gb
+./097 Crash.gb
+./098 Cricket.gb
+./099 Crystal Quest.gb
+./100 Daffy Duck-The Marvin Missions.gb
+./101 Darkwing Duck.gb
+./102 Dig Dug.gb
+./103 Disney's Mulan.gb
+./104 Dragon's Lair-The Legend.gb
+./105 Duck Tales 2.gb
+./106 Duck Tales.gb
+./107 Duke Nukem.gb
+./108 Earthworm Jim.gb
+./109 Elevator Action.gb
+./110 F-1 Pole Position.gb
+./111 Fatal Fury.gb
+./112 Felix the Cat.gb
+./113 FIFA International Soccer.gb
+./114 FIFA Soccer '96.gb
+./115 FIFA Soccer '98.gb
+./116 Fire Dragon.gb
+./117 Fist of the North Star.gb
+./118 Galaga & Galaxian.gb
+./119 Game Genie.gb
+./120 Gargoyle's Quest-Ghosts'n Goblins.gb
+./121 Gauntlet II.gb
+./122 Ghostbusters 2.gb
+./123 Godzilla.gb
+./124 Gradius-The Interstellar Assault.gb
+./125 Hercules.gb
+./126 Home Alone 1.gb
+./127 Home Alone 2.gb
+./128 Humans.gb
+./129 Indiana Jones and the Last Crusade.gb
+./130 Ironman - X-O Manowar in Heavy Metal.gb
+./131 James Bond 007.gb
+./132 Jurassic Park 1.gb
+./133 Jurassic Park 2-The Chaos Continues.gb
+./134 Kid Dracula.gb
+./135 Knight Quest.gb
+./136 Kung-Fu Master.gb
+./137 Kwirk.gb
+./138 Legend of the River King.gb
+./139 Looney Tunes.gb
+./140 Men In Black-The Series.gb
+./141 Mickey Mouse - Magic Wand.gb
+./142 Mickey Mouse.gb
+./143 Mickey's Ultimate Challenge.gb
+./144 Micro Machines.gb
+./145 Mighty Morphin Power Rangers-The Movie.gb
+./146 Mighty Morphin Power Rangers.gb
+./147 Monopoly.gb
+./148 Mortal Kombat 1.gb
+./149 Mortal Kombat 2.gb
+./150 Mortal Kombat 3.gb
+./151 Mortal Kombat 4.gb
+./152 Mystical Ninja.gb
+./153 NBA Jam.gb
+./154 Ninja Boy.gb
+./155 Ninja Gaiden Shadow.gb
+./156 Ninja Ryukenden.gb
+./157 Paperboy 2.gb
+./158 Pocahontas.gb
+./159 Poke Mission '97.gb
+./160 Prince of Persia.gb
+./161 Prophecy-The Viking Child.gb
+./162 R-Type 2.gb
+./163 Rayman.gb
+./164 Real Ghostbusters.gb
+./165 Reservoir Rat.gb
+./166 Robocop 2.gb
+./167 Samurai Shodown.gb
+./168 Shadow Warriors.gb
+./169 Skate or Die-Bad 'N Rad.gb
+./170 Small Soldiers.gb
+./171 Snow Bros Jr..gb
+./172 Soccer.gb
+./173 Speedy Gonzales.gb
+./174 Super James Pond.gb
+./175 T2-The Arcade Game.gb
+./176 Takahashi Meijin no Boukenjima II.gb
+./177 Tecmo Bowl.gb
+./178 Teenage Mutant Hero Turtles 3.gb
+./179 Teenage Mutant Ninja Turtles 2.gb
+./180 Teenage Mutant Ninja Turtles 3-Radical Rescue.gb
+./181 Teenage Mutant Ninja Turtles-Back From the Sewers.gb
+./182 Teenage Mutant Ninja Turtles-Fall of the Foot Clan.gb
+./183 Terminator 2-Judgment Day.gb
+./184 The Addams Family-Pugsley's Scavenger Hunt.gb
+./185 The Addams Family.gb
+./186 The Adventures of Pinocchio.gb
+./187 The Battle of Olympus.gb
+./188 The Flash.gb
+./189 The Flintstones.gb
+./190 The Jungle Book.gb
+./191 The Little Mermaid.gb
+./192 The Simpsons-Bart & the Beanstalk.gb
+./193 The Simpsons-Bart vs the Juggernauts.gb
+./194 The Simpsons-Escape from Camp Deadly.gb
+./195 The Simpsons-Krusty's Funhouse.gb
+./196 The Smurfs 2.gb
+./197 The Smurfs 3.gb
+./198 Tintin in Tibet.gb
+./199 Tiny Toon Adventures 1.gb
+./200 Tiny Toon Adventures 2-Montana's Movie Madness.gb
+./201 Tiny Toon Adventures 3.gb
+./202 Tom & Jerry Part 2.gb
+./203 Tom & Jerry.gb
+./204 Tony Hawk's Pro Skater.gb
+./205 Toy Story.gb
+./206 Track & Field.gb
+./207 Trip World.gb
+./208 Turok-Battle of the Bionosaurs.gb
+./209 Ultraman Chou Toushi Gekiden.gb
+./210 Wave Race.gb
+./211 WCW Main Event.gb
+./212 Who Framed Roger Rabbit.gb
+./213 Wizardry Gaiden 2-Curse of the Ancient Emperor.gb
+./214 Wizardry Gaiden 3-Scripture of the Dark.gb
+./215 Wizards & Warriors Chapter X-The Fortress of Fear.gb
+./216 Worms.gb
+./217 WWF Raw.gb
+./218 WWF Superstars 1.gb
+./219 WWF Superstars 2.gb
+./220 WWF-King of the Ring.gb
+./221 Zen-Intergalactic Ninja.gb

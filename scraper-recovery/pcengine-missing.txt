@@ -1,0 +1,100 @@
+./01.1941.pce
+./02.1943.pce
+./03.AV poker.pce
+./04.PC primeval 1.pce
+./05.PC primeval 2.pce
+./06.PC primeval 3.pce
+./07.PC power.pce
+./08.The great Chinese fairy.pce
+./09.Vigilantes.pce
+./10.The warehouse.pce
+./100.The dragon soul 2.pce
+./11.An eye for an eye.pce
+./12. The guard.pce
+./13.Altered beast.pce
+./14.Break through the fire 2.pce
+./15. Phoenix.pce
+./16.Kung fu.pce
+./17.Atomic mechanics boy.pce
+./18.A tale of the twin dragons.pce
+./19.Urban hunter.pce
+./20.An alien warrior.pce
+./21.Big magic village.pce
+./22.Space invaders.pce
+./23.Air force mirror.pce
+./24.Space harry.pce
+./25.Space fighter Alpha.pce
+./26.Space fighter Plus.pce
+./27.Fighter for life 2.pce
+./28.Strange world.pce
+./29.The twin eagles of the universe.pce
+./30.Space cruise.pce
+./31.Cosmonauts.pce
+./32.Little bee 90.pce
+./33.Phantom fighters.pce
+./34.Ghost land.pce
+./35.Alien fighter 1.pce
+./36.Alien fighter 2.pce
+./37.Interdimensional fighter.pce
+./38.Rainbow island 1.pce
+./39.Rainbow island 2.pce
+./40.Ninja warrior.pce
+./41.Ninja dragon sword.pce
+./42.Adventures of the strange duck.pce
+./43.Dragon of dragons.pce
+./44.Combat life form.pce
+./45.The key of Solomon.pce
+./46.Transform superman 1.pce
+./47.Remodel superman 2.pce
+./48.New adventure island.pce
+./49.Cyclone missions.pce
+./50.Creatures of the night.pce
+./51.The last patience.pce
+./52.Final aircraft.pce
+./53.Brother carpenter.pce
+./54.Future racing 1.pce
+./55.Future racing 2.pce
+./56.Mobile Interpol.pce
+./57.Doraemon labyrinth battle.pce
+./58.Doraemon Arabian night.pce
+./59.Aircraft warfare corps.pce
+./60.Mecha warrior.pce
+./61.Cotton witch.pce
+./62.Armed crime.pce
+./63.Armed aircraft F.pce
+./64.Armed knights.pce
+./65.The month of death.pce
+./66.Necromancer line.pce
+./67.The adventures of Tom cruise.pce
+./68.The salomon snake.pce
+./69.Shahraman snake Q.pce
+./70.The legend of yuan ping.pce
+./71. Heavy fighting.pce
+./72.Bomber 94.pce
+./73.Burning angels.pce
+./74.Spread the word.pce
+./75.Excalibur 2.pce
+./76.Travel around the world.pce
+./77.Eagle one two.pce
+./78.Sky firefox.pce
+./79.Air battle buster.pce
+./80.Alice is in wonderland.pce
+./81.Fancy pool ball.pce
+./82.The tiger.pce
+./83.Die hard.pce
+./84.The batman.pce
+./85.The Wolf blood.pce
+./86.Street fighter II.pce
+./87.Journey to the west -- sun sun2.pce
+./88.Ultra air combat aircraft.pce
+./89.Super.pce
+./90.Super star warrior.pce
+./91.Supercar.pce
+./92. Armored chariots.pce
+./93.The thunder and lightning.pce
+./94.The haunted house.pce
+./95.Wonderland 1.pce
+./96.Wonderland 2.pce
+./97.The legend of the devil.pce
+./98.Dungeons & dragons.pce
+./99.The dragon soul 1.pce

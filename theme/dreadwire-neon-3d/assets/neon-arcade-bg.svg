@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="768" height="1024" viewBox="0 0 768 1024">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#070b22"/><stop offset=".48" stop-color="#161348"/><stop offset="1" stop-color="#050715"/>
+    </linearGradient>
+    <radialGradient id="sun"><stop offset="0" stop-color="#ffb7e9"/><stop offset=".45" stop-color="#ff4bc8"/><stop offset="1" stop-color="#7e2cff" stop-opacity="0"/></radialGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="8"/></filter>
+    <pattern id="grid" width="64" height="44" patternUnits="userSpaceOnUse">
+      <path d="M64 0H0V44" fill="none" stroke="#23eaff" stroke-opacity=".25" stroke-width="2"/>
+    </pattern>
+  </defs>
+  <rect width="768" height="1024" fill="url(#sky)"/>
+  <circle cx="384" cy="410" r="250" fill="url(#sun)" opacity=".55" filter="url(#glow)"/>
+  <circle cx="384" cy="410" r="150" fill="url(#sun)" opacity=".75"/>
+  <path d="M0 585 L180 430 L270 520 L390 360 L510 515 L610 425 L768 585 V710 H0Z" fill="#080c20" stroke="#ff4bc8" stroke-width="3"/>
+  <path d="M0 640 H768 V1024 H0Z" fill="url(#grid)"/>
+  <path d="M384 630 L90 1024 M384 630 L230 1024 M384 630 L538 1024 M384 630 L678 1024" stroke="#49efff" stroke-opacity=".45" stroke-width="2"/>
+  <path d="M0 700H768 M0 790H768 M0 900H768" stroke="#ff4bc8" stroke-opacity=".33" stroke-width="2"/>
+  <g fill="#fff">
+    <circle cx="94" cy="102" r="2"/><circle cx="680" cy="160" r="2"/><circle cx="555" cy="92" r="1.5"/><circle cx="178" cy="275" r="1.5"/><circle cx="718" cy="330" r="2"/><circle cx="60" cy="390" r="1.5"/>
+  </g>
+</svg>

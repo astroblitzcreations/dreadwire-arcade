@@ -1,0 +1,218 @@
+<theme>
+  <formatVersion>6</formatVersion>
+  <resolution>768 1024</resolution>
+
+  <variables>
+    <font>./assets/DejaVuSans.ttf</font>
+    <fontBold>./assets/DejaVuSans-Bold.ttf</fontBold>
+    <cyan>46f4ff</cyan>
+    <pink>ff4bc8</pink>
+    <gold>ffd166</gold>
+    <white>f6fbff</white>
+    <muted>a9c5d6</muted>
+  </variables>
+
+  <!-- Portrait-native system selector -->
+  <view name="system">
+    <image name="background" extra="true">
+      <path>./assets/neon-arcade-bg.svg</path>
+      <size>768 1024</size>
+      <pos>0 0</pos>
+      <origin>0 0</origin>
+      <zIndex>0</zIndex>
+    </image>
+    <image name="brandplate" extra="true">
+      <path>./assets/brand.svg</path>
+      <size>700 190</size>
+      <pos>384 36</pos>
+      <origin>0.5 0</origin>
+      <zIndex>5</zIndex>
+    </image>
+    <image name="systemplate" extra="true">
+      <path>./assets/system-card.svg</path>
+      <size>680 420</size>
+      <pos>384 532</pos>
+      <origin>0.5 0.5</origin>
+      <zIndex>6</zIndex>
+    </image>
+    <carousel name="systemcarousel">
+      <type>horizontal</type>
+      <size>620 290</size>
+      <pos>74 388</pos>
+      <logoSize>520 170</logoSize>
+      <logoScale>1.0</logoScale>
+      <maxLogoCount>1</maxLogoCount>
+      <logoRotation>0</logoRotation>
+      <logoRotationOrigin>0.5 0.5</logoRotationOrigin>
+      <color>07132700</color>
+      <zIndex>10</zIndex>
+    </carousel>
+    <text name="logoText">
+      <fontPath>${fontBold}</fontPath>
+      <fontSize>48</fontSize>
+      <forceUppercase>true</forceUppercase>
+      <color>${white}</color>
+      <alignment>center</alignment>
+    </text>
+    <text name="systemInfo">
+      <fontPath>${font}</fontPath>
+      <fontSize>25</fontSize>
+      <color>${gold}</color>
+      <alignment>center</alignment>
+      <size>650 46</size>
+      <pos>59 752</pos>
+      <zIndex>12</zIndex>
+    </text>
+    <text name="tagline" extra="true">
+      <text>SELECT A SYSTEM • PRESS A TO ENTER</text>
+      <fontPath>${fontBold}</fontPath>
+      <fontSize>20</fontSize>
+      <color>${cyan}</color>
+      <alignment>center</alignment>
+      <size>700 36</size>
+      <pos>34 858</pos>
+      <zIndex>12</zIndex>
+    </text>
+    <helpsystem name="help">
+      <pos>50 944</pos>
+      <textColor>${white}</textColor>
+      <iconColor>${pink}</iconColor>
+      <fontPath>${fontBold}</fontPath>
+      <fontSize>22</fontSize>
+    </helpsystem>
+  </view>
+
+  <!-- Shared game browser chrome -->
+  <view name="basic, detailed, video, grid">
+    <image name="background" extra="true">
+      <path>./assets/neon-arcade-bg.svg</path>
+      <size>768 1024</size>
+      <pos>0 0</pos>
+      <origin>0 0</origin>
+      <zIndex>0</zIndex>
+    </image>
+    <image name="headerplate" extra="true">
+      <path>./assets/header.svg</path>
+      <size>736 100</size>
+      <pos>384 18</pos>
+      <origin>0.5 0</origin>
+      <zIndex>3</zIndex>
+    </image>
+    <image name="logo">
+      <maxSize>235 70</maxSize>
+      <pos>135 68</pos>
+      <origin>0.5 0.5</origin>
+      <zIndex>8</zIndex>
+    </image>
+    <text name="logoText">
+      <fontPath>${fontBold}</fontPath>
+      <fontSize>32</fontSize>
+      <forceUppercase>true</forceUppercase>
+      <size>650 62</size>
+      <pos>59 37</pos>
+      <alignment>center</alignment>
+      <color>${cyan}</color>
+      <zIndex>8</zIndex>
+    </text>
+    <image name="contentplate" extra="true">
+      <path>./assets/glass-panel.svg</path>
+      <size>716 535</size>
+      <pos>384 391</pos>
+      <origin>0.5 0.5</origin>
+      <zIndex>3</zIndex>
+    </image>
+    <image name="listplate" extra="true">
+      <path>./assets/list-panel.svg</path>
+      <size>716 300</size>
+      <pos>384 805</pos>
+      <origin>0.5 0.5</origin>
+      <zIndex>3</zIndex>
+    </image>
+    <helpsystem name="help">
+      <pos>44 970</pos>
+      <textColor>${white}</textColor>
+      <iconColor>${pink}</iconColor>
+      <fontPath>${fontBold}</fontPath>
+      <fontSize>19</fontSize>
+    </helpsystem>
+  </view>
+
+  <view name="basic, detailed, video">
+    <textlist name="gamelist">
+      <fontPath>${fontBold}</fontPath>
+      <fontSize>29</fontSize>
+      <forceUppercase>false</forceUppercase>
+      <size>656 218</size>
+      <pos>56 688</pos>
+      <alignment>center</alignment>
+      <horizontalMargin>14</horizontalMargin>
+      <selectorColor>2be9ff35</selectorColor>
+      <selectedColor>${gold}</selectedColor>
+      <primaryColor>${white}</primaryColor>
+      <secondaryColor>${muted}</secondaryColor>
+      <scrollSound>./assets/sounds/scroll.wav</scrollSound>
+      <zIndex>9</zIndex>
+    </textlist>
+  </view>
+
+  <!-- Box art / screenshot view -->
+  <view name="detailed">
+    <image name="md_image">
+      <maxSize>650 468</maxSize>
+      <pos>384 386</pos>
+      <origin>0.5 0.5</origin>
+      <zIndex>7</zIndex>
+    </image>
+  </view>
+
+  <!-- Video when present; automatically shows scraped art when absent -->
+  <view name="video">
+    <video name="md_video">
+      <maxSize>650 468</maxSize>
+      <pos>384 386</pos>
+      <origin>0.5 0.5</origin>
+      <delay>1.5</delay>
+      <showSnapshotNoVideo>true</showSnapshotNoVideo>
+      <showSnapshotDelay>true</showSnapshotDelay>
+      <zIndex>7</zIndex>
+    </video>
+    <image name="md_image">
+      <maxSize>185 76</maxSize>
+      <pos>610 68</pos>
+      <origin>0.5 0.5</origin>
+      <zIndex>9</zIndex>
+    </image>
+  </view>
+
+  <!-- Large cover-wall option -->
+  <view name="grid">
+    <imagegrid name="gamegrid">
+      <size>700 808</size>
+      <pos>34 128</pos>
+      <margin>12 16</margin>
+      <scrollDirection>vertical</scrollDirection>
+      <animate>true</animate>
+      <zIndex>8</zIndex>
+    </imagegrid>
+    <gridtile name="default">
+      <size>220 278</size>
+      <padding>12 12</padding>
+      <imageColor>d7e9f0ff</imageColor>
+      <backgroundColor>071327dd</backgroundColor>
+    </gridtile>
+    <gridtile name="selected">
+      <size>246 310</size>
+      <padding>5 5</padding>
+      <imageColor>ffffffff</imageColor>
+      <backgroundColor>19dfffee</backgroundColor>
+    </gridtile>
+    <text name="md_name">
+      <fontPath>${fontBold}</fontPath>
+      <fontSize>24</fontSize>
+      <size>700 48</size>
+      <pos>34 914</pos>
+      <alignment>center</alignment>
+      <color>${gold}</color>
+    </text>
+  </view>
+</theme>

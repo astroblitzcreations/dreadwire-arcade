@@ -1,0 +1,39 @@
+.padtools{display:grid;grid-template-columns:1.5fr 1fr .7fr 1.2fr;gap:8px;margin-bottom:10px}.padtools select,.padtools button{margin:0;width:auto}.controller{position:relative!important;display:block!important;min-height:540px;height:calc(100vh - 230px);overflow:hidden;border:1px solid #ffffff18;border-radius:25px;background:radial-gradient(circle at 50% 45%,#211a4c88,#070515 67%);isolation:isolate}.control{position:absolute!important;margin:0!important;user-select:none;-webkit-user-select:none}.controller:not(.locked) .control{outline:2px dashed var(--cyan);outline-offset:4px;cursor:move;animation:editpulse 1.3s infinite alternate}.controller:not(.locked):after{content:'EDIT MODE • DRAG CONTROLS';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:#3df3ff33;font-size:clamp(16px,4vw,42px);font-weight:900;letter-spacing:.12em;white-space:nowrap;z-index:-1}@keyframes editpulse{to{outline-color:#ff3cac}}.stick{z-index:2;width:min(29vw,220px)!important}.dpad{width:min(27vw,205px);aspect-ratio:1;display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);filter:drop-shadow(0 10px 18px #0008)}.dpad button{padding:0;border-radius:12px;background:linear-gradient(#343048,#12101d);font-size:20px}.dpad [data-dir=up]{grid-area:1/2}.dpad [data-dir=left]{grid-area:2/1}.dpad [data-dir=right]{grid-area:2/3}.dpad [data-dir=down]{grid-area:3/2}.face{width:clamp(58px,9vw,88px);aspect-ratio:1;border-radius:50%;font-size:25px;box-shadow:inset 0 -7px 12px #0007,0 8px 20px #0008}.face-a{background:#2ddc85}.face-b{background:#ff365e}.face-x{background:#338dff}.face-y{background:#f3c822;color:#151015}.shoulder{min-width:70px;background:linear-gradient(#494061,#161226)}.meta{min-width:82px;border-radius:25px;font-size:11px}.theme-nes .face,.theme-nes .dpad button{border-radius:6px}.theme-nes .face-a,.theme-nes .face-b{background:#d62c39}.theme-nes{background:linear-gradient(145deg,#b7b7b7,#5e5e63)}.theme-snes{background:radial-gradient(circle,#cbc8ce,#6d6972)}.theme-snes .face-a{background:#9bdb55}.theme-snes .face-b{background:#f1ca3e}.theme-snes .face-x{background:#4f7cd7}.theme-snes .face-y{background:#d34f8d}.theme-genesis{background:radial-gradient(circle,#34343c,#050508)}.theme-genesis .face{background:#17171b;color:#fff;border-color:#777}.theme-dreamcast{background:radial-gradient(circle,#f4f5f7,#9ca7b2)}.theme-dreamcast .face-a{background:#49c85c}.theme-dreamcast .face-b{background:#d73a44}.theme-dreamcast .face-x{background:#398bd8}.theme-dreamcast .face-y{background:#e5d642}.theme-modern{background:radial-gradient(circle,#25213f,#080711)}.batteryset{display:flex;gap:8px}.batteryset input{flex:1}.batteryset button{margin:6px 0}@media(max-width:700px){.padtools{grid-template-columns:1fr 1fr}.controller{min-height:500px;height:calc(100vh - 285px)}.face{width:62px}.dpad{width:160px}.stick{width:170px!important}}
+/* Profile layout editor and responsive landscape controller */
+.padtools{grid-template-columns:1.5fr repeat(5,1fr)}
+.control{transform:scale(var(--control-scale,1));transform-origin:top left}
+.controller:not(.locked) .control.selected{outline:4px solid #ff3cac;filter:drop-shadow(0 0 12px #ff3cac)}
+@media(max-width:700px){.padtools{grid-template-columns:1fr 1fr 1fr}}
+@media(orientation:landscape) and (max-height:700px){header{height:42px}.tab{padding:6px}nav{display:none}.padtools{grid-template-columns:1.4fr repeat(5,1fr);margin-bottom:5px}.padtools button,.padtools select{padding:7px;font-size:10px}.controller{height:calc(100vh - 94px);min-height:280px;border-radius:16px}#layoutHint{display:none}.stick{width:min(25vh,170px)!important}.dpad{width:min(32vh,170px)}.face{width:min(15vh,72px)}}
+
+/* Phone-controller mode behaves like a native gamepad instead of a web page. */
+.control{touch-action:none;-webkit-touch-callout:none}
+html.pad-active,body.pad-active{width:100%;height:100%;overflow:hidden;overscroll-behavior:none}
+body.pad-active{position:fixed;inset:0}
+body.pad-active #app{height:100dvh;overflow:hidden}
+#pad.active{height:calc(100dvh - 126px);overflow:hidden;touch-action:none;overscroll-behavior:none}
+#pad.active .controller{touch-action:none;overscroll-behavior:none}
+@media(orientation:landscape) and (max-height:700px){#pad.active{height:calc(100dvh - 42px)}.controller{height:calc(100dvh - 94px)}}
+
+.remotePlay{display:grid;grid-template-columns:minmax(240px,.7fr) minmax(340px,1.3fr);gap:10px;height:calc(100dvh - 158px)}
+.remoteActions{position:absolute;right:12px;top:7px;z-index:20;display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}.remoteActions button{width:auto;margin:0;padding:7px 10px;font-size:9px;border-color:#3df3ff88;background:#0b0920e8}.remoteActions .danger{border-color:#ff365e;color:#ff94aa}
+@media(max-width:800px){.remoteActions{left:8px;right:8px}.remoteActions button{padding:6px 7px;font-size:8px}}
+.remoteScreen{padding:10px;display:flex;min-height:0;flex-direction:column;align-items:center;justify-content:center}
+.remoteTitle{width:100%;display:flex;justify-content:space-between;color:var(--cyan);font-size:12px;letter-spacing:.1em;margin-bottom:6px}
+.remoteTitle span{color:#6dffad}
+#screenFeed{display:block;max-width:100%;max-height:calc(100% - 48px);aspect-ratio:3/4;object-fit:contain;background:#000;border:1px solid #3df3ff55;border-radius:10px}
+.remoteScreen small{margin-top:6px;color:#aaa;text-align:center;font-size:10px}
+#remoteControllerMount{min-width:0;min-height:0}
+#remoteControllerMount .controller{width:100%;height:100%;min-height:0;border-radius:16px}
+@media(orientation:portrait){.remotePlay{grid-template-columns:1fr;grid-template-rows:minmax(190px,38%) minmax(300px,62%);height:calc(100dvh - 142px)}.remoteScreen{padding:6px}.remoteScreen small{display:none}}
+@media(orientation:landscape) and (max-height:700px){#remote.active{height:calc(100dvh - 42px);padding:5px}.remotePlay{height:100%;grid-template-columns:minmax(180px,.38fr) minmax(380px,.62fr)}#remoteControllerMount .controller{height:100%}}
+
+#remote:fullscreen,#remote.theater{position:fixed!important;inset:0!important;z-index:9999;width:100vw!important;height:100dvh!important;padding:max(5px,env(safe-area-inset-top)) max(5px,env(safe-area-inset-right)) max(5px,env(safe-area-inset-bottom)) max(5px,env(safe-area-inset-left))!important;background:#05030f;display:block!important}
+#remote:fullscreen .remotePlay,#remote.theater .remotePlay{height:100%;grid-template-columns:minmax(180px,38%) minmax(340px,62%);gap:5px}
+#remote:fullscreen .remoteScreen,#remote.theater .remoteScreen{padding:4px;border-radius:8px}
+#remote:fullscreen .remoteTitle,#remote.theater .remoteTitle{position:absolute;left:10px;top:8px;width:auto;gap:12px;z-index:2;background:#05030fcc;padding:4px 7px;border-radius:8px}
+#remote:fullscreen .remoteScreen small,#remote.theater .remoteScreen small{display:none}
+#remote:fullscreen #screenFeed,#remote.theater #screenFeed{max-height:100%;height:100%;width:100%;border-radius:6px}
+#remote:fullscreen #remoteControllerMount .controller,#remote.theater #remoteControllerMount .controller{height:100%;min-height:0}
+#remote:fullscreen .remoteActions,#remote.theater .remoteActions{top:max(7px,env(safe-area-inset-top));right:max(7px,env(safe-area-inset-right))}
+@media(orientation:portrait){#remote:fullscreen .remotePlay,#remote.theater .remotePlay{grid-template-columns:1fr;grid-template-rows:40% 60%}}

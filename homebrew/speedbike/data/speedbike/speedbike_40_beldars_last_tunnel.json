@@ -1,0 +1,29 @@
+{
+  "stage_id": "speedbike_40_beldars_last_tunnel",
+  "display_name": "Beldar's Last Tunnel",
+  "music": "speedbike_desert",
+  "background": "voss_tunnel",
+  "visual_mode": "space_run",
+  "road_curve_strength": 1.6,
+  "base_speed": 1040,
+  "speed_ramp": 14.0,
+  "duration": 17,
+  "auto_pressure": false,
+  "start_tip": "FINAL CONTACT  CLEAR THE APPROACH THEN BREAK BELDAR'S SHIELD CANNONS AND DOME",
+  "patterns": [
+    {"t": 0.4, "kind": "warning", "message": "BELDAR'S LAST TUNNEL"},
+    {"t": 1.5, "kind": "drone", "lane": 1, "enemy_type": "interceptor", "shoot_interval": 0.82},
+    {"t": 2.4, "kind": "mine", "lane": 3},
+    {"t": 3.2, "kind": "block", "shape": "top", "width": 132},
+    {"t": 4.0, "kind": "pit", "width": 184, "required_jump_height": 70},
+    {"t": 5.8, "kind": "checkpoint"},
+    {"t": 6.6, "kind": "laser_gate", "shape": "laser_double", "warning_time": 0.24, "active_time": 0.72},
+    {"t": 7.8, "kind": "dropper_drone", "lane": 2, "drop_shape": "low", "drop_lane": 2},
+    {"t": 9.1, "kind": "warning", "message": "BREACH PLATE"},
+    {"t": 9.8, "kind": "block", "shape": "full", "width": 124, "destructible": true, "destructible_hits": 8, "score_value": 900},
+    {"t": 11.2, "kind": "pit", "width": 204, "use_ramp": true, "ramp_height": 120},
+    {"t": 13.5, "kind": "checkpoint"},
+    {"t": 14.2, "kind": "warning", "message": "BELDAR INBOUND"},
+    {"t": 15.2, "kind": "boss_intro"}
+  ]
+}

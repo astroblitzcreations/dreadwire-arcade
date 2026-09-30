@@ -1,0 +1,280 @@
+./& Jerry 3.nes
+./& Mac-Caveman Ninja.nes
+./012 Mario is Missing!.nes
+./100 Man Dollar Kid-Maboroshi no Teiou Hen.nes
+./160 Arch Rivals-A Basket Brawl!.nes
+./269 Dragon Ball Z-Kyoushuu! Saiya Jin.nes
+./298 Famicom Doubutsu Seitai Zukan!.nes
+./3-D Battles of World Runner.nes
+./318 Gekitou Stadium!!.nes
+./359 Jeopardy! 25th Anniversary Edition.nes
+./373 Kiwi Kraze-A Bird-Brained Adventure!.nes
+./422 Moero!! Juudou Warriors.nes
+./431 Nekketsu! Street Basket-Ganbare Dunk Heroes.nes
+./467 Punch-Out!.nes
+./52.nes
+./524 Sore Ike! Anapanman.nes
+./580 The Ren & Stimpy Show-Buckeroos!.nes
+./603 Trog!.nes
+./618 Viva! Las Vegas.nes
+./622 Wait and See!.nes
+./644 1999-Hore, Mitakotoka! Seikimatsu.nes
+./651 Bakushou!! Jinsei Gekijou 1.nes
+./652 Bakushou!! Jinsei Gekijou 2.nes
+./657 Datach-Ultraman Club-Supokon Fight!.nes
+./661 Ganbare Goemon!-Karakuri Douchuu.nes
+./673 Ike Ike! Nekketsu Hockey Bu.nes
+./685 Keroppi to Keroriinu no Splash Bomb!.nes
+./712 Wai Wai World 2-SOS!! Paseri Jou.nes
+./Abado X.nes
+./Adventures of Captain Comic.nes
+./Adventures of Lolo 1.nes
+./Aigiina no Yogen-From The Legend of Balubalouk.nes
+./Aladdin 3.nes
+./Angry Bird 2.nes
+./Angry bird 3.nes
+./Angry Bird 4.nes
+./Angry Birds.nes
+./Antarctic Adventure.nes
+./Argos no Senshi.nes
+./Arkanoid 1.nes
+./Arremar 2.nes
+./Astro Boy.nes
+./Back_to_the_future_23.nes
+./Baseball Simulator 1.000.nes
+./Bases_loaded2.nes
+./Bases_loaded3.nes
+./Bases_loaded4.nes
+./Basewars.nes
+./BatlDrgn.nes
+./Battle Formula.nes
+./Battle of Midway1942.nes
+./Battle of Valhalla-1943.nes
+./Battle_toads.nes
+./Battletoads & Double Dragon-The Ultimate Team.nes
+./Beetljce.nes
+./Bomberman-Killerman.nes
+./Bomberman2.nes
+./BonksAdventure.nes
+./Brush Roller.nes
+./Bugs Bunny Fun House.nes
+./Bump'n'Jump.nes
+./C II-Thrilla's Surfari.nes
+./Capcom Barcelona'92.nes
+./Captain Saver.nes
+./Captain Tsubasa.nes
+./Castle Excellent.nes
+./Castlevania2.nes
+./castlevania3.nes
+./ce Hockey.nes
+./Chitei Senkuu Vazolder.nes
+./Columbus-Ougon no Yoake.nes
+./Contra-Special II.nes
+./ContraE.nes
+./ContraForce.nes
+./CoolWrld.nes
+./Cosmo Genesis.nes
+./Crash Dummies.nes
+./Cross Fire.nes
+./Daiva-Imperial of Nirsartia.nes
+./DieHard.nes
+./Digger T. Rock-The Legend of the Lost City.nes
+./Donkey_kong3.nes
+./DonkeyJM.nes
+./DonkeyK.nes
+./Double Dragon III-The Sacred Stones.nes
+./Dragon Ball 3-Gokuu Den.nes
+./Dragon Ball Party 4 In 1.nes
+./Dragon Buster 4.nes
+./Dragon Spirit-Aratanaru Densetsu.nes
+./Dragon's Lair 1.nes
+./Dragon_warrior2.nes
+./Dragon_warrior3.nes
+./Dragon_warrior4.nes
+./DrMario.nes
+./DuckTales2.nes
+./Dynablaster.nes
+./Earthwhorm Jim 3.nes
+./ElevatorAction.nes
+./Erunaaku no Zaihou.nes
+./Exciting Boxing.nes
+./Family Pinball.nes
+./Fatal Fury Special.nes
+./Fire 'n Ice.nes
+./Fishwar.nes
+./FistoftheNorthStar.nes
+./Fridaythe13th.nes
+./G Man-The Low Gravity Man.nes
+./Galx5000.nes
+./Getsufuu Maden.nes
+./Ghost_busters.nes
+./Ghost_busters2.nes
+./Ghostbusters 1.nes
+./Gird Dance.nes
+./Golgo 13-Top Secret Episode.nes
+./Gun-Dec.nes
+./Hassle.nes
+./Hebereke.nes
+./Hector 87.nes
+./Hinotori-Houou Hen-Gaou no Bouken.nes
+./Hotman.nes
+./Hudson's Adventure Island.nes
+./Hudson's Adventure Island II.nes
+./Hudson's Adventure Island III.nes
+./Hyper Olympic.nes
+./Icarus-Angel Land Story.nes
+./Igo Shinan'91.nes
+./Igo Shinan'92.nes
+./Igo Shinan'93.nes
+./Igo Shinan'94.nes
+./Ikari III-The Rescue.nes
+./Ikari Warriors II-Victory Road.nes
+./Jurassic Boy 2.nes
+./Juuryoku Soukou Metal Storm.nes
+./Kage.nes
+./Kaiketsu Yanchamaru 3.nes
+./Kame no Ongaeshi-Urashima Densetsu.nes
+./Kamikaze Mario Bros..nes
+./Kamikaze Mario Bros. 2.nes
+./Kick Master.nes
+./Kid.nes
+./Kinnikuman-Muscle Tag Match.nes
+./Kujaku Ou.nes
+./Kujaku Ou 2.nes
+./Kyonsees 2.nes
+./Kyuukyoku Tiger.nes
+./LegZelda.nes
+./littlenemo.nes
+./Lode Runner 2.nes
+./Lupin Sansei-Pandora no Isan.nes
+./MadMax.nes
+./Mahjong RPG Dora 3.nes
+./Majaventure-Mahjong Senki.nes
+./Mario 16.nes
+./Mario Open Golf.nes
+./Mario TV.nes
+./mario2.nes
+./Mario_brothers.nes
+./MarioMis.nes
+./marvel's_x-men.nes
+./MarvXMen.nes
+./Master Chu & Drunkard Hu-Dao Shuai.nes
+./Master Fighter II-The Horld Harrior.nes
+./Max.nes
+./Megaman.nes
+./Megaman2.nes
+./Megaman3.nes
+./Megaman4.nes
+./Megaman5.nes
+./Megaman6.nes
+./Meikyuu Jima.nes
+./Menace_B.nes
+./Metal_mech.nes
+./metalgear2.nes
+./Mickey Mania 7.nes
+./Miracle Ropit's Adventure in 2100.nes
+./Mission Impossible 1.nes
+./Mission Impossible 2.nes
+./Mito Koumon-Sekai Manyuu Ki.nes
+./Nac.nes
+./Nekketsu Kouha Kunio Kun.nes
+./Niki-Radical Ninja.nes
+./ninjagaiden1.nes
+./ninjagaiden2.nes
+./ninjagaiden3.nes
+./Paaman Part 2.nes
+./Pachi Com.nes
+./Paperboy 1.nes
+./Paperboy2.nes
+./Parasol Stars.nes
+./The Penguin & Seal.nes
+./Pesterminator.nes
+./Pig.nes
+./Plants Vs Zomb.nes
+./Pokemon 2000.nes
+./Pokemon 4in1.nes
+./Pokemon Blue.nes
+./Pokemon Green.nes
+./Poker III 5 in 1.nes
+./Power Blade 1.nes
+./Rainbow Islands.nes
+./Ren_&_stimpy_buckaroos.nes
+./Robo_cop.nes
+./Robo_cop2.nes
+./Robo_cop3.nes
+./Rockman 1.nes
+./Rockman 5.nes
+./Rockman 7.nes
+./Saiyuuki World 2.nes
+./Salad no Kuni no Tomato Hime.nes
+./Salamander 1.nes
+./Salamander 2.nes
+./Salamander 3.nes
+./Samurai Zombie Nation.nes
+./Sangokushi II-Haou no Tairiku.nes
+./SD Hero Soukessen.nes
+./Seikima II-Akuma no Gyakushuu.nes
+./Shanghai 1.nes
+./Shin Jinrui-The New Type.nes
+./Shougun.nes
+./simpsons_bart_meets_radioactive_man.nes
+./simpsons_bart_vs_space_mutants.nes
+./Skate or Die 2-The Search for Double Trouble.nes
+./Skate_or_die2.nes
+./SoMari.nes
+./Son.nes
+./Sonic 5.nes
+./Sonic-Mario.nes
+./Splatter House-Wanpaku Graffiti.nes
+./StarTrek.nes
+./Startropics 2-Zoda's Revenge.nes
+./StarWar.nes
+./Street Fighter 12 Peoples.nes
+./Street Fighter 16 Peoples.nes
+./Street Fighter III(13 Peoples).nes
+./Street Fighter V(10 Peoples).nes
+./Summer Carnival.nes
+./Super Chinese.nes
+./Super Contra 5.nes
+./Super Mario 14.nes
+./Super Mario Bros 6.nes
+./Super Mario BT.nes
+./Super Mario World 9.nes
+./super_mario_brothers_duck_hunt_track_m.nes
+./super_offroad.nes
+./SupMarDW.nes
+./T&C2.nes
+./Taito Chase H.Q..nes
+./Taiyou no Yuusha Firebird.nes
+./Tale Spin.nes
+./Tantei Jinguuji Saburou.nes
+./Tatakai no Banka.nes
+./Team Pro-Wrestling.nes
+./TecBowl.nes
+./Teenage_mutant_ninja_turtles2.nes
+./Tekken 2.nes
+./Tenchi wo Kurau 1.nes
+./Tenchi wo Kurau 2.nes
+./Tetris 2 -Tengen.nes
+./Tetris 2+Bombliss.nes
+./Tetris2.nes
+./Tetsudou Ou-Famicom Boardgame.nes
+./Thunderbolt Fighting Plane.nes
+./Tiny_toon_adventures2.nes
+./Tom Sawyer no Bouken.nes
+./Tunny.nes
+./Twin Eagle-Revenge Joe's Brother.nes
+./TwinBee 3-Poko Poko Dai Maou.nes
+./U-four-ia-The Saga.nes
+./Ultraman Club 2-Kaettekita Ultraman.nes
+./USA Ice Hockey in FC.nes
+./Volleyball Q.nes
+./Wagan Land 1.nes
+./Wagan Land 2.nes
+./Wagan Land 3.nes
+./Wanpaku Kokkun no Gourmet World.nes
+./Warsaw City.nes
+./Whomp'Em 2.nes
+./World Grand-Prix-Pole To Finish.nes
+./Zelda.nes
+./Zelda2.nes

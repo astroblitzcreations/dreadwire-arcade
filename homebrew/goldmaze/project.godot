@@ -1,0 +1,28 @@
+; Standalone Raspberry Pi build of Trippy Gold Maze
+config_version=5
+
+[application]
+config/name="Trippy Gold Maze"
+run/main_scene="res://scenes/GoldMaze.tscn"
+
+[autoload]
+AppState="*res://scripts/standalone/AppState.gd"
+SoundDirector="*res://scripts/standalone/SoundDirector.gd"
+
+[display]
+window/size/viewport_width=768
+window/size/viewport_height=1024
+window/size/window_width_override=768
+window/size/window_height_override=1024
+window/stretch/mode="canvas_items"
+window/stretch/aspect="ignore"
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/default_filters/use_nearest_mipmap_filter=false
+
+[input]
+ui_accept={"deadzone":0.25,"events":[Object(InputEventKey,"physical_keycode":4194309),Object(InputEventKey,"physical_keycode":32),Object(InputEventJoypadButton,"button_index":0),Object(InputEventJoypadButton,"button_index":2)]}
+ui_cancel={"deadzone":0.25,"events":[Object(InputEventKey,"physical_keycode":4194305),Object(InputEventJoypadButton,"button_index":1)]}
+

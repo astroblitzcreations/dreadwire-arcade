@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/sprites/speedbike/obstacles/pit_large.png" id="1_pit_large"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_pit_large"]
+size = Vector2(304, 52)
+
+[node name="SpeedbikePitLarge" type="Area2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_pit_large")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_pit_large")

@@ -1,0 +1,1603 @@
+<?xml version='1.0' encoding='utf-8'?>
+<gameList>
+  <game>
+    <path>./01.1941.pce</path>
+    <name>01.1941</name>
+    <thumbnail />
+    <image>./media/fallback/4e1fb102407b.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./02.1943.pce</path>
+    <name>02.1943</name>
+    <thumbnail />
+    <image>./media/fallback/03e99db54ce6.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./03.AV poker.pce</path>
+    <name>03.AV poker</name>
+    <thumbnail />
+    <image>./media/fallback/8cc50f1f93c7.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./04.PC primeval 1.pce</path>
+    <name>04.PC primeval 1</name>
+    <thumbnail />
+    <image>./media/fallback/b74e035d594a.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./05.PC primeval 2.pce</path>
+    <name>05.PC primeval 2</name>
+    <thumbnail />
+    <image>./media/fallback/9474275bf0b9.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./06.PC primeval 3.pce</path>
+    <name>06.PC primeval 3</name>
+    <thumbnail />
+    <image>./media/fallback/ab063840d3d8.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./07.PC power.pce</path>
+    <name>07.PC power</name>
+    <thumbnail />
+    <image>./media/fallback/ea61d6c547b8.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./08.The great Chinese fairy.pce</path>
+    <name>08.The great Chinese fairy</name>
+    <thumbnail />
+    <image>./media/fallback/dbd4ef74723b.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./09.Vigilantes.pce</path>
+    <name>09.Vigilantes</name>
+    <thumbnail />
+    <image>./media/fallback/4088b6dd4eab.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./10.The warehouse.pce</path>
+    <name>10.The warehouse</name>
+    <thumbnail />
+    <image>./media/fallback/ca63999acd38.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./100.The dragon soul 2.pce</path>
+    <name>100.The dragon soul 2</name>
+    <thumbnail />
+    <image>./media/fallback/df1f50a1f1f1.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./11.An eye for an eye.pce</path>
+    <name>11.An eye for an eye</name>
+    <thumbnail />
+    <image>./media/fallback/2c26e634379b.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./12. The guard.pce</path>
+    <name>12. The guard</name>
+    <thumbnail />
+    <image>./media/fallback/dbe626005f47.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./13.Altered beast.pce</path>
+    <name>13.Altered beast</name>
+    <thumbnail />
+    <image>./media/fallback/baa1a136e2b1.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./14.Break through the fire 2.pce</path>
+    <name>14.Break through the fire 2</name>
+    <thumbnail />
+    <image>./media/fallback/635da6d4be34.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./15. Phoenix.pce</path>
+    <name>15. Phoenix</name>
+    <thumbnail />
+    <image>./media/fallback/85d2cdfaf502.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./16.Kung fu.pce</path>
+    <name>16.Kung fu</name>
+    <thumbnail />
+    <image>./media/fallback/ab645b226d59.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./17.Atomic mechanics boy.pce</path>
+    <name>17.Atomic mechanics boy</name>
+    <thumbnail />
+    <image>./media/fallback/cacd6110a0ab.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./18.A tale of the twin dragons.pce</path>
+    <name>18.A tale of the twin dragons</name>
+    <thumbnail />
+    <image>./media/fallback/564724fb93a8.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./19.Urban hunter.pce</path>
+    <name>19.Urban hunter</name>
+    <thumbnail />
+    <image>./media/fallback/ddf5fcdc02eb.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./20.An alien warrior.pce</path>
+    <name>20.An alien warrior</name>
+    <thumbnail />
+    <image>./media/fallback/2c0819d44fa6.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./21.Big magic village.pce</path>
+    <name>21.Big magic village</name>
+    <thumbnail />
+    <image>./media/fallback/3b8b2e56c336.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./22.Space invaders.pce</path>
+    <name>22.Space invaders</name>
+    <thumbnail />
+    <image>./media/fallback/b4165a12eabf.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./23.Air force mirror.pce</path>
+    <name>23.Air force mirror</name>
+    <thumbnail />
+    <image>./media/fallback/f331d603ebcf.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./24.Space harry.pce</path>
+    <name>24.Space harry</name>
+    <thumbnail />
+    <image>./media/fallback/33ace0f654b8.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./25.Space fighter Alpha.pce</path>
+    <name>25.Space fighter Alpha</name>
+    <thumbnail />
+    <image>./media/fallback/5d2272a53c5c.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./26.Space fighter Plus.pce</path>
+    <name>26.Space fighter Plus</name>
+    <thumbnail />
+    <image>./media/fallback/0151219ea3b7.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./27.Fighter for life 2.pce</path>
+    <name>27.Fighter for life 2</name>
+    <thumbnail />
+    <image>./media/fallback/6c097ebad060.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./28.Strange world.pce</path>
+    <name>28.Strange world</name>
+    <thumbnail />
+    <image>./media/fallback/3dc4cd1f4a1a.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./29.The twin eagles of the universe.pce</path>
+    <name>29.The twin eagles of the universe</name>
+    <thumbnail />
+    <image>./media/fallback/5ceb9715aa0a.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./30.Space cruise.pce</path>
+    <name>30.Space cruise</name>
+    <thumbnail />
+    <image>./media/fallback/fb9476e629d7.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./31.Cosmonauts.pce</path>
+    <name>31.Cosmonauts</name>
+    <thumbnail />
+    <image>./media/fallback/0071b2e38a72.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./32.Little bee 90.pce</path>
+    <name>32.Little bee 90</name>
+    <thumbnail />
+    <image>./media/fallback/7b672f309610.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./33.Phantom fighters.pce</path>
+    <name>33.Phantom fighters</name>
+    <thumbnail />
+    <image>./media/fallback/d6c77c2d706b.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./34.Ghost land.pce</path>
+    <name>34.Ghost land</name>
+    <thumbnail />
+    <image>./media/fallback/7565d19a0345.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./35.Alien fighter 1.pce</path>
+    <name>35.Alien fighter 1</name>
+    <thumbnail />
+    <image>./media/fallback/39686a3fc280.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./36.Alien fighter 2.pce</path>
+    <name>36.Alien fighter 2</name>
+    <thumbnail />
+    <image>./media/fallback/2ebc06113c99.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./37.Interdimensional fighter.pce</path>
+    <name>37.Interdimensional fighter</name>
+    <thumbnail />
+    <image>./media/fallback/a4c386983298.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./38.Rainbow island 1.pce</path>
+    <name>38.Rainbow island 1</name>
+    <thumbnail />
+    <image>./media/fallback/1272a27a4438.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./39.Rainbow island 2.pce</path>
+    <name>39.Rainbow island 2</name>
+    <thumbnail />
+    <image>./media/fallback/47f135685c9c.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./40.Ninja warrior.pce</path>
+    <name>40.Ninja warrior</name>
+    <thumbnail />
+    <image>./media/fallback/5a21bd05f4bc.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./41.Ninja dragon sword.pce</path>
+    <name>41.Ninja dragon sword</name>
+    <thumbnail />
+    <image>./media/fallback/e4077443927c.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./42.Adventures of the strange duck.pce</path>
+    <name>42.Adventures of the strange duck</name>
+    <thumbnail />
+    <image>./media/fallback/9226c1628d09.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./43.Dragon of dragons.pce</path>
+    <name>43.Dragon of dragons</name>
+    <thumbnail />
+    <image>./media/fallback/99811fa5c7fe.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./44.Combat life form.pce</path>
+    <name>44.Combat life form</name>
+    <thumbnail />
+    <image>./media/fallback/9a9cb0786854.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./45.The key of Solomon.pce</path>
+    <name>45.The key of Solomon</name>
+    <thumbnail />
+    <image>./media/fallback/dbb922aa3724.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./46.Transform superman 1.pce</path>
+    <name>46.Transform superman 1</name>
+    <thumbnail />
+    <image>./media/fallback/e4958fc84ad0.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./47.Remodel superman 2.pce</path>
+    <name>47.Remodel superman 2</name>
+    <thumbnail />
+    <image>./media/fallback/d346363e37d8.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./48.New adventure island.pce</path>
+    <name>48.New adventure island</name>
+    <thumbnail />
+    <image>./media/fallback/3c843fb70b04.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./49.Cyclone missions.pce</path>
+    <name>49.Cyclone missions</name>
+    <thumbnail />
+    <image>./media/fallback/d7a03c66ec59.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./50.Creatures of the night.pce</path>
+    <name>50.Creatures of the night</name>
+    <thumbnail />
+    <image>./media/fallback/01fc53097d81.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./51.The last patience.pce</path>
+    <name>51.The last patience</name>
+    <thumbnail />
+    <image>./media/fallback/6a9609c39f9d.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./52.Final aircraft.pce</path>
+    <name>52.Final aircraft</name>
+    <thumbnail />
+    <image>./media/fallback/f48bbb4b4d4b.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./53.Brother carpenter.pce</path>
+    <name>53.Brother carpenter</name>
+    <thumbnail />
+    <image>./media/fallback/2c95ae5f6c2e.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./54.Future racing 1.pce</path>
+    <name>54.Future racing 1</name>
+    <thumbnail />
+    <image>./media/fallback/e7d40dd47f4f.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./55.Future racing 2.pce</path>
+    <name>55.Future racing 2</name>
+    <thumbnail />
+    <image>./media/fallback/e4b5037dcf56.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./56.Mobile Interpol.pce</path>
+    <name>56.Mobile Interpol</name>
+    <thumbnail />
+    <image>./media/fallback/53d68e298f48.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./57.Doraemon labyrinth battle.pce</path>
+    <name>57.Doraemon labyrinth battle</name>
+    <thumbnail />
+    <image>./media/fallback/2534f8ef3dc7.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./58.Doraemon Arabian night.pce</path>
+    <name>58.Doraemon Arabian night</name>
+    <thumbnail />
+    <image>./media/fallback/41e6566a9783.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./59.Aircraft warfare corps.pce</path>
+    <name>59.Aircraft warfare corps</name>
+    <thumbnail />
+    <image>./media/fallback/0059c445a0c7.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./60.Mecha warrior.pce</path>
+    <name>60.Mecha warrior</name>
+    <thumbnail />
+    <image>./media/fallback/2341a9579239.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./61.Cotton witch.pce</path>
+    <name>61.Cotton witch</name>
+    <thumbnail />
+    <image>./media/fallback/8a48d9a16118.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./62.Armed crime.pce</path>
+    <name>62.Armed crime</name>
+    <thumbnail />
+    <image>./media/fallback/614b15b753ac.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./63.Armed aircraft F.pce</path>
+    <name>63.Armed aircraft F</name>
+    <thumbnail />
+    <image>./media/fallback/76425202974f.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./64.Armed knights.pce</path>
+    <name>64.Armed knights</name>
+    <thumbnail />
+    <image>./media/fallback/86095de06165.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./65.The month of death.pce</path>
+    <name>65.The month of death</name>
+    <thumbnail />
+    <image>./media/fallback/9d324d0a4725.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./66.Necromancer line.pce</path>
+    <name>66.Necromancer line</name>
+    <thumbnail />
+    <image>./media/fallback/e66713f29991.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./67.The adventures of Tom cruise.pce</path>
+    <name>67.The adventures of Tom cruise</name>
+    <thumbnail />
+    <image>./media/fallback/50e484c42070.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./68.The salomon snake.pce</path>
+    <name>68.The salomon snake</name>
+    <thumbnail />
+    <image>./media/fallback/a8a2ee2b7b73.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./69.Shahraman snake Q.pce</path>
+    <name>69.Shahraman snake Q</name>
+    <thumbnail />
+    <image>./media/fallback/5b7402d4acbc.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./70.The legend of yuan ping.pce</path>
+    <name>70.The legend of yuan ping</name>
+    <thumbnail />
+    <image>./media/fallback/17ae08c50fb8.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./71. Heavy fighting.pce</path>
+    <name>71. Heavy fighting</name>
+    <thumbnail />
+    <image>./media/fallback/c8fb3852839e.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./72.Bomber 94.pce</path>
+    <name>72.Bomber 94</name>
+    <thumbnail />
+    <image>./media/fallback/68e45447814a.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./73.Burning angels.pce</path>
+    <name>73.Burning angels</name>
+    <thumbnail />
+    <image>./media/fallback/525a1ab3e6e6.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./74.Spread the word.pce</path>
+    <name>74.Spread the word</name>
+    <thumbnail />
+    <image>./media/fallback/b7b30f6738c2.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./75.Excalibur 2.pce</path>
+    <name>75.Excalibur 2</name>
+    <thumbnail />
+    <image>./media/fallback/cecf1a67a31a.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./76.Travel around the world.pce</path>
+    <name>76.Travel around the world</name>
+    <thumbnail />
+    <image>./media/fallback/6898b68e4fb3.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./77.Eagle one two.pce</path>
+    <name>77.Eagle one two</name>
+    <thumbnail />
+    <image>./media/fallback/b57585b810b6.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./78.Sky firefox.pce</path>
+    <name>78.Sky firefox</name>
+    <thumbnail />
+    <image>./media/fallback/5cd62922486b.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./79.Air battle buster.pce</path>
+    <name>79.Air battle buster</name>
+    <thumbnail />
+    <image>./media/fallback/2ea9448ec29d.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./80.Alice is in wonderland.pce</path>
+    <name>80.Alice is in wonderland</name>
+    <thumbnail />
+    <image>./media/fallback/20f27b7885c5.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./81.Fancy pool ball.pce</path>
+    <name>81.Fancy pool ball</name>
+    <thumbnail />
+    <image>./media/fallback/79b2c9c82c75.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./82.The tiger.pce</path>
+    <name>82.The tiger</name>
+    <thumbnail />
+    <image>./media/fallback/272d31d737a1.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./83.Die hard.pce</path>
+    <name>83.Die hard</name>
+    <thumbnail />
+    <image>./media/fallback/0b6f920c0ec5.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./84.The batman.pce</path>
+    <name>84.The batman</name>
+    <thumbnail />
+    <image>./media/fallback/26f7a573f282.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./85.The Wolf blood.pce</path>
+    <name>85.The Wolf blood</name>
+    <thumbnail />
+    <image>./media/fallback/f41d852fc845.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./86.Street fighter II.pce</path>
+    <name>86.Street fighter II</name>
+    <thumbnail />
+    <image>./media/fallback/9799567fc934.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./87.Journey to the west -- sun sun2.pce</path>
+    <name>87.Journey to the west -- sun sun2</name>
+    <thumbnail />
+    <image>./media/fallback/8d3aa8b43c26.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./88.Ultra air combat aircraft.pce</path>
+    <name>88.Ultra air combat aircraft</name>
+    <thumbnail />
+    <image>./media/fallback/57b50e1f6052.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./89.Super.pce</path>
+    <name>89.Super</name>
+    <thumbnail />
+    <image>./media/fallback/0c6c76682a34.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./90.Super star warrior.pce</path>
+    <name>90.Super star warrior</name>
+    <thumbnail />
+    <image>./media/fallback/4a2240caa52f.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./91.Supercar.pce</path>
+    <name>91.Supercar</name>
+    <thumbnail />
+    <image>./media/fallback/747021d8ae06.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./92. Armored chariots.pce</path>
+    <name>92. Armored chariots</name>
+    <thumbnail />
+    <image>./media/fallback/9089ac0f206d.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./93.The thunder and lightning.pce</path>
+    <name>93.The thunder and lightning</name>
+    <thumbnail />
+    <image>./media/fallback/7c2c59f34460.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./94.The haunted house.pce</path>
+    <name>94.The haunted house</name>
+    <thumbnail />
+    <image>./media/fallback/510e73223a90.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./95.Wonderland 1.pce</path>
+    <name>95.Wonderland 1</name>
+    <thumbnail />
+    <image>./media/fallback/6a450af2ac99.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./96.Wonderland 2.pce</path>
+    <name>96.Wonderland 2</name>
+    <thumbnail />
+    <image>./media/fallback/4e057f8c2db9.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./97.The legend of the devil.pce</path>
+    <name>97.The legend of the devil</name>
+    <thumbnail />
+    <image>./media/fallback/d7e638a7ada5.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./98.Dungeons &amp; dragons.pce</path>
+    <name>98.Dungeons &amp; dragons</name>
+    <thumbnail />
+    <image>./media/fallback/169349d79bcf.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./99.The dragon soul 1.pce</path>
+    <name>99.The dragon soul 1</name>
+    <thumbnail />
+    <image>./media/fallback/47ed5ad9da70.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+</gameList>

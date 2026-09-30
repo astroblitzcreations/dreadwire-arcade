@@ -1,0 +1,35 @@
+; Standalone Raspberry Pi build of Chain of Command: Speedbike
+config_version=5
+
+[application]
+config/name="Chain of Command: Speedbike"
+run/main_scene="res://scenes/speedbike/SpeedbikeMode.tscn"
+
+[autoload]
+AppState="*res://scripts/standalone/AppState.gd"
+PlayState="*res://scripts/standalone/PlayState.gd"
+SoundDirector="*res://scripts/standalone/SoundDirector.gd"
+
+[display]
+window/size/viewport_width=768
+window/size/viewport_height=1024
+window/size/window_width_override=768
+window/size/window_height_override=1024
+window/stretch/mode="canvas_items"
+window/stretch/aspect="ignore"
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/default_filters/use_nearest_mipmap_filter=false
+2d/snap/snap_2d_transforms_to_pixel=true
+2d/snap/snap_2d_vertices_to_pixel=true
+
+[input]
+move_up={"deadzone":0.25,"events":[Object(InputEventKey,"physical_keycode":87),Object(InputEventJoypadMotion,"axis":1,"axis_value":-1.0)]}
+move_down={"deadzone":0.25,"events":[Object(InputEventKey,"physical_keycode":83),Object(InputEventJoypadMotion,"axis":1,"axis_value":1.0)]}
+move_left={"deadzone":0.25,"events":[Object(InputEventKey,"physical_keycode":65),Object(InputEventJoypadMotion,"axis":0,"axis_value":-1.0)]}
+move_right={"deadzone":0.25,"events":[Object(InputEventKey,"physical_keycode":68),Object(InputEventJoypadMotion,"axis":0,"axis_value":1.0)]}
+jump={"deadzone":0.25,"events":[Object(InputEventKey,"physical_keycode":32),Object(InputEventJoypadButton,"button_index":0)]}
+attack={"deadzone":0.25,"events":[Object(InputEventKey,"physical_keycode":4194309),Object(InputEventJoypadButton,"button_index":2)]}
+boost={"deadzone":0.25,"events":[Object(InputEventKey,"physical_keycode":4194325),Object(InputEventJoypadButton,"button_index":10)]}

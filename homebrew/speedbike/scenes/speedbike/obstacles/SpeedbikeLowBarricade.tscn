@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/sprites/speedbike/obstacles/low_barricade.png" id="1_low_barricade"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_low_barricade"]
+size = Vector2(176, 42)
+
+[node name="SpeedbikeLowBarricade" type="Area2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_low_barricade")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_low_barricade")

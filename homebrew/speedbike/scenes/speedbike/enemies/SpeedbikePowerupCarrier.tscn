@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/sprites/speedbike/enemies/speedbike_powerup_carrier.png" id="1_powerup_carrier"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_powerup_carrier"]
+size = Vector2(650, 150)
+
+[node name="SpeedbikePowerupCarrier" type="Area2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_powerup_carrier")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_powerup_carrier")

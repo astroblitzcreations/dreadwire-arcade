@@ -1,0 +1,1753 @@
+<?xml version='1.0' encoding='utf-8'?>
+<gameList>
+  <game>
+    <path>./001 Pokemon Fire Red.gba</path>
+    <name>001 Pokemon Fire Red</name>
+    <thumbnail />
+    <image>./media/fallback/71af90514008.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./002 Pokemon Leaf Green.gba</path>
+    <name>002 Pokemon Leaf Green</name>
+    <thumbnail />
+    <image>./media/fallback/ed50f2597485.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./003 Pokemon Mystery Dungeon-Red Rescue Team.gba</path>
+    <name>003 Pokemon Mystery Dungeon-Red Rescue Team</name>
+    <thumbnail />
+    <image>./media/fallback/4e8a2ca2ae21.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./004 Super Mario Adv.gba</path>
+    <name>004 Super Mario Adv</name>
+    <thumbnail />
+    <image>./media/fallback/48af7c156648.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./005 Mario Kart.gba</path>
+    <name>005 Mario Kart</name>
+    <thumbnail />
+    <image>./media/fallback/0bede7e28bd3.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./006 Super Mario Advance 4-Super Mario Bros.3.gba</path>
+    <name>006 Super Mario Advance 4-Super Mario Bros.3</name>
+    <thumbnail />
+    <image>./media/fallback/6a10261344c7.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./007 Super Mario World 2.gba</path>
+    <name>007 Super Mario World 2</name>
+    <thumbnail />
+    <image>./media/fallback/072f99d1deb9.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./008 Super Mario Advance 3-Yoshi's Island.gba</path>
+    <name>008 Super Mario Advance 3-Yoshi's Island</name>
+    <thumbnail />
+    <image>./media/fallback/4cdbed3e94ec.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./009 Mario &amp; Luigi Superstar Saga.gba</path>
+    <name>009 Mario &amp; Luigi Superstar Saga</name>
+    <thumbnail />
+    <image>./media/fallback/fd47110eb639.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./010 Mario Vs Donkey Kong.gba</path>
+    <name>010 Mario Vs Donkey Kong</name>
+    <thumbnail />
+    <image>./media/fallback/04aa74414ef2.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./011 Sonic Advance.gba</path>
+    <name>011 Sonic Advance</name>
+    <thumbnail />
+    <image>./media/fallback/538fb7f19cf5.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./012 Sonic Advance 2.gba</path>
+    <name>012 Sonic Advance 2</name>
+    <thumbnail />
+    <image>./media/fallback/0f589638f2d9.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./013 Sonic Advance 3.gba</path>
+    <name>013 Sonic Advance 3</name>
+    <thumbnail />
+    <image>./media/fallback/8d8dc710c9e8.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./014 Sonic Battle.gba</path>
+    <name>014 Sonic Battle</name>
+    <thumbnail />
+    <image>./media/fallback/abbd6fe9413a.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./015 Kirby Nightmare In Dreamland.gba</path>
+    <name>015 Kirby Nightmare In Dreamland</name>
+    <thumbnail />
+    <image>./media/fallback/e0bb2237b311.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./016 Kirby And The Amazing Mirror.gba</path>
+    <name>016 Kirby And The Amazing Mirror</name>
+    <thumbnail />
+    <image>./media/fallback/e5d3188ac987.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./017 Yggdra Union.gba</path>
+    <name>017 Yggdra Union</name>
+    <thumbnail />
+    <image>./media/fallback/4624c4c28773.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./018 Dragon Ball-Ad Adv.gba</path>
+    <name>018 Dragon Ball-Ad Adv</name>
+    <thumbnail />
+    <image>./media/fallback/c66b16527068.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./019 Gunstar Super Heroes.gba</path>
+    <name>019 Gunstar Super Heroes</name>
+    <thumbnail />
+    <image>./media/fallback/9df4463d279e.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./020 Donkey Kong Country 1.gba</path>
+    <name>020 Donkey Kong Country 1</name>
+    <thumbnail />
+    <image>./media/fallback/f499eb5333a2.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./021 Donkey Kong Country 2.gba</path>
+    <name>021 Donkey Kong Country 2</name>
+    <thumbnail />
+    <image>./media/fallback/be30540aada4.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./022 Crash Bandicoot.gba</path>
+    <name>022 Crash Bandicoot</name>
+    <thumbnail />
+    <image>./media/fallback/95e84ff38505.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./023 Crash Bandicoot 2.gba</path>
+    <name>023 Crash Bandicoot 2</name>
+    <thumbnail />
+    <image>./media/fallback/84a5d97d50c6.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./024 Crash of the Titans.gba</path>
+    <name>024 Crash of the Titans</name>
+    <thumbnail />
+    <image>./media/fallback/bce828c5771d.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./025 Tekken Advance.gba</path>
+    <name>025 Tekken Advance</name>
+    <thumbnail />
+    <image>./media/fallback/7fd91394839d.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./026 The King Of Fighters EX1.gba</path>
+    <name>026 The King Of Fighters EX1</name>
+    <thumbnail />
+    <image>./media/fallback/e1c12e12fa5a.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./027 The king of the fighter EX2.gba</path>
+    <name>027 The king of the fighter EX2</name>
+    <thumbnail />
+    <image>./media/fallback/c9e19be5800f.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./028 Street Fighter Alpha 3.gba</path>
+    <name>028 Street Fighter Alpha 3</name>
+    <thumbnail />
+    <image>./media/fallback/a6222fb81823.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./031 Harvest Moon-Mineral Town.gba</path>
+    <name>031 Harvest Moon-Mineral Town</name>
+    <thumbnail />
+    <image>./media/fallback/9c341be6eafc.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./032 Harvest Moon-More Friends of Mineral Town.gba</path>
+    <name>032 Harvest Moon-More Friends of Mineral Town</name>
+    <thumbnail />
+    <image>./media/fallback/639ac17fe058.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./033 Castlevania-Circle of the Moon.gba</path>
+    <name>033 Castlevania-Circle of the Moon</name>
+    <thumbnail />
+    <image>./media/fallback/f02cdd68f46b.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./034 Castlevania-Harmony Of Dissonance.gba</path>
+    <name>034 Castlevania-Harmony Of Dissonance</name>
+    <thumbnail />
+    <image>./media/fallback/425e8d831403.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./035 Castlevania-Aria Of Sorrow.gba</path>
+    <name>035 Castlevania-Aria Of Sorrow</name>
+    <thumbnail />
+    <image>./media/fallback/48e421f4259b.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./036 The Legend Of Zelda-Link To The Past.gba</path>
+    <name>036 The Legend Of Zelda-Link To The Past</name>
+    <thumbnail />
+    <image>./media/fallback/6a0c11583912.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./037 The Legend of Zelda-The Minish Cap.gba</path>
+    <name>037 The Legend of Zelda-The Minish Cap</name>
+    <thumbnail />
+    <image>./media/fallback/c7587a6ef346.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./038 Fire Emblem.gba</path>
+    <name>038 Fire Emblem</name>
+    <thumbnail />
+    <image>./media/fallback/614795abeca5.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./039 Fire Emblem-The Sacred Stones.gba</path>
+    <name>039 Fire Emblem-The Sacred Stones</name>
+    <thumbnail />
+    <image>./media/fallback/fb91c9f3aa0e.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./040 Megaman Zero 1.gba</path>
+    <name>040 Megaman Zero 1</name>
+    <thumbnail />
+    <image>./media/fallback/8aa984fb17e8.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./041 Megaman Zero 2.gba</path>
+    <name>041 Megaman Zero 2</name>
+    <thumbnail />
+    <image>./media/fallback/5a18030587c0.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./042 Megaman Zero 3.gba</path>
+    <name>042 Megaman Zero 3</name>
+    <thumbnail />
+    <image>./media/fallback/d403c3be9756.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./043 Megaman Zero 4.gba</path>
+    <name>043 Megaman Zero 4</name>
+    <thumbnail />
+    <image>./media/fallback/27d7aa50e134.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./044 MegaMan &amp; Bass.gba</path>
+    <name>044 MegaMan &amp; Bass</name>
+    <thumbnail />
+    <image>./media/fallback/ed6e23dbbe15.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./045 Metal Slug Advance.gba</path>
+    <name>045 Metal Slug Advance</name>
+    <thumbnail />
+    <image>./media/fallback/f55d4d22c08a.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./046 World Soccer Winning Eleven.gba</path>
+    <name>046 World Soccer Winning Eleven</name>
+    <thumbnail />
+    <image>./media/fallback/cc3eb57af452.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./048 Final Fantasy Tactics Advance.gba</path>
+    <name>048 Final Fantasy Tactics Advance</name>
+    <thumbnail />
+    <image>./media/fallback/d700c8daea02.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./049 Final Fantasy IV.gba</path>
+    <name>049 Final Fantasy IV</name>
+    <thumbnail />
+    <image>./media/fallback/8d506c8e7b7a.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./050 Final Fantasy V.gba</path>
+    <name>050 Final Fantasy V</name>
+    <thumbnail />
+    <image>./media/fallback/283fdc4dcac5.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./051 Final Fantasy VI.gba</path>
+    <name>051 Final Fantasy VI</name>
+    <thumbnail />
+    <image>./media/fallback/081b4cfd3d3e.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./052 CT Special Forces.gba</path>
+    <name>052 CT Special Forces</name>
+    <thumbnail />
+    <image>./media/fallback/7c7f936f465a.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./053 CT Special Forces 2.gba</path>
+    <name>053 CT Special Forces 2</name>
+    <thumbnail />
+    <image>./media/fallback/3d96567db702.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./054 Rayman Advance.gba</path>
+    <name>054 Rayman Advance</name>
+    <thumbnail />
+    <image>./media/fallback/42e16f9af8ec.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./055 Rayman-Hoodlums Revenge.gba</path>
+    <name>055 Rayman-Hoodlums Revenge</name>
+    <thumbnail />
+    <image>./media/fallback/1cc7f5b16cff.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./056 Rayman Raving Rabbits.gba</path>
+    <name>056 Rayman Raving Rabbits</name>
+    <thumbnail />
+    <image>./media/fallback/e52b7e89b804.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./057 Rayman 3.gba</path>
+    <name>057 Rayman 3</name>
+    <thumbnail />
+    <image>./media/fallback/da45f127281c.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./058 Max Payne.gba</path>
+    <name>058 Max Payne</name>
+    <thumbnail />
+    <image>./media/fallback/2f3996d1d12d.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./059 Duke Nukem Advance.gba</path>
+    <name>059 Duke Nukem Advance</name>
+    <thumbnail />
+    <image>./media/fallback/612b8ccabed5.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./060 Advance Wars 2.gba</path>
+    <name>060 Advance Wars 2</name>
+    <thumbnail />
+    <image>./media/fallback/c25243c7c06a.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./061 Shining Soul.gba</path>
+    <name>061 Shining Soul</name>
+    <thumbnail />
+    <image>./media/fallback/0a1be8da3da0.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./063 Mortal Kombat Deadly Alliance.gba</path>
+    <name>063 Mortal Kombat Deadly Alliance</name>
+    <thumbnail />
+    <image>./media/fallback/dc84f4c7e908.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./064 Mortal Kombat Tournament Edition.gba</path>
+    <name>064 Mortal Kombat Tournament Edition</name>
+    <thumbnail />
+    <image>./media/fallback/a0559573d84c.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./065 Summon Night-Swordcraft Story.gba</path>
+    <name>065 Summon Night-Swordcraft Story</name>
+    <thumbnail />
+    <image>./media/fallback/8dc545ffbcba.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./066 Summon Night-Swordcraft Story 2.gba</path>
+    <name>066 Summon Night-Swordcraft Story 2</name>
+    <thumbnail />
+    <image>./media/fallback/6e366007dab0.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./067 Wario Land 4.gba</path>
+    <name>067 Wario Land 4</name>
+    <thumbnail />
+    <image>./media/fallback/5dce4dcf2e7a.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./068 Wario Ware Inc.gba</path>
+    <name>068 Wario Ware Inc</name>
+    <thumbnail />
+    <image>./media/fallback/2cc609f004f4.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./069 Wario Ware Twisted!.gba</path>
+    <name>069 Wario Ware Twisted!</name>
+    <thumbnail />
+    <image>./media/fallback/18a830e14c23.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./070 Dr Mario and Puzzle League.gba</path>
+    <name>070 Dr Mario and Puzzle League</name>
+    <thumbnail />
+    <image>./media/fallback/d69419dbd1f8.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./071 Mario Pinball Land.gba</path>
+    <name>071 Mario Pinball Land</name>
+    <thumbnail />
+    <image>./media/fallback/7314ad549571.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./072 Doom II.gba</path>
+    <name>072 Doom II</name>
+    <thumbnail />
+    <image>./media/fallback/e204ba1bf5ee.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./073 Spiderman-Mysterio's Menace.gba</path>
+    <name>073 Spiderman-Mysterio's Menace</name>
+    <thumbnail />
+    <image>./media/fallback/abd13c31fcec.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./074 Super Robot Taisen OG 1.gba</path>
+    <name>074 Super Robot Taisen OG 1</name>
+    <thumbnail />
+    <image>./media/fallback/56814a3f9bdc.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./075 Super Robot Taisen OG 2.gba</path>
+    <name>075 Super Robot Taisen OG 2</name>
+    <thumbnail />
+    <image>./media/fallback/4d1788e365dc.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./076 Drill Dozer.gba</path>
+    <name>076 Drill Dozer</name>
+    <thumbnail />
+    <image>./media/fallback/8648bca1c8b4.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./077 Lunar Legend.gba</path>
+    <name>077 Lunar Legend</name>
+    <thumbnail />
+    <image>./media/fallback/4d94dbeb48d0.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./078 Metroid Fusion.gba</path>
+    <name>078 Metroid Fusion</name>
+    <thumbnail />
+    <image>./media/fallback/564051b2ce5b.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./079 Metroid Zero Mission.gba</path>
+    <name>079 Metroid Zero Mission</name>
+    <thumbnail />
+    <image>./media/fallback/d0b95bbfc1e5.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./080 Monster Rancher Advance 1.gba</path>
+    <name>080 Monster Rancher Advance 1</name>
+    <thumbnail />
+    <image>./media/fallback/9520563c4923.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./081 Monster Rancher Advance 2.gba</path>
+    <name>081 Monster Rancher Advance 2</name>
+    <thumbnail />
+    <image>./media/fallback/b85936db7a03.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./082 Tactics Ogre-The Knight of Lodis.gba</path>
+    <name>082 Tactics Ogre-The Knight of Lodis</name>
+    <thumbnail />
+    <image>./media/fallback/8292de94ed9b.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./083 Phantasy Star Collection.gba</path>
+    <name>083 Phantasy Star Collection</name>
+    <thumbnail />
+    <image>./media/fallback/c17453536676.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./084 Shaman King-Master of Spirits.gba</path>
+    <name>084 Shaman King-Master of Spirits</name>
+    <thumbnail />
+    <image>./media/fallback/be80c78057c4.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./085 Puyo Pop.gba</path>
+    <name>085 Puyo Pop</name>
+    <thumbnail />
+    <image>./media/fallback/8bb313eca128.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./086 Shining Force-Resurrection of the Dark Dragon.gba</path>
+    <name>086 Shining Force-Resurrection of the Dark Dragon</name>
+    <thumbnail />
+    <image>./media/fallback/ee1cd83c9632.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./087 Driv3r.gba</path>
+    <name>087 Driv3r</name>
+    <thumbnail />
+    <image>./media/fallback/8da4b0175e01.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./088 Naruto - konoha senki.gba</path>
+    <name>088 Naruto - konoha senki</name>
+    <thumbnail />
+    <image>./media/fallback/a02d7220cffe.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./089 Naruto Ninja Council 1.gba</path>
+    <name>089 Naruto Ninja Council 1</name>
+    <thumbnail />
+    <image>./media/fallback/f0272d878d89.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./090 Naruto Ninja Council 2.gba</path>
+    <name>090 Naruto Ninja Council 2</name>
+    <thumbnail />
+    <image>./media/fallback/88e78118c20f.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./091 Teenage mutant ninja turtles.gba</path>
+    <name>091 Teenage mutant ninja turtles</name>
+    <thumbnail />
+    <image>./media/fallback/966df844d7e1.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./092 Teenage Mutant Ninja Turtles 2-Battle Nexus.gba</path>
+    <name>092 Teenage Mutant Ninja Turtles 2-Battle Nexus</name>
+    <thumbnail />
+    <image>./media/fallback/1ed5cfb815dc.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./093 TMNT.gba</path>
+    <name>093 TMNT</name>
+    <thumbnail />
+    <image>./media/fallback/a3dc2daef5e5.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./094 Spyro-Season of Ice.gba</path>
+    <name>094 Spyro-Season of Ice</name>
+    <thumbnail />
+    <image>./media/fallback/f07f820cf9e5.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./095 Spyro 2-Season Of Flame.gba</path>
+    <name>095 Spyro 2-Season Of Flame</name>
+    <thumbnail />
+    <image>./media/fallback/ff04743207b8.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./096 Spyro-Attack of the Rhynocs.gba</path>
+    <name>096 Spyro-Attack of the Rhynocs</name>
+    <thumbnail />
+    <image>./media/fallback/2ec2f3fe5966.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./097 The Legend of Spyro - A New Beginning.gba</path>
+    <name>097 The Legend of Spyro - A New Beginning</name>
+    <thumbnail />
+    <image>./media/fallback/a0140a87d7bd.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./098 The Legend of Spyro-The Eternal Night.gba</path>
+    <name>098 The Legend of Spyro-The Eternal Night</name>
+    <thumbnail />
+    <image>./media/fallback/87bc2bd56864.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./099 Shonen Jumps One Piece.gba</path>
+    <name>099 Shonen Jumps One Piece</name>
+    <thumbnail />
+    <image>./media/fallback/153f504681d1.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./100 Prince of Persia.gba</path>
+    <name>100 Prince of Persia</name>
+    <thumbnail />
+    <image>./media/fallback/8765da22b134.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./101 The Sims 2.gba</path>
+    <name>101 The Sims 2</name>
+    <thumbnail />
+    <image>./media/fallback/e1a35ea2a3e3.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./102 The Urbz-Sims in the city.gba</path>
+    <name>102 The Urbz-Sims in the city</name>
+    <thumbnail />
+    <image>./media/fallback/fbcfa257e679.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./103 Harry Potter and the Sorcerer's Stone.gba</path>
+    <name>103 Harry Potter and the Sorcerer's Stone</name>
+    <thumbnail />
+    <image>./media/fallback/d0be134cb717.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./104 Harry Potter and The Chamber of Secrets.gba</path>
+    <name>104 Harry Potter and The Chamber of Secrets</name>
+    <thumbnail />
+    <image>./media/fallback/f85e46547ce8.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./105 Harry Potter and the Prisoner of Azkaban.gba</path>
+    <name>105 Harry Potter and the Prisoner of Azkaban</name>
+    <thumbnail />
+    <image>./media/fallback/4d59e8d71e7b.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./106 Harry Potter and the Goblet of Fire.gba</path>
+    <name>106 Harry Potter and the Goblet of Fire</name>
+    <thumbnail />
+    <image>./media/fallback/c05133caf39b.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./108 American Idol.gba</path>
+    <name>108 American Idol</name>
+    <thumbnail />
+    <image>./media/fallback/c1d7147a8e49.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./109 Bionicle Heroes.gba</path>
+    <name>109 Bionicle Heroes</name>
+    <thumbnail />
+    <image>./media/fallback/86a862330693.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./110 Charlotte's Web.gba</path>
+    <name>110 Charlotte's Web</name>
+    <thumbnail />
+    <image>./media/fallback/3e75a3c77f54.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./047 Final Fantasy I &amp; II-Dawn of Souls.gba</path>
+    <name>Final Fantasy I &amp; II: Dawn of Souls</name>
+    <thumbnail />
+    <image>./media/screenshots/047 Final Fantasy I &amp; II-Dawn of Souls.png</image>
+    <marquee>./media/marquees/047 Final Fantasy I &amp; II-Dawn of Souls.png</marquee>
+    <texture />
+    <video />
+    <rating />
+    <desc>Relive the first two chapters in the Final Fantasy saga--this time with all-new story elements and gameplay. Now you can experience new dungeons, storylines, and characters. Furthermore, you can master the enhanced control systems, and you can save your game at anytime. In Final Fantasy, you control a group of heroes on a mission to save a kingdom in turmoil. The sequel lets you swap out members of your parties during the game, allowing you to experience the adventure with more characters.</desc>
+    <releasedate>20041129T000000</releasedate>
+    <developer>Tose Co., Ltd.</developer>
+    <publisher>Nintendo</publisher>
+    <genre>Role-Playing</genre>
+    <players>1</players>
+    <kidgame>true</kidgame>
+  </game>
+  <game>
+    <path>./062 Shining Soul II.gba</path>
+    <name>Shining Soul II</name>
+    <thumbnail />
+    <image>./media/screenshots/062 Shining Soul II.png</image>
+    <marquee>./media/marquees/062 Shining Soul II.png</marquee>
+    <texture />
+    <video />
+    <rating />
+    <desc>As monsters begin to appear in the kingdom Klantol, King Marcel announces a grand tournament at the coliseum to find a hero that can protect the country. Now, as a mighty Brawler, Priestess, Dark Wizard, or Ninja, you must accept the king's challenge. Each character has certain strengths and weaknesses that can mean the difference between victory and defeat in single-player, multiplayer, or cooperative multiplayer modes. In addition to valuable weapons and armor, you can equip your party with Force Links, which, when combined, create a Shining Force--a powerful weapon capable of decimating the enemy forces.</desc>
+    <releasedate>20040420T000000</releasedate>
+    <developer>Sega</developer>
+    <publisher>Atlus Co., Ltd.</publisher>
+    <genre>Action, Role-Playing</genre>
+    <players>4</players>
+    <kidgame>true</kidgame>
+  </game>
+  <game>
+    <path>./030 Super Puzzle Fighter II.gba</path>
+    <name>Super Puzzle Fighter II</name>
+    <thumbnail />
+    <image>./media/screenshots/030 Super Puzzle Fighter II.png</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc>Hailed as the best puzzle game of all time, Super Puzzle Fighter is chock full of ferocious competition, pint-sized characters and non-stop high-energy insanity. Carefully stack the falling colored gems in strategic combinations.
+
+When the moment is right, use a crash gem to shatter your blocks. Watch your character execute a combo move and rain a volley of counter gems down on your opponent! Be the first to fill the other's screen with gems and K.O.!... you win!</desc>
+    <releasedate>20030331T000000</releasedate>
+    <developer>Atomic Planet Entertainment Limited</developer>
+    <publisher>Capcom</publisher>
+    <genre>Puzzle</genre>
+    <players>2</players>
+    <kidgame>true</kidgame>
+  </game>
+  <game>
+    <path>./029 Super street fighter II turbo-revival.gba</path>
+    <name>Super Street Fighter II Turbo: Revival</name>
+    <thumbnail />
+    <image>./media/screenshots/029 Super street fighter II turbo-revival.png</image>
+    <marquee>./media/marquees/029 Super street fighter II turbo-revival.png</marquee>
+    <texture />
+    <video />
+    <rating />
+    <desc>Capcom's timeless Street Fighter masterpiece conquers the Game Boy Advance system. Choose from over 16 brawlers from the Street Fighter universe and execute special moves, and super combos to wreak havoc on your opponent and become the best street fighter in the world. Lightning fast animation, unbelievable graphics and Capcom's signature gameplay make Super Street Fighter II Turbo the most respected fighting game of all time.</desc>
+    <releasedate>20011101T000000</releasedate>
+    <developer>Capcom Production Studio 3</developer>
+    <publisher>Capcom</publisher>
+    <genre>Fighting</genre>
+    <players>2</players>
+    <kidgame>true</kidgame>
+  </game>
+</gameList>

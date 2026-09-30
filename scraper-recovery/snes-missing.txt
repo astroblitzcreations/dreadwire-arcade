@@ -1,0 +1,192 @@
+./ 1.smc
+./ 3000.smc
+./ Game 2.smc
+./ Non-Sense Fantasy.smc
+./ Panepon.smc
+./ Predator.smc
+./ Robin, The Adventures of.smc
+./& Forte.smc
+./, The-Bart's Nightmare.smc
+./-The False Prophet.smc
+./004 Super Mario RPG-Legend of the Seven Stars.sfc
+./005 Super Mario All-Stars + Super Mario World.sfc
+./006 Mario is Missing.sfc
+./008 Donkey Kong Country 2.sfc
+./009 Donkey Kong Country 3.sfc
+./020 Contra III-The Alien Wars.sfc
+./035 Super Metroid.sfc
+./039 Ninja warriors.sfc
+./040 Metal Warriors.sfc
+./041 Teenage Mutant Ninja Turtles.sfc
+./046 Super Bomberman 4.sfc
+./054 Aladdin.sfc
+./059 Super Adventure Island 1.sfc
+./060 Super Adventure Island 2.sfc
+./069 Battletoads in Battlemaniacs.sfc
+./071 Mickey Mouse.sfc
+./073 Mickey's Ultimate Challenge.sfc
+./080 Addams Family.sfc
+./093 Battle Submarine.sfc
+./114 Dark Half.sfc
+./118 Dennis the Menace.sfc
+./123 Doraemon 4.sfc
+./133 Fushigi no Dungeon.sfc
+./139 Hook.sfc
+./141 Incredible Hulk.sfc
+./143 Joe & Mac 1.sfc
+./144 Joe & Mac 2.sfc
+./147 Jurassic Park.sfc
+./156 Lion King.sfc
+./166 Mario's Early Years-Preschool Fun.sfc
+./167 Mario's Time Machine.sfc
+./170 Mighty Morphin Power Rangers-Fighting Edition.sfc
+./174 Mr Nutz.sfc
+./179 Pink Panther in Pink Goes to Hollywood.sfc
+./180 Pinocchio.sfc
+./183 Pocky & Rocky 2.sfc
+./184 Porky Pig's Haunted Holiday.sfc
+./185 Power piggs of the Dark Age.sfc
+./186 Power Rangers Zeo-Battle Racers.sfc
+./187 Primal Rage.sfc
+./188 Puzzle Bobble-Bust-A-Move.sfc
+./189 Q-bert 3.sfc
+./191 R-Type.sfc
+./192 Ren & Stimpy Show, The-Veediots!.smc
+./196 Run Saber.sfc
+./197 Samurai Shodown.sfc
+./2-The New Adventures.smc
+./202 Sim City.sfc
+./204 Smash TV.sfc
+./205 Soccer Kid.sfc
+./208 Space Ace.sfc
+./209 Space Funky B.O.B..sfc
+./212 Speedy Gonzales.sfc
+./216 Super BC Kid.sfc
+./217 Super Billiard.sfc
+./218 Super Bowling.sfc
+./227 Super Turrican.sfc
+./236 The Tick.sfc
+./237 Timon & Pumbaa's Jungle Games.sfc
+./238 Tin Star.sfc
+./239 Tiny Toon AdventuresBuster Busts Loose!.smc
+./241 Toy Story.sfc
+./242 True Lies.sfc
+./243 Tsuri Tarou.sfc
+./246 Ultraman-Towards the Future.sfc
+./247 Ultraman.sfc
+./248 Uniracers.sfc
+./249 Urban Strike.sfc
+./250 Vortex.sfc
+./251 Wario's Woods.sfc
+./252 Waterworld.sfc
+./253 Wayne Gretzky and the NHLPA All-Stars.sfc
+./254 Weapon Lord.sfc
+./255 Wile E Coyote's Revenge.sfc
+./256 Wolverine-Adamantium Rage.sfc
+./258 X-Men-Mutant Apocalypse.sfc
+./259 Yogi Bear's Cartoon Capers.sfc
+./262 Yoshi's Cookie.sfc
+./263 Young Merlin.sfc
+./267 Zero the Kamikaze Squirrel.sfc
+./270 Zoop.sfc
+./3.smc
+./an.smc
+./an-Lethal Foes.smc
+./an-Maximum Carnage.smc
+./ar Wars-Return of the Jedi.smc
+./ar Wars-The Empire Strikes Back.smc
+./ast Man.smc
+./Bomberman 1.smc
+./Captain America & the Avengers.smc
+./Castlevania 4.smc
+./Castlevania 5.smc
+./ck-The Marvin Missions.smc
+./Crest.smc
+./cs.smc
+./D Ballz 2 Jap.smc
+./D Ballz 3 Jap.smc
+./Dodgeball.smc
+./Donald Duck -  Maui Mallard in Cold Shadow.smc
+./Double Dragon 2.smc
+./Dragons.smc
+./er 1.smc
+./er 3.smc
+./eturns.smc
+./Fifa 95.smc
+./Fifa 96.smc
+./FIFA 98.smc
+./Final Fantasy 4.smc
+./gdom.smc
+./ght 2.smc
+./Goemon 4.smc
+./Hakusho.smc
+./Hakusho Final-Makai Saikyou Retsuden.smc
+./Hakusho-Tokubetsu Hen.smc
+./iders.smc
+./ighter Alpha 5.smc
+./II-The Third Lightning.smc
+./ings 1.smc
+./ive.smc
+./Jones' Greatest Adventures.smc
+./Jurassic Park 2.smc
+./k.smc
+./ke.smc
+./ket.smc
+./Kong complete.smc
+./lley.smc
+./m GNext.smc
+./m Jim 1.smc
+./m Jim 2.smc
+./ma.smc
+./Madden 95.smc
+./Madden 96.smc
+./Madden 97.smc
+./Madden 98.smc
+./Madden NFL '93.smc
+./Madden NFL Football.smc
+./Mask.smc
+./n 3.smc
+./ngs.smc
+./nia 4.smc
+./nia-Dracula X.smc
+./nja Boy.smc
+./ny in Rabbit Rampage.smc
+./o Donald-Magical Adventure 3.smc
+./ombat III.smc
+./or.smc
+./or 2-Judgment Day.smc
+./ord.smc
+./orever.smc
+./orphin Power Rangers-Movie Edition.smc
+./r.smc
+./ragon V-The Shadow Falls.smc
+./Raw.smc
+./re Pro Wrestling X Premium.smc
+./rines.smc
+./rio Advance 3-Yoshi's Island.smc
+./rne.smc
+./ro.smc
+./Rocky 1.smc
+./rry.smc
+./ry 2.smc
+./s Soccer.smc
+./s-Dino City.smc
+./seball 2020.smc
+./Sonic the Hetchog.smc
+./ssion.smc
+./ssion 2-Gun Hazard.smc
+./Street Fighter 2 Black Belt Edition.smc
+./Super Buster Brothers.smc
+./Super Ghouls and Ghosts.smc
+./Super Mario Paint.smc
+./Superstar.smc
+./Tekken 2 Jap.smc
+./tle-The March of the Black Queen.smc
+./trike 1.smc
+./tris 3.smc
+./ttle 4.smc
+./unes Basketball.smc
+./win.smc
+./X2.smc
+./y 2.smc
+./yo Puyo 2 Remix.smc

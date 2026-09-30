@@ -1,0 +1,365 @@
+./001 Sonic 1.bin
+./002 Sonic 2.bin
+./003 Sonic 3.bin
+./005 Sonic & Knuckles 1.bin
+./006 Sonic & Knuckles 2.bin
+./007 Sonic-Amy Rose.bin
+./008 King of Fighters '98.bin
+./009 Street Fighter 2 Turbo.bin
+./010 Golden Axe.bin
+./012 Golden Axe III.bin
+./015 Mortal Kombat 3.bin
+./016 Mortal Kombat 5.bin
+./018 V.R Fighter vs Taken2.bin
+./019 Toki-Going Ape Spit.bin
+./020 Vectorman.bin
+./022 Fire Shark.bin
+./023 Angry Birds.bin
+./026 Mickey Mouse-Fantasia.bin
+./027 Animaniacs.bin
+./035 Road Rash II.bin
+./038 Gunstar Super Heroes.bin
+./039 Granada.bin
+./040 Jungle Book.bin
+./043 Blaster Master 2.bin
+./049 Tecmo World Cup '93.bin
+./050 Whip Rush.bin
+./051 James Bond 007.bin
+./054 AeroBlasters.bin
+./057 Ayrton Senna's Super Monaco GP II.bin
+./060 Dominus.bin
+./062 Rainbow Islands.bin
+./065 DJ Boy.bin
+./066 General Chaos.bin
+./067 Ghost Hunter.bin
+./068 Ghostbusters.bin
+./069 Ghouls'n Ghosts.bin
+./072 Crue Ball.bin
+./078 Last Battle - Legend of the Final Hero.bin
+./079 Columns3.bin
+./080 Link Dragon.bin
+./081 Lotus II RECS.bin
+./082 M1 Abrams Battle Tank.bin
+./083 Young Indiana Jones Chronicle.bin
+./086 Michael Jackson's Moonwalker.bin
+./090 Mystic Defender.bin
+./094 Operation Europe-Path to Victory 1939-45.bin
+./095 Altered Beast.bin
+./096 Paperboy.bin
+./12-in-1.gen
+./16 Tiles Mahjong.gen
+./16 Ton (SN).gen
+./3-in-1 Flashback - World Champ. Soccer - Tecmo World Cup 92.gen
+./3-in-1 Road Rash - Ms. Pac-Man - Block Out.gen
+./4-in-1.gen
+./Aah! Harimanada.gen
+./Action Replay.gen
+./Activator Command Demo.gen
+./after_burner_complete_(32x)_(usajapan).zip
+./Amy Rose In Sonic The Hedgehog (Hack).bin
+./Amy Rose In Sonic The Hedgehog 2 (Hack).bin
+./Angry Birds (Hack).bin
+./Angry Birds - Star Wars (Hack).bin
+./Aq Renkan Awa.gen
+./Art Alive!.gen
+./AWS Pro Moves Soccer.gen
+./Baby's Day Out (Hack).bin
+./BakaSonic (Hack).bin
+./Balloon Boy.gen
+./Barbie Vacation Adventure (Hack).bin
+./Barver Battle Saga - The Space Fighter.gen
+./Bass Masters Classics.gen
+./Battle Mania - Dai Gin Jou.gen
+./bc_racers_(32x).zip
+./blackthorne_(32x).zip
+./Block Out.gen
+./Blockbuster World Video Game Championship II.gen
+./Blood Shot.gen
+./Blue Almanac.gen
+./bnu170.zip
+./brutal_unleashed_-_above_the_claw_(32x).zip
+./Bug's Life, A.gen
+./Caliber Fifty.gen
+./Castlevania - the New Generation # SMD.SMD
+./Chakan - The Forever Man.gen
+./Chameleon Kid.gen
+./Chaoji Dafuweng.gen
+./Chavez II.gen
+./Chester Cheetah 2 - Wild Wild Quest.gen
+./Chinese Chess.gen
+./Chou Yakyuu Miracle Nine.gen
+./Chuck's Excellent Art Tool Animator.gen
+./Classic Collection.gen
+./Clay Fighter.gen
+./Clay Fighter # SMD.SMD
+./Columns III - Revenge of Columns.gen
+./Commandos.gen
+./Conquering the World III.gen
+./cosmic_carnage_(32x).zip
+./Crankbait_Fishing_Lure.zip
+./Crayon Shin-Chan - Arashi o Yobu Sono Ko.gen
+./Cuty Suzuki no Ringside Angel.gen
+./D&D - Warriors of the Eternal Sun.gen
+./Davis Cup World Tour Tennis 2.gen
+./Deer Hunter.gen
+./Desert Demolition.gen
+./Devil's Course 3-D Golf.gen
+./Dial Q o Mawase!.gen
+./Disney Collection - Castle of Illusion & Quack Shot.gen
+./Disney's Aladdin.gen
+./Domino.gen
+./Doom Troopers - The Mutant Chronicles.gen
+./doom_(32x)_(usajapan).zip
+./Doraemon - Yume Dorobouto 7 Nin No Gozansu.gen
+./Dragon Ball Z - Buyuu Retsuden.gen
+./Dragon Slayer - The Legend of Heroes.gen
+./Dragon Slayer II - The Legend of Heroes.gen
+./dreamcast-bios.zip
+./Dyna Brothers.gen
+./Dyna Brothers 2.gen
+./EA Sports Double Header.gen
+./Ecco the Dolphin 2 - the Tides of Time # SMD.SMD
+./Elf Wor.gen
+./ESPN - SpeedWorld # SMD.SMD
+./ESPN SpeedWorld.gen
+./F1 World Championship.gen
+./Fatal Rewind.gen
+./Fengshen Yingjiechuan.gen
+./Fido Dido.gen
+./FIFA Soccer 97 Gold Edition.gen
+./FIFA Soccer 98 - Road to the World Cup.gen
+./fifa_international_soccer_96_(32x).zip
+./Final Fantasy.gen
+./Fire Pro Wrestling Gaiden.gen
+./Fire Shark # SMD.SMD
+./Flux for Mega-CD.gen
+./Fun Car Rally.gen
+./Funny World.gen
+./Fushigi no Umi no Nadia.gen
+./Game Genie.gen
+./Game no Kanzume Otokuyou.gen
+./Gamtec Magicard.gen
+./Genesis 6 Pack # SMD.SMD
+./Genesis 6-Pak.gen
+./Genesis TMSS BIOS.gen
+./Gley Lancer.gen
+./Golden Axe # SMD.SMD
+./Greatest Heavyweights of the Ring.gen
+./Harry Potter.gen
+./High School Soccer - Kunio Kun.gen
+./hot_chick_by_devster_(32x)_(public_domain).zip
+./Hybrid Front, The.gen
+./Hyokkori Hyoutanjima.gen
+./Ichidant R.gen
+./Iraq War 2003.gen
+./Janou Touryumon.gen
+./Jantei Monogatari.gen
+./Joe & Mac Caveman Ninja.gen
+./Joe Montana Sports Talk Football.gen
+./John Madden NFL # SMD.SMD
+./John Madden NFL 1994 # SMD.SMD
+./John Madden NFL 94.gen
+./Journey From Darkness - Strider Returns.gen
+./Judge Dredd - The Movie.gen
+./Jurassic Park 2 - The Lost World.gen
+./Jurassic Park 2 - the Lost World # SMD.SMD
+./Juu-Ou-Ki.gen
+./Kick Off 3 - European Challenge.gen
+./Patlabor.gen
+./King of Fighters '98, The.gen
+./King Series 18-in-1 KC1801.gen
+./Kishi Densetsu.gen
+./knuckles_chaotix_(32x)_.zip
+./Krusty's Super Funhouse.gen
+./Labyrinth of Death (SN).gen
+./Langrisser II.gen
+./Lightening Force - Quest for the Darkstar.gen
+./Lion King 3.gen
+./Lion King II, The.gen
+./Lord Monarch.gen
+./Lotus II RECS.gen
+./M.U.S.H.A.gen
+./Devilish Mahjong Tower.gen
+./Madou Monogatari I.gen
+./Magic Girl.gen
+./Mahjong Cop Ryuu - Shiro Ookami no Yabou.gen
+./Mahjong Lover.gen
+./Mamono Hunter Yohko - Makai Kara no Tenkosei.gen
+./Man Overboard! - S.S. Lucifer.gen
+./Maten Densetsu.gen
+./Mega Anser.gen
+./Mega Games 10 in 1.gen
+./Mega Games 2.gen
+./Mega Games 3.gen
+./Mega Games 6 (Vol 1).gen
+./Mega Games I.gen
+./Megaman - The Wily Wars.gen
+./MegaNet BIOS.gen
+./Menacer 6-in-1 Game Pack.gen
+./777 Casino.gen
+./metal_head_(32x).zip
+./Micro Machines - Turbo Tournament 1996 # SMD.SMD
+./Might and Magic III - Isles of Terra.gen
+./Miracle Piano Teaching System.gen
+./Misadventures of Flink, The.gen
+./MK 5 - Mortal Combat - SubZero.gen
+./MLBPA Sports Talk Baseball.gen
+./Motocross Championship # SMD.SMD
+./motocross_championship_(32x)_(usajapan).zip
+./Mulan.gen
+./Multitap - IO Sample Program.gen
+./mys112a35_pi.zip
+./NBA Action.gen
+./NBA Jam # SMD.SMD
+./NCAA College Football.gen
+./New 3D Golf Simulation Harukanaru Augusta.gen
+./Waialae no Kiseki.gen
+./Newman-Haas IndyCar Racing.gen
+./Taiga Drama Taiheiki.gen
+./Nikkan Sports Pro Yakyuu Van.gen
+./Ninja Burai Densetsu.gen
+./Nobunaga no Yabou - Bushou Fuuunsoku.gen
+./Nobunaga no Yabou Haouden - Lord of Darkness.gen
+./Off-Road # SMD.SMD
+./Olympic Gold - Barcelona 1992 # SMD.SMD
+./Olympic Gold - Barcelona 92.gen
+./Olympic Summer Games - Atlanta 1996 # SMD.SMD
+./Olympic Summer Games Atlanta 96.gen
+./Olympic Winter Games - Lillehammer 1994 # SMD.SMD
+./Olympic Winter Games - Lillehammer 94.gen
+./Operation Europe - Path to Victory 1939-1945.gen
+./P.T.O. Pacific Theater of Operations.gen
+./Pachinko Canyon.gen
+./Mega Q - The Party Quiz Game.gen
+./Pele's World Tournament Soccer.gen
+./Pengo.gen
+./Pete Sampras Tennis 96.gen
+./Phantasy Star - The End of the Millenium.gen
+./Pioneer LaserActive BIOS.gen
+./Pocket Monsters.gen
+./Pocket Monsters 2.gen
+./Pokemon Crazy Drummer.gen
+./Power Instinct.gen
+./Pretty Girl Mahjongg.gen
+./Pro Action Replay.gen
+./Psy-O-Blade Moving Adventure.gen
+./Public Domain.gen
+./Puyo Puyo Tsu.gen
+./pw_152l.zip
+./pw_152w.zip
+./pwar141a.zip
+./Quack Shot Starring Donald Duck.gen
+./Rainbow Islands - The Story of Bubble Bobble 2.gen
+./Rambo 3 # SMD.SMD
+./Ranger-X.gen
+./Ransei no Hasha.gen
+./Ren and Stimpy Show, The - Stimpy's Invention.gen
+./Rent A Hero.gen
+./Road Blasters.gen
+./Romance of the Three Kingdoms Part 5.gen
+./Round_Raspberry_Pi_Case.zip
+./Rugby World Cup 1995.gen
+./Sagaia.gen
+./Same! Same! Same!.gen
+./Sangokushi Retsuden - Ransei no Eiyuu Tachi.gen
+./Saturday Night Slam Masters.gen
+./Saturday Night Slam Masters # SMD.SMD
+./Sega Channel.gen
+./Sega HMD and Tracker Demo - OA7-TST.gen
+./Sega Music Joystick Demo.gen
+./Sega Radica! Volume 1.gen
+./Sega Radica! Volume 1 BIOS.gen
+./Sega Sports # SMD.SMD
+./Sega Sports 1 (Wimbledon, Ult.Soccer, Super Monaco).gen
+./Sega Subor System Cartridge.gen
+./Sega Top 5.gen
+./Sega-CD BIOS.gen
+./shadow_squadron_(32x).zip
+./Shane Warne Cricket.gen
+./World Pro Baseball 94.gen
+./Shi Kin Joh.gen
+./Shogi no Hoshi.gen
+./Shove It! - The Warehouse Game.gen
+./Shura no Mon.gen
+./Slam Dunk - Shikyou Gekitotsu!.gen
+./Smurfs 2, The.gen
+./Soldiers of Fortune.gen
+./Sonic and Knuckles - Knuckles in Sonic 3 # SMD.SMD
+./Sonic Classics (Compilation).gen
+./Sonic Jam 6.gen
+./Sonic the Hedgehog - Compilation # SMD.SMD
+./Sorcerian.gen
+./Soul Blade.gen
+./Space Funky B.O.B..gen
+./space_harrier_(32x).zip
+./Speed Ball 2 - Brutal Deluxe.gen
+./Squirrel King.gen
+./Star Cruiser.gen
+./Star Trek - Deep Space 9 - Crossroads of Time.gen
+./Star Trek - The Next Generation.gen
+./star_trek_-_starfleet_academy_bridge_simulator_(32x).zip
+./star_wars_arcade_(32x).zip
+./Super 15-in-1.gen
+./Super 19-in-1.gen
+./Super Airwolf.gen
+./Super Battle Tank - War in the Gulf.gen
+./Super Chinese Tycoon.gen
+./Super Daisenryaku.gen
+./Super Kick Off.gen
+./Super League 91.gen
+./Super Mario 2 1998.gen
+./Super Mario Bros..gen
+./Super Monaco Grand Prix.gen
+./Super Off Road.gen
+./Super Volleyball.gen
+./Super-Man # SMD.SMD
+./Surging Aura.gen
+./Taikou Risshiden.gen
+./Taiwan Tycoon.gen
+./Tale Spin.gen
+./Tanto R.gen
+./Techno Clash.gen
+./Tecmo Cup.gen
+./Tecmo World Cup '92.gen
+./Tecmo World Cup '93.gen
+./Tel Tel Mahjong.gen
+./Telebradesco Residencia.gen
+./Tiger Hunter Hero Novel.gen
+./Tintin Au Tibet.gen
+./Tiny Toon Adventures - Acme All-Stars # SMD.SMD
+./Tiny Toon Adventures - Acme All-Stars.gen
+./Tiny Toon Adventures - Buster's Hidden Treasure # SMD.SMD
+./Tiny Toon Adventures - Buster's Hidden Treasure.gen
+./Tony La Russa Baseball 95.gen
+./Top Fighter 2000 MK VIII.gen
+./Top Shooter.gen
+./TotoTek Multi-Game Menu.gen
+./Toy Story # SMD.SMD
+./Tyrants - Fight Through Time.gen
+./Uchu Senkan Gomora.gen
+./Ultimate Qix.gen
+./Uncharted Waters - New Horizons.gen
+./Universal Driver Demo.gen
+./Unknown Chinese Game 1.gen
+./Unknown Chinese Game 2.gen
+./virtua_fighter_(32x).zip
+./virtua_racing_deluxe_(32x).zip
+./Vixen 357.gen
+./Wacky Worlds.gen
+./Warsong.gen
+./Wayne Gretzsky NHLPA All-Stars.gen
+./We're Back! - A Dinosaur's Tale.gen
+./Whip Rush 2222 AD.gen
+./Wolf Child.gen
+./Wonder Library.gen
+./Wonder-Boy in Monster World 4 (ENG) # SMD.SMD
+./X Dazedly Ray.gen
+./X-Band Modem BIOS - Game Toshokan.gen
+./X-Men # SMD.SMD
+./Xin Qi Gai Wang Zi.gen
+./Yang Warrior Family, The.gen
+./Yogi Bear's Cartoon Capers.gen
+./Young Indiana Jones - Instrument of Chaos.gen
+./Yuu Yuu Hakusho - Makyou Toitsusen.gen
+./Yuu Yuu Hakusho Gaiden.gen
+./Zan Yasha Enbuden.gen

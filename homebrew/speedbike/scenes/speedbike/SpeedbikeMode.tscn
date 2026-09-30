@@ -1,0 +1,315 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/speedbike/SpeedbikeMode.gd" id="1_mode"]
+[ext_resource type="Script" path="res://scripts/speedbike/SpeedbikeController.gd" id="2_controller"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bike"]
+size = Vector2(156, 54)
+
+[node name="SpeedbikeMode" type="Node2D"]
+script = ExtResource("1_mode")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+enabled = true
+position = Vector2(384, 512)
+
+[node name="ParallaxBackground" type="ParallaxBackground" parent="."]
+
+[node name="TrackLayer" type="Node2D" parent="."]
+
+[node name="ObstacleLayer" type="Node2D" parent="."]
+
+[node name="EnemyLayer" type="Node2D" parent="."]
+
+[node name="PickupLayer" type="Node2D" parent="."]
+
+[node name="PlayerSpeedbike" type="Area2D" parent="."]
+position = Vector2(170, 512)
+script = ExtResource("2_controller")
+
+[node name="AnimatedSprite2D" type="Sprite2D" parent="PlayerSpeedbike"]
+centered = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PlayerSpeedbike"]
+position = Vector2(0, -18)
+shape = SubResource("RectangleShape2D_bike")
+
+[node name="Muzzle" type="Marker2D" parent="PlayerSpeedbike"]
+position = Vector2(88, -18)
+
+[node name="EngineTrail" type="Marker2D" parent="PlayerSpeedbike"]
+position = Vector2(-104, 0)
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="SpeedLabel" type="Label" parent="HUD"]
+offset_left = 24.0
+offset_top = 20.0
+offset_right = 220.0
+offset_bottom = 54.0
+theme_override_font_sizes/font_size = 22
+text = "SPD 420"
+
+[node name="DeathCounter" type="Label" parent="HUD"]
+offset_left = 24.0
+offset_top = 50.0
+offset_right = 250.0
+offset_bottom = 84.0
+theme_override_font_sizes/font_size = 20
+text = "DEATHS 0"
+
+[node name="ScoreLabel" type="Label" parent="HUD"]
+offset_left = 24.0
+offset_top = 80.0
+offset_right = 280.0
+offset_bottom = 114.0
+theme_override_font_sizes/font_size = 20
+text = "SCORE 0"
+
+[node name="HitLabel" type="Label" parent="HUD"]
+offset_left = 24.0
+offset_top = 110.0
+offset_right = 280.0
+offset_bottom = 144.0
+theme_override_font_sizes/font_size = 20
+text = "HITS 1/1"
+
+[node name="BoostLabel" type="Label" parent="HUD"]
+offset_left = 24.0
+offset_top = 140.0
+offset_right = 240.0
+offset_bottom = 170.0
+theme_override_font_sizes/font_size = 18
+text = "AFTERBURN 100%"
+
+[node name="BoostBarBack" type="ColorRect" parent="HUD"]
+offset_left = 24.0
+offset_top = 172.0
+offset_right = 210.0
+offset_bottom = 188.0
+color = Color(0.08, 0.08, 0.1, 0.82)
+
+[node name="BoostBarFill" type="ColorRect" parent="HUD"]
+offset_left = 24.0
+offset_top = 172.0
+offset_right = 210.0
+offset_bottom = 188.0
+color = Color(1, 0.68, 0.18, 0.94)
+
+[node name="StageProgress" type="Label" parent="HUD"]
+offset_left = 430.0
+offset_top = 20.0
+offset_right = 744.0
+offset_bottom = 54.0
+horizontal_alignment = 2
+theme_override_font_sizes/font_size = 22
+text = "IGNITION RUN 0%"
+
+[node name="WarningText" type="Label" parent="HUD"]
+offset_left = 190.0
+offset_top = 26.0
+offset_right = 744.0
+offset_bottom = 68.0
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 28
+text = ""
+
+[node name="TipLabel" type="Label" parent="HUD"]
+offset_left = 24.0
+offset_top = 956.0
+offset_right = 744.0
+offset_bottom = 1004.0
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 18
+text = ""
+
+[node name="FlashRect" type="ColorRect" parent="HUD"]
+offset_right = 768.0
+offset_bottom = 1024.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0)
+
+[node name="CharacterSelectShade" type="ColorRect" parent="HUD"]
+visible = false
+offset_right = 768.0
+offset_bottom = 1024.0
+mouse_filter = 2
+color = Color(0.03, 0.03, 0.04, 0.82)
+
+[node name="CharacterSelectPanel" type="PanelContainer" parent="HUD"]
+visible = false
+offset_left = 32.0
+offset_top = 42.0
+offset_right = 736.0
+offset_bottom = 974.0
+
+[node name="SelectVBox" type="VBoxContainer" parent="HUD/CharacterSelectPanel"]
+theme_override_constants/separation = 8
+
+[node name="SelectTitle" type="Label" parent="HUD/CharacterSelectPanel/SelectVBox"]
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 25
+text = "SELECT SPEEDBIKE RIDER"
+
+[node name="SelectSubtitle" type="Label" parent="HUD/CharacterSelectPanel/SelectVBox"]
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 14
+text = "Choose a rider, compare strengths, then launch."
+
+[node name="SelectBody" type="HBoxContainer" parent="HUD/CharacterSelectPanel/SelectVBox"]
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="CharacterButtons" type="VBoxContainer" parent="HUD/CharacterSelectPanel/SelectVBox/SelectBody"]
+custom_minimum_size = Vector2(190, 0)
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="FemaleButton" type="Button" parent="HUD/CharacterSelectPanel/SelectVBox/SelectBody/CharacterButtons"]
+custom_minimum_size = Vector2(0, 48)
+text = "ENGINEER (FEMALE)"
+
+[node name="GunnerButton" type="Button" parent="HUD/CharacterSelectPanel/SelectVBox/SelectBody/CharacterButtons"]
+custom_minimum_size = Vector2(0, 48)
+text = "GUNNER"
+
+[node name="ScoutButton" type="Button" parent="HUD/CharacterSelectPanel/SelectVBox/SelectBody/CharacterButtons"]
+custom_minimum_size = Vector2(0, 48)
+text = "SCOUT"
+
+[node name="PreviewColumn" type="VBoxContainer" parent="HUD/CharacterSelectPanel/SelectVBox/SelectBody"]
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="PreviewName" type="Label" parent="HUD/CharacterSelectPanel/SelectVBox/SelectBody/PreviewColumn"]
+visible = false
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 24
+text = ""
+
+[node name="PreviewTopRow" type="HBoxContainer" parent="HUD/CharacterSelectPanel/SelectVBox/SelectBody/PreviewColumn"]
+custom_minimum_size = Vector2(0, 210)
+size_flags_vertical = 4
+theme_override_constants/separation = 8
+
+[node name="PreviewInfoColumn" type="VBoxContainer" parent="HUD/CharacterSelectPanel/SelectVBox/SelectBody/PreviewColumn/PreviewTopRow"]
+custom_minimum_size = Vector2(190, 0)
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="SelectedRiderName" type="Label" parent="HUD/CharacterSelectPanel/SelectVBox/SelectBody/PreviewColumn/PreviewTopRow/PreviewInfoColumn"]
+custom_minimum_size = Vector2(0, 34)
+theme_override_font_sizes/font_size = 18
+text = "ENGINEER (FEMALE)"
+
+[node name="SelectedRiderStats" type="RichTextLabel" parent="HUD/CharacterSelectPanel/SelectVBox/SelectBody/PreviewColumn/PreviewTopRow/PreviewInfoColumn"]
+custom_minimum_size = Vector2(190, 170)
+size_flags_vertical = 3
+theme_override_font_sizes/normal_font_size = 15
+theme_override_font_sizes/bold_font_size = 16
+bbcode_enabled = true
+fit_content = false
+scroll_active = false
+
+[node name="PreviewImageHolder" type="Control" parent="HUD/CharacterSelectPanel/SelectVBox/SelectBody/PreviewColumn/PreviewTopRow"]
+custom_minimum_size = Vector2(274, 210)
+size_flags_horizontal = 4
+size_flags_vertical = 4
+clip_contents = true
+
+[node name="PreviewImage" type="TextureRect" parent="HUD/CharacterSelectPanel/SelectVBox/SelectBody/PreviewColumn/PreviewTopRow/PreviewImageHolder"]
+offset_left = 8.0
+offset_top = 18.0
+offset_right = 266.0
+offset_bottom = 184.0
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StatsScroll" type="ScrollContainer" parent="HUD/CharacterSelectPanel/SelectVBox/SelectBody/PreviewColumn"]
+custom_minimum_size = Vector2(0, 150)
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="StatsLabel" type="RichTextLabel" parent="HUD/CharacterSelectPanel/SelectVBox/SelectBody/PreviewColumn/StatsScroll"]
+custom_minimum_size = Vector2(0, 230)
+size_flags_horizontal = 3
+theme_override_font_sizes/normal_font_size = 15
+theme_override_font_sizes/bold_font_size = 16
+bbcode_enabled = true
+fit_content = false
+scroll_active = false
+autowrap_mode = 3
+
+[node name="SelectButtons" type="HBoxContainer" parent="HUD/CharacterSelectPanel/SelectVBox"]
+alignment = 1
+theme_override_constants/separation = 10
+
+[node name="DeployButton" type="Button" parent="HUD/CharacterSelectPanel/SelectVBox/SelectButtons"]
+custom_minimum_size = Vector2(180, 48)
+text = "DEPLOY RIDER"
+
+[node name="SelectWarRoomButton" type="Button" parent="HUD/CharacterSelectPanel/SelectVBox/SelectButtons"]
+custom_minimum_size = Vector2(210, 48)
+text = "RETURN TO WAR ROOM"
+
+[node name="PausePanel" type="PanelContainer" parent="HUD"]
+visible = false
+offset_left = 104.0
+offset_top = 190.0
+offset_right = 664.0
+offset_bottom = 704.0
+
+[node name="PauseVBox" type="VBoxContainer" parent="HUD/PausePanel"]
+theme_override_constants/separation = 12
+
+[node name="PauseTitle" type="Label" parent="HUD/PausePanel/PauseVBox"]
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 24
+text = "SPEEDBIKE PAUSED"
+
+[node name="ResumeButton" type="Button" parent="HUD/PausePanel/PauseVBox"]
+text = "RESUME RUN"
+
+[node name="RestartButton" type="Button" parent="HUD/PausePanel/PauseVBox"]
+text = "RESTART CHECKPOINT"
+
+[node name="WarRoomButton" type="Button" parent="HUD/PausePanel/PauseVBox"]
+text = "EXIT TO EMULATIONSTATION"
+
+[node name="ResultPanel" type="PanelContainer" parent="HUD"]
+visible = false
+offset_left = 54.0
+offset_top = 104.0
+offset_right = 714.0
+offset_bottom = 884.0
+
+[node name="ResultVBox" type="VBoxContainer" parent="HUD/ResultPanel"]
+theme_override_constants/separation = 12
+
+[node name="ResultTitle" type="Label" parent="HUD/ResultPanel/ResultVBox"]
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 28
+text = "STAGE CLEAR"
+
+[node name="ResultBody" type="RichTextLabel" parent="HUD/ResultPanel/ResultVBox"]
+custom_minimum_size = Vector2(620, 340)
+bbcode_enabled = true
+fit_content = false
+scroll_active = false
+
+[node name="ResultButtons" type="HBoxContainer" parent="HUD/ResultPanel/ResultVBox"]
+alignment = 1
+theme_override_constants/separation = 16
+
+[node name="ContinueButton" type="Button" parent="HUD/ResultPanel/ResultVBox/ResultButtons"]
+text = "CONTINUE"
+
+[node name="ResultWarRoomButton" type="Button" parent="HUD/ResultPanel/ResultVBox/ResultButtons"]
+text = "RETURN TO WAR ROOM"
+
+[node name="MusicPlayer" type="AudioStreamPlayer" parent="."]
+bus = &"Master"
+
+[node name="SfxPlayer" type="AudioStreamPlayer" parent="."]
+bus = &"Master"

@@ -1,0 +1,33 @@
+{
+  "stage_id": "speedbike_04_blackout_tube",
+  "display_name": "Blackout Tube",
+  "music": "speedbike_cavern",
+  "background": "blackout_tube",
+  "base_speed": 790,
+  "speed_ramp": 10.4,
+  "duration": 34,
+  "patterns": [
+    {"t": 0.6, "kind": "warning", "message": "BLACKOUT TUBE"},
+    {"t": 2.0, "kind": "blackout_on", "strength": 0.72, "message": "HEADLIGHT RANGE ONLY"},
+    {"t": 3.6, "kind": "block", "shape": "top", "width": 118},
+    {"t": 5.0, "kind": "low_barricade", "lane": 2, "width": 118},
+    {"t": 6.4, "kind": "mine", "lane": 3},
+    {"t": 7.8, "kind": "checkpoint"},
+    {"t": 9.0, "kind": "drone", "lane": 1, "enemy_type": "interceptor"},
+    {"t": 9.8, "kind": "warning", "message": "JUMP THE GAP"},
+    {"t": 10.5, "kind": "pit", "width": 128, "required_jump_height": 38},
+    {"t": 12.0, "kind": "laser_gate", "shape": "laser_single", "lane": 2, "warning_time": 0.62, "active_time": 0.68},
+    {"t": 13.8, "kind": "block", "shape": "bottom", "width": 122},
+    {"t": 15.0, "kind": "checkpoint"},
+    {"t": 16.6, "kind": "mine", "lane": 1},
+    {"t": 18.0, "kind": "drone", "lane": 3, "enemy_type": "rifle_flyer"},
+    {"t": 18.7, "kind": "warning", "message": "SECOND GAP"},
+    {"t": 19.4, "kind": "pit", "width": 124, "required_jump_height": 36},
+    {"t": 21.0, "kind": "laser_gate", "shape": "laser_double", "warning_time": 0.56, "active_time": 0.72},
+    {"t": 23.0, "kind": "checkpoint"},
+    {"t": 24.2, "kind": "mine", "lane": 2},
+    {"t": 25.6, "kind": "low_barricade", "lane": 3, "width": 124},
+    {"t": 27.2, "kind": "blackout_off"},
+    {"t": 28.0, "kind": "block", "shape": "center_gap", "gap_lane": 1, "width": 126}
+  ]
+}

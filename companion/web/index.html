@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#09051d" />
+    <link rel="manifest" href="/static/manifest.webmanifest" />
+    <link rel="stylesheet" href="/static/app.css?v=18" />
+    <link rel="stylesheet" href="/static/controller-layout.css?v=15" />
+    <title>Dreadwire Arcade Remote</title>
+  </head>
+  <body>
+    <div class="stars"></div>
+    <section id="login" class="login card">
+      <div class="logo">DW</div>
+      <h1>Dreadwire Arcade</h1>
+      <p>Turn this phone into a controller instantly.</p>
+      <button id="guestBtn" class="primary">PLAY AS GUEST</button>
+      <p class="hint">
+        No account required. A free profile is optional and remembers your
+        controller themes, sizes and layouts on other phones.
+      </p>
+      <details>
+        <summary>CREATE A PLAYER PROFILE</summary>
+        <input id="newUser" placeholder="Username" /><input
+          id="newEmail"
+          type="email"
+          placeholder="Email (optional)"
+        /><input
+          id="newPass"
+          type="password"
+          placeholder="Password (optional)"
+        /><button id="registerBtn">SAVE PROFILE & PLAY</button>
+      </details>
+      <details>
+        <summary>RETURNING PLAYER / ADMIN</summary>
+        <input
+          id="user"
+          placeholder="Username or email"
+          autocomplete="username"
+        /><input
+          id="pass"
+          type="password"
+          placeholder="Password (blank if none)"
+          autocomplete="current-password"
+        /><button id="loginBtn">SIGN IN</button>
+      </details>
+      <small id="loginMsg"></small>
+    </section>
+    <main id="app" hidden>
+      <header>
+        <div><b>DREADWIRE</b><span>ARCADE REMOTE</span></div>
+        <i id="connection">OFFLINE</i>
+      </header>
+      <nav>
+        <button data-tab="pad" class="active">CONTROLLER</button
+        ><button data-tab="remote">REMOTE PLAY</button
+        ><button data-tab="library">LIBRARY</button
+        ><button data-tab="media">UPLOADS</button
+        ><button data-tab="wifi">WI-FI</button
+        ><button data-tab="admin">ADMIN</button
+        ><button data-tab="system">SYSTEM</button>
+      </nav>
+      <section id="pad" class="tab active">
+        <div class="padtools">
+          <select id="padTheme">
+            <option value="arcade">Arcade</option>
+            <option value="nes">NES</option>
+            <option value="snes">SNES</option>
+            <option value="genesis">Sega Genesis</option>
+            <option value="dreamcast">Dreamcast</option>
+            <option value="modern">Modern Dual Stick</option></select
+          ><button id="editLayout">🔒 LOCKED</button
+          ><button id="sizeDown">− SIZE</button
+          ><button id="sizeUp">+ SIZE</button
+          ><button id="resetLayout">RESET</button
+          ><button id="player1" class="assign">MAKE PLAYER 1</button>
+        </div>
+        <div id="controller" class="controller theme-arcade locked">
+          <div id="stick" class="stick control" data-control="stick">
+            <div></div>
+          </div>
+          <div id="dpad" class="dpad control" data-control="dpad">
+            <button data-dir="up">▲</button><button data-dir="left">◀</button
+            ><button data-dir="right">▶</button
+            ><button data-dir="down">▼</button>
+          </div>
+          <button class="control shoulder" data-control="l1" data-button="l1">
+            L1</button
+          ><button class="control shoulder" data-control="l2" data-button="l2">
+            L2</button
+          ><button class="control shoulder" data-control="r1" data-button="r1">
+            R1</button
+          ><button class="control shoulder" data-control="r2" data-button="r2">
+            R2</button
+          ><button class="control face face-y" data-control="y" data-button="y">
+            Y</button
+          ><button class="control face face-x" data-control="x" data-button="x">
+            X</button
+          ><button class="control face face-b" data-control="b" data-button="b">
+            B</button
+          ><button class="control face face-a" data-control="a" data-button="a">
+            A</button
+          ><button
+            class="control meta"
+            data-control="select"
+            data-button="select"
+          >
+            SELECT</button
+          ><button
+            class="control meta"
+            data-control="start"
+            data-button="start"
+          >
+            START
+          </button>
+        </div>
+        <p class="hint" id="layoutHint">
+          Rotate to landscape for a full-width gamepad. Unlock to move controls;
+          use SIZE to resize each selected control.
+        </p>
+      </section>
+      <section id="remote" class="tab">
+        <div class="remoteActions">
+          <button data-action="launch-enter">↵ ENTER / OPTIONS</button
+          ><button data-action="launch-back">↩ BACK</button
+          ><button class="adminOnly danger" data-action="close-game">
+            ■ KILL GAME</button
+          ><button class="adminOnly" data-action="restart-menu">
+            ↻ RESTART EMULATIONSTATION</button
+          ><button
+            id="remoteFullscreen"
+            aria-label="Toggle remote play full screen"
+          >
+            ⛶ FULL SCREEN
+          </button>
+        </div>
+        <div class="remotePlay">
+          <div class="remoteScreen card">
+            <div class="remoteTitle">
+              <b>LIVE CABINET</b><span id="streamState">PAUSED</span>
+            </div>
+            <img id="screenFeed" alt="Live cabinet screen" /><small
+              >Tap ENTER / OPTIONS during RetroPie’s blue launch screen to
+              choose an emulator for that ROM.</small
+            >
+          </div>
+          <div id="remoteControllerMount"></div>
+        </div>
+      </section>
+      <section id="library" class="tab">
+        <div class="libraryHead">
+          <h2>Arcade Media Library</h2>
+          <button id="refreshLibrary">REFRESH</button>
+        </div>
+        <div id="libraryItems" class="mediaGrid"></div>
+      </section>
+      <section id="media" class="tab">
+        <div class="grid">
+          <div class="card">
+            <h2>Send to Cabinet</h2>
+            <select id="category">
+              <option value="music">Jukebox music</option>
+              <option value="screensaver-images">Screensaver images</option>
+              <option value="screensaver-videos">Screensaver videos</option>
+              <option value="roms">ROM</option>
+              <option value="theme">Theme assets</option></select
+            ><input
+              id="romSystem"
+              placeholder="ROM system, e.g. snes"
+              hidden
+            /><input id="files" type="file" multiple /><button
+              id="upload"
+              class="primary"
+            >
+              UPLOAD FILES</button
+            ><progress id="progress" value="0" max="100"></progress>
+            <p id="uploadMsg"></p>
+          </div>
+          <div class="card">
+            <h2>Menu Jukebox</h2>
+            <div id="song">—</div>
+            <p class="hint">
+              The jukebox pauses during games so game audio can use HDMI.
+            </p>
+            <div class="actionrow">
+              <button data-action="music-down">JUKEBOX −</button
+              ><button data-action="music-toggle">PLAY / PAUSE</button
+              ><button data-action="music-next">NEXT</button
+              ><button data-action="music-up">JUKEBOX +</button>
+            </div>
+            <h3>Cabinet Master Volume</h3>
+            <div class="actionrow">
+              <button data-action="master-down">MASTER −</button
+              ><button data-action="master-up">MASTER +</button>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section id="wifi" class="tab">
+        <div class="grid">
+          <div class="card">
+            <h2>Connect the Cabinet</h2>
+            <p>
+              Select a nearby network and enter its password. Successful
+              connections are remembered automatically.
+            </p>
+            <button id="scanWifi" class="primary">SCAN FOR NETWORKS</button>
+            <div id="wifiNetworks" class="wifiList"></div>
+          </div>
+          <div class="card">
+            <h2>Saved Networks</h2>
+            <div id="savedWifi"></div>
+            <p class="hint">
+              Without regular Wi-Fi, connect your phone to
+              <b>Dreadwire-Arcade</b> and open <b>http://10.42.0.1:8765/</b>.
+              Passwords are never displayed.
+            </p>
+          </div>
+        </div>
+      </section>
+      <section id="admin" class="tab">
+        <div class="grid">
+          <button class="danger" data-action="close-game">
+            FORCE CLOSE GAME</button
+          ><button data-action="restart-menu">RESTART MENU</button
+          ><button class="warn" data-action="reboot">CLEAN REBOOT</button
+          ><button class="danger" data-action="shutdown">SHUT DOWN</button>
+        </div>
+        <p class="hint">
+          Power actions require the admin session. Force Close now leaves
+          RetroPie’s launcher alive so it can return cleanly to
+          EmulationStation.
+        </p>
+        <div class="grid">
+          <div class="card">
+            <h2>Media Permissions</h2>
+            <label
+              ><input id="mediaEnabled" type="checkbox" /> Players can view/play
+              the media library</label
+            ><label
+              ><input id="uploadsEnabled" type="checkbox" /> Admin uploads
+              enabled</label
+            ><label
+              ><input id="largeUploads" type="checkbox" /> Temporarily allow
+              very large uploads (up to 4 GB)</label
+            ><label
+              >Normal per-file limit (MB)<input
+                id="uploadLimit"
+                type="number"
+                min="5"
+                max="1000" /></label
+            ><button id="saveSettings">SAVE MEDIA SETTINGS</button>
+            <p class="hint">
+              Uploads and deletion always require the administrator account.
+            </p>
+          </div>
+          <div class="card">
+            <h2>Players & Activity</h2>
+            <button id="loadUsers">REFRESH PLAYER LIST</button>
+            <div id="users"></div>
+            <h3>Recent activity</h3>
+            <div id="activity"></div>
+          </div>
+        </div>
+      </section>
+      <section id="system" class="tab">
+        <div id="stats" class="stats"></div>
+        <div class="grid">
+          <div class="card">
+            <h2>INIU Power Bank</h2>
+            <p id="battery">Checking…</p>
+            <div class="batteryset">
+              <input
+                id="batteryPercent"
+                type="number"
+                min="0"
+                max="100"
+                placeholder="LED display %"
+              /><button id="setBattery">SET READING</button>
+            </div>
+            <small
+              >Enter the number shown on the power bank. Two readings at least
+              five minutes apart teach the app the cabinet's real drain
+              rate.</small
+            >
+          </div>
+          <div class="card">
+            <h2>Offline Direct Connection</h2>
+            <p>When normal Wi-Fi is unavailable, connect your phone to:</p>
+            <p>
+              <b>Network:</b> Dreadwire-Arcade<br /><b>Address:</b>
+              http://10.42.0.1:8765/
+            </p>
+            <small
+              >The cabinet automatically returns to a remembered normal Wi-Fi
+              network when one is available at boot. Connection credentials are
+              kept off this status screen.</small
+            >
+          </div>
+          <div class="card">
+            <h2>Install on phone</h2>
+            <p><b>Android:</b> Chrome menu → Install app.</p>
+            <p><b>iPhone:</b> Safari Share → Add to Home Screen.</p>
+          </div>
+        </div>
+      </section>
+      <div id="updateViewer" class="viewer" hidden>
+        <div class="viewerPanel updatePanel">
+          <button id="closeUpdate" aria-label="Close update notice">×</button>
+          <h2>ARCADE UPDATE</h2>
+          <h3 id="updateTitle">Checking…</h3>
+          <div id="updateNotes"></div>
+          <button id="installUpdate" class="primary" hidden>
+            DOWNLOAD &amp; INSTALL
+          </button>
+          <button id="laterUpdate">NOT NOW</button>
+        </div>
+      </div>
+      <div id="mediaViewer" class="viewer" hidden>
+        <div class="viewerPanel">
+          <button id="closeViewer" aria-label="Close viewer">×</button>
+          <h2 id="viewerTitle"></h2>
+          <div id="viewerBody"></div>
+          <a id="viewerDownload" class="downloadBtn" download>DOWNLOAD</a>
+        </div>
+      </div>
+      <div id="toast"></div>
+    </main>
+    <script src="/static/app.js?v=18"></script>
+  </body>
+</html>

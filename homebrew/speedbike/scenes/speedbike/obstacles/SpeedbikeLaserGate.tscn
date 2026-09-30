@@ -1,0 +1,24 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/sprites/speedbike/obstacles/laser_gate_active.png" id="1_laser_active"]
+[ext_resource type="Texture2D" path="res://assets/sprites/speedbike/obstacles/laser_gate_warning.png" id="2_laser_warning"]
+[ext_resource type="Texture2D" path="res://assets/sprites/speedbike/obstacles/laser_gate_emitter_off.png" id="3_laser_off"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_laser"]
+size = Vector2(286, 20)
+
+[node name="SpeedbikeLaserGate" type="Area2D"]
+
+[node name="ActiveSprite" type="Sprite2D" parent="."]
+texture = ExtResource("1_laser_active")
+
+[node name="WarningSprite" type="Sprite2D" parent="."]
+visible = false
+texture = ExtResource("2_laser_warning")
+
+[node name="OffSprite" type="Sprite2D" parent="."]
+visible = false
+texture = ExtResource("3_laser_off")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_laser")

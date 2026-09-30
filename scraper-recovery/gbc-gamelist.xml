@@ -1,0 +1,1609 @@
+<?xml version='1.0' encoding='utf-8'?>
+<gameList>
+  <game>
+    <path>./002 Pokemon-Silver Version.gbc</path>
+    <name>002 Pokemon-Silver Version</name>
+    <thumbnail />
+    <image>./media/fallback/e32ea357d941.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./003 Pokemon-Yellow Version.gbc</path>
+    <name>003 Pokemon-Yellow Version</name>
+    <thumbnail />
+    <image>./media/fallback/bb8d8dc67299.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./004 Pokemon-Crystal Version.gbc</path>
+    <name>004 Pokemon-Crystal Version</name>
+    <thumbnail />
+    <image>./media/fallback/54d35333fb9a.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./005 Pokemon Pinball.gbc</path>
+    <name>005 Pokemon Pinball</name>
+    <thumbnail />
+    <image>./media/fallback/33a81a469deb.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./006 Pokemon Puzzle Challenge.gbc</path>
+    <name>006 Pokemon Puzzle Challenge</name>
+    <thumbnail />
+    <image>./media/fallback/3f38e042afb8.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./007 Pokemon Trading Card Game.gbc</path>
+    <name>007 Pokemon Trading Card Game</name>
+    <thumbnail />
+    <image>./media/fallback/822447f5c600.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./008 Super Mario Bros. Deluxe.gbc</path>
+    <name>008 Super Mario Bros. Deluxe</name>
+    <thumbnail />
+    <image>./media/fallback/fc697ab7bcb4.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./010 Warioland 3.gbc</path>
+    <name>010 Warioland 3</name>
+    <thumbnail />
+    <image>./media/fallback/67737952de27.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./011 Donkey Kong Country.gbc</path>
+    <name>011 Donkey Kong Country</name>
+    <thumbnail />
+    <image>./media/fallback/1bf132fd8793.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./012 Dragon Warrior I and II.gbc</path>
+    <name>012 Dragon Warrior I and II</name>
+    <thumbnail />
+    <image>./media/fallback/f81619eeb094.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./014 Dragon Warrior Monsters.gbc</path>
+    <name>014 Dragon Warrior Monsters</name>
+    <thumbnail />
+    <image>./media/fallback/87dd544afb36.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./015 Dragon Warrior Monsters 2-Cobi's Journey.gbc</path>
+    <name>015 Dragon Warrior Monsters 2-Cobi's Journey</name>
+    <thumbnail />
+    <image>./media/fallback/a60ad57c9513.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./016 Dragon Warrior Monsters 2-Tara's Adventure.gbc</path>
+    <name>016 Dragon Warrior Monsters 2-Tara's Adventure</name>
+    <thumbnail />
+    <image>./media/fallback/18c2c8bad6f7.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./017 Harvest Moon 2.gbc</path>
+    <name>017 Harvest Moon 2</name>
+    <thumbnail />
+    <image>./media/fallback/731799447537.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./018 Harvest Moon 3.gbc</path>
+    <name>018 Harvest Moon 3</name>
+    <thumbnail />
+    <image>./media/fallback/35113bc9e598.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./019 Bionic Commando-Elite Forces.gbc</path>
+    <name>019 Bionic Commando-Elite Forces</name>
+    <thumbnail />
+    <image>./media/fallback/7a8ea0a98853.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./020 Legend of Zelda,The-Oracle of Ages.gbc</path>
+    <name>020 Legend of Zelda,The-Oracle of Ages</name>
+    <thumbnail />
+    <image>./media/fallback/4d200bb46368.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./021 Legend of Zelda,The-Oracle of Seasons.gbc</path>
+    <name>021 Legend of Zelda,The-Oracle of Seasons</name>
+    <thumbnail />
+    <image>./media/fallback/4e4bb1ad1b2a.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./022 Magi-Nation.gbc</path>
+    <name>022 Magi-Nation</name>
+    <thumbnail />
+    <image>./media/fallback/22d185e87fad.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./023 Mega Man Xtreme.gbc</path>
+    <name>023 Mega Man Xtreme</name>
+    <thumbnail />
+    <image>./media/fallback/e91b2769f950.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./024 Mega Man Xtreme 2.gbc</path>
+    <name>024 Mega Man Xtreme 2</name>
+    <thumbnail />
+    <image>./media/fallback/a5b8e3b6e1f3.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./025 Bomberman Max Blue Champion.gbc</path>
+    <name>025 Bomberman Max Blue Champion</name>
+    <thumbnail />
+    <image>./media/fallback/0f06a729e9fc.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./026 Bomberman Max Red Challenger.gbc</path>
+    <name>026 Bomberman Max Red Challenger</name>
+    <thumbnail />
+    <image>./media/fallback/bcf9211d9b1c.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./027 Bomberman Max-Ain Special Edition.gbc</path>
+    <name>027 Bomberman Max-Ain Special Edition</name>
+    <thumbnail />
+    <image>./media/fallback/9782a4526d3c.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./028 Bomberman Quest.gbc</path>
+    <name>028 Bomberman Quest</name>
+    <thumbnail />
+    <image>./media/fallback/6a73c858a087.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./029 Motocross Maniacs 2.gbc</path>
+    <name>029 Motocross Maniacs 2</name>
+    <thumbnail />
+    <image>./media/fallback/9379da0e318b.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./030 FIFA 2000.gbc</path>
+    <name>030 FIFA 2000</name>
+    <thumbnail />
+    <image>./media/fallback/a50b3944b1e7.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./031 Looney Tunes.gbc</path>
+    <name>031 Looney Tunes</name>
+    <thumbnail />
+    <image>./media/fallback/62b2148d18e5.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./032 Looney Tunes Collector-Alert!.gbc</path>
+    <name>032 Looney Tunes Collector-Alert!</name>
+    <thumbnail />
+    <image>./media/fallback/601daaf34b12.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./033 Looney Tunes Racing.gbc</path>
+    <name>033 Looney Tunes Racing</name>
+    <thumbnail />
+    <image>./media/fallback/e93c30431736.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./034 Pac-Man.gbc</path>
+    <name>034 Pac-Man</name>
+    <thumbnail />
+    <image>./media/fallback/088e09745c92.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./035 Pac-Man &amp; Pac-Attack SCE.gbc</path>
+    <name>035 Pac-Man &amp; Pac-Attack SCE</name>
+    <thumbnail />
+    <image>./media/fallback/147903d90ee7.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./036 Pac-man by Jeff Frohwein.gbc</path>
+    <name>036 Pac-man by Jeff Frohwein</name>
+    <thumbnail />
+    <image>./media/fallback/e2bd0a872ec2.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./037 Metal Gear Solid.gbc</path>
+    <name>037 Metal Gear Solid</name>
+    <thumbnail />
+    <image>./media/fallback/772b770d2574.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./038 A Bug's Life.gbc</path>
+    <name>038 A Bug's Life</name>
+    <thumbnail />
+    <image>./media/fallback/ce527718a41a.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./039 Action Man.gbc</path>
+    <name>039 Action Man</name>
+    <thumbnail />
+    <image>./media/fallback/6fe317717971.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./040 Alice in Wonderland.gbc</path>
+    <name>040 Alice in Wonderland</name>
+    <thumbnail />
+    <image>./media/fallback/a5be1f371391.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./041 Aliens-Thanatos Encounter.gbc</path>
+    <name>041 Aliens-Thanatos Encounter</name>
+    <thumbnail />
+    <image>./media/fallback/544023e3c6bb.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./042 All-Star Baseball 2001.gbc</path>
+    <name>042 All-Star Baseball 2001</name>
+    <thumbnail />
+    <image>./media/fallback/aa43eabefb87.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./043 All-Star Tennis 2000.gbc</path>
+    <name>043 All-Star Tennis 2000</name>
+    <thumbnail />
+    <image>./media/fallback/0f0a4d55b957.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./044 Alone in the Dark-The New Nightmare.gbc</path>
+    <name>044 Alone in the Dark-The New Nightmare</name>
+    <thumbnail />
+    <image>./media/fallback/3179c3adae4c.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./045 Animorphs.gbc</path>
+    <name>045 Animorphs</name>
+    <thumbnail />
+    <image>./media/fallback/efca48b1b749.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./046 Army Men 2.gbc</path>
+    <name>046 Army Men 2</name>
+    <thumbnail />
+    <image>./media/fallback/82fe6f329e6d.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./047 Army Men Air Combat.gbc</path>
+    <name>047 Army Men Air Combat</name>
+    <thumbnail />
+    <image>./media/fallback/c69b3acdbf59.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./048 Army Men Sarge's Heroes 2].gbc</path>
+    <name>048 Army Men Sarge's Heroes 2]</name>
+    <thumbnail />
+    <image>./media/fallback/8bcf8f014189.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./049 Asterix - Search for Dogmatix.gbc</path>
+    <name>049 Asterix - Search for Dogmatix</name>
+    <thumbnail />
+    <image>./media/fallback/3c7e3a13bf91.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./050 Atlantis - The Lost Empire.gbc</path>
+    <name>050 Atlantis - The Lost Empire</name>
+    <thumbnail />
+    <image>./media/fallback/4b8a7f04a686.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./051 Austin Powers - Oh, Behave!.gbc</path>
+    <name>051 Austin Powers - Oh, Behave!</name>
+    <thumbnail />
+    <image>./media/fallback/88739140a4ab.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./052 Azure Dreams.gbc</path>
+    <name>052 Azure Dreams</name>
+    <thumbnail />
+    <image>./media/fallback/1909fb0c4b33.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./053 Barbie - Pet Rescue.gbc</path>
+    <name>053 Barbie - Pet Rescue</name>
+    <thumbnail />
+    <image>./media/fallback/1043c1988b70.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./054 Batman - Chaos in Gotham.gbc</path>
+    <name>054 Batman - Chaos in Gotham</name>
+    <thumbnail />
+    <image>./media/fallback/b57cc2421d80.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./055 Batman Beyond - Return of the Joker.gbc</path>
+    <name>055 Batman Beyond - Return of the Joker</name>
+    <thumbnail />
+    <image>./media/fallback/7938285a03e3.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./056 Battle of Midway 1942.gbc</path>
+    <name>056 Battle of Midway 1942</name>
+    <thumbnail />
+    <image>./media/fallback/62725983bc11.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./057 Battle Tanx.gbc</path>
+    <name>057 Battle Tanx</name>
+    <thumbnail />
+    <image>./media/fallback/ccd8bbce18ce.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./058 Blade.gbc</path>
+    <name>058 Blade</name>
+    <thumbnail />
+    <image>./media/fallback/64dae9b5f85c.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./059 Blades of Steel.gbc</path>
+    <name>059 Blades of Steel</name>
+    <thumbnail />
+    <image>./media/fallback/0881f87a1ea7.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./060 Blaster Master Enemy Below.gbc</path>
+    <name>060 Blaster Master Enemy Below</name>
+    <thumbnail />
+    <image>./media/fallback/e21c757a64c1.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./061 Buffy-The Vampire Slayer.gbc</path>
+    <name>061 Buffy-The Vampire Slayer</name>
+    <thumbnail />
+    <image>./media/fallback/579a933fc989.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./062 Bugs Bunny-Crazy Castle 3.gbc</path>
+    <name>062 Bugs Bunny-Crazy Castle 3</name>
+    <thumbnail />
+    <image>./media/fallback/7f817e322662.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./063 Bugs Bunny-Crazy Castle 4.gbc</path>
+    <name>063 Bugs Bunny-Crazy Castle 4</name>
+    <thumbnail />
+    <image>./media/fallback/6006d7103fa0.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./064 Buzz Lightyear of Star Command.gbc</path>
+    <name>064 Buzz Lightyear of Star Command</name>
+    <thumbnail />
+    <image>./media/fallback/557b09ffe722.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./065 Carmageddon.gbc</path>
+    <name>065 Carmageddon</name>
+    <thumbnail />
+    <image>./media/fallback/c93a5b603e84.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./066 Commander Keen.gbc</path>
+    <name>066 Commander Keen</name>
+    <thumbnail />
+    <image>./media/fallback/952be7bfaef7.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./067 Conker's Pocket Tales.gbc</path>
+    <name>067 Conker's Pocket Tales</name>
+    <thumbnail />
+    <image>./media/fallback/354d89e2c6fb.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./068 Croc 1.gbc</path>
+    <name>068 Croc 1</name>
+    <thumbnail />
+    <image>./media/fallback/d14171c1b15b.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./069 Croc 2.gbc</path>
+    <name>069 Croc 2</name>
+    <thumbnail />
+    <image>./media/fallback/df78aae43f94.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./070 Crystalis.gbc</path>
+    <name>070 Crystalis</name>
+    <thumbnail />
+    <image>./media/fallback/8b432eb3bfdd.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./071 Daffy Duck-Fowl Play.gbc</path>
+    <name>071 Daffy Duck-Fowl Play</name>
+    <thumbnail />
+    <image>./media/fallback/76dd96e5428d.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./072 Dexter's Laboratory-Robot Rampage.gbc</path>
+    <name>072 Dexter's Laboratory-Robot Rampage</name>
+    <thumbnail />
+    <image>./media/fallback/6cbb3179d16f.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./073 Dinosaur.gbc</path>
+    <name>073 Dinosaur</name>
+    <thumbnail />
+    <image>./media/fallback/e53d5742fe3a.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./074 Dragon Tales - Dragon Wings.gbc</path>
+    <name>074 Dragon Tales - Dragon Wings</name>
+    <thumbnail />
+    <image>./media/fallback/80bbc3fd9029.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./075 Driver - You Are The Wheelman.gbc</path>
+    <name>075 Driver - You Are The Wheelman</name>
+    <thumbnail />
+    <image>./media/fallback/c928487f4443.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./076 Duke Nukem.gbc</path>
+    <name>076 Duke Nukem</name>
+    <thumbnail />
+    <image>./media/fallback/5712bccb11a9.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./077 Earthworm Jim-Menace 2 the Galaxy.gbc</path>
+    <name>077 Earthworm Jim-Menace 2 the Galaxy</name>
+    <thumbnail />
+    <image>./media/fallback/680b46061bf4.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./078 F1 Championship Season 2000.gbc</path>
+    <name>078 F1 Championship Season 2000</name>
+    <thumbnail />
+    <image>./media/fallback/547ac5c418d7.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./079 Frogger 1.gbc</path>
+    <name>079 Frogger 1</name>
+    <thumbnail />
+    <image>./media/fallback/5d67df672115.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./080 Frogger 2.gbc</path>
+    <name>080 Frogger 2</name>
+    <thumbnail />
+    <image>./media/fallback/b386360239fa.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./081 Galaga - Destination Earth.gbc</path>
+    <name>081 Galaga - Destination Earth</name>
+    <thumbnail />
+    <image>./media/fallback/bc9d3aadf7eb.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./082 Gex - Enter the Gecko.gbc</path>
+    <name>082 Gex - Enter the Gecko</name>
+    <thumbnail />
+    <image>./media/fallback/44ec39632524.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./083 Ghosts 'N Goblins.gbc</path>
+    <name>083 Ghosts 'N Goblins</name>
+    <thumbnail />
+    <image>./media/fallback/dad98b24a5ae.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./084 Godzilla - The Series-Monster Wars.gbc</path>
+    <name>084 Godzilla - The Series-Monster Wars</name>
+    <thumbnail />
+    <image>./media/fallback/1ef14a5f3958.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./085 Grand Theft Auto 1.gbc</path>
+    <name>085 Grand Theft Auto 1</name>
+    <thumbnail />
+    <image>./media/fallback/cebb9c7f6fc0.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./086 Grand Theft Auto 2.gbc</path>
+    <name>086 Grand Theft Auto 2</name>
+    <thumbnail />
+    <image>./media/fallback/5cefa35c3889.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./087 Harry Potter And The Sorcerer's Stone.gbc</path>
+    <name>087 Harry Potter And The Sorcerer's Stone</name>
+    <thumbnail />
+    <image>./media/fallback/d53100ce9079.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./088 Heroes of Might and Magic 1.gbc</path>
+    <name>088 Heroes of Might and Magic 1</name>
+    <thumbnail />
+    <image>./media/fallback/0a5c7a3723c7.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./089 Heroes of Might and Magic 2.gbc</path>
+    <name>089 Heroes of Might and Magic 2</name>
+    <thumbnail />
+    <image>./media/fallback/e6de4f1690b9.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./090 Hot Wheels Stunt Track Driver.gbc</path>
+    <name>090 Hot Wheels Stunt Track Driver</name>
+    <thumbnail />
+    <image>./media/fallback/ad9a598d0b23.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./091 Indiana Jones and the Infernal Machine.gbc</path>
+    <name>091 Indiana Jones and the Infernal Machine</name>
+    <thumbnail />
+    <image>./media/fallback/95bf65c2f82b.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./092 Legend of the River King 2.gbc</path>
+    <name>092 Legend of the River King 2</name>
+    <thumbnail />
+    <image>./media/fallback/b98f9cabf59f.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./093 LEGO Alpha Team.gbc</path>
+    <name>093 LEGO Alpha Team</name>
+    <thumbnail />
+    <image>./media/fallback/34f082c441f4.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./094 Lego Island 2-The Brickster's Revenge.gbc</path>
+    <name>094 Lego Island 2-The Brickster's Revenge</name>
+    <thumbnail />
+    <image>./media/fallback/1904043f2102.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./095 LEGO Racers.gbc</path>
+    <name>095 LEGO Racers</name>
+    <thumbnail />
+    <image>./media/fallback/929c0d2812a5.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./096 Lufia-The Legend Returns.gbc</path>
+    <name>096 Lufia-The Legend Returns</name>
+    <thumbnail />
+    <image>./media/fallback/6dfa93576655.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./097 Madden NFL 2000.gbc</path>
+    <name>097 Madden NFL 2000</name>
+    <thumbnail />
+    <image>./media/fallback/35c75996da2d.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./098 Men In Black 2.gbc</path>
+    <name>098 Men In Black 2</name>
+    <thumbnail />
+    <image>./media/fallback/2cb522f4655b.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./099 Metal Walker.gbc</path>
+    <name>099 Metal Walker</name>
+    <thumbnail />
+    <image>./media/fallback/886048cce52a.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./100 Mickey's Speedway USA.gbc</path>
+    <name>100 Mickey's Speedway USA</name>
+    <thumbnail />
+    <image>./media/fallback/c5e09610523f.jpg</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc />
+    <releasedate />
+    <developer />
+    <publisher />
+    <genre />
+    <players />
+  </game>
+  <game>
+    <path>./013 Dragon Warrior III.gbc</path>
+    <name>Dragon Warrior III</name>
+    <thumbnail />
+    <image>./media/screenshots/013 Dragon Warrior III.png</image>
+    <marquee>./media/marquees/013 Dragon Warrior III.png</marquee>
+    <texture />
+    <video />
+    <rating />
+    <desc>Dragon Warrior III is a 2001 Game Boy Color video game developed by Tose and released by Enix America in the USA on July 17, 2001.
+
+Your father, the brave Ortega, is dead. He set off to destroy the Demon Lord Baramos but fell in glorious battle. Unless stopped, Baramos will unleash a torrent of evil that will destroy the world. You must stop Baramos and discover the legend of Dragon Warrior! Your journey starts on Aliahan. Only you decide where it ends...</desc>
+    <releasedate>20010717T000000</releasedate>
+    <developer>Tose Co., Ltd.</developer>
+    <publisher>Enix Corporation</publisher>
+    <genre>Role-Playing</genre>
+    <players>1</players>
+  </game>
+  <game>
+    <path>./001 Pokemon-Gold Version.gbc</path>
+    <name>Pokemon Gold Version</name>
+    <thumbnail />
+    <image>./media/screenshots/001 Pokemon-Gold Version.png</image>
+    <marquee />
+    <texture />
+    <video />
+    <rating />
+    <desc>Pokémon Gold takes place several years after Red, Blue and Yellow, and puts the user into a brand new world, Johto. The gameplay is very similar to the previous games, but with several improvements. These include new functions for the player's PokéGear, a Pokédex that can now be sorted by evolution type, and, of course, new Pokémon. Once again, the objective of the game is to become the champion trainer, and try to complete the Pokédex. To become the champion, the player battles Gym Leaders to obtain various badges. Completing the Pokédex requires a different set of actions, and involves capturing wild Pokémon, battling various trainers to obtain money, and trading Pokémon with NPC's and other owners of Pokémon games.</desc>
+    <releasedate>20010406T000000</releasedate>
+    <developer>Game Freak</developer>
+    <publisher>Nintendo</publisher>
+    <genre>Role-Playing</genre>
+    <players>2</players>
+    <kidgame>true</kidgame>
+  </game>
+  <game>
+    <path>./009 Wario Land II.gbc</path>
+    <name>Wario Land II</name>
+    <thumbnail />
+    <image>./media/screenshots/009 Wario Land II.png</image>
+    <marquee>./media/marquees/009 Wario Land II.png</marquee>
+    <texture />
+    <video />
+    <rating />
+    <desc>Wario Land II is a 1999 Game Boy Color video game developed by Nintendo R&amp;D1 and released by Nintendo of America in the USA on February 10, 1999.
+
+What kind of no-good ruffians would break into my castle and steal my treasures?! It's that rotten Captain Syrup and that Black Sugar Gang! I'm looking out for bad guys and scavenging for coins as I track down my treasures. If I don't get them all the first time, that's OK. I can go back again and again until I find them all. Captain Syrup doesn't stand a chance against me!</desc>
+    <releasedate>19990210T000000</releasedate>
+    <developer>Nintendo R&amp;D1</developer>
+    <publisher>Nintendo of America, Inc.</publisher>
+    <genre>Platform</genre>
+    <players>1</players>
+    <kidgame>true</kidgame>
+  </game>
+</gameList>

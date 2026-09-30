@@ -1,0 +1,40 @@
+./01 Sonic The Hedgehog-Triple Trouble.gg
+./02 Streets of Rage II.gg
+./03 Megaman.gg
+./04 Pac-In-Time.gg
+./05 World Cup Soccer.gg
+./06 X-Men-Gamemaster's Legacy.gg
+./07 Tempo Jr..gg
+./08 Wonder Boy-The Dragon's Trap.gg
+./09 Iron Man X.gg
+./10 Strider Returns.gg
+./11 Baku Baku Animal.gg
+./12 Batter Up.gg
+./13 Chakan.gg
+./14 Chicago Syndicate.gg
+./15 Clutch Hitter.gg
+./16 Defenders of Oasis.gg
+./17 Devilish.gg
+./18 F-1.gg
+./19 GG Shinobi.gg
+./20 Factory Panic.gg
+./21 Fantasy Zone Gear.gg
+./22 Greendog.gg
+./23 Halley Wars.gg
+./24 Joe Montana's Football.gg
+./25 Revenge of Drancon.gg
+./26 Ristar the Shooting Star.gg
+./27 Royal Stone.gg
+./28 Sega Game Pack 4 in 1.gg
+./29 Side Pocket.gg
+./30 Slider.gg
+./31 Super Battletank.gg
+./32 Super Columns.gg
+./33 Vampire-Master of Darkness.gg
+./34 Winter Olympics-Lillehammer '94.gg
+./35 Wizard Pinball.gg
+./36 Wolfchild.gg
+./37 World Class Leader Golf.gg
+./38 Arena-Maze of Death.gg
+./39 Poker Faced Paul's Gin.gg
+./40 Poker Faced Paul's Solitaire.gg

@@ -1,0 +1,28 @@
+{
+  "stage_id": "speedbike_01_ignition_run",
+  "display_name": "Ignition Run",
+  "music": "speedbike_desert",
+  "background": "badlands_tunnel",
+  "base_speed": 700,
+  "speed_ramp": 8.0,
+  "duration": 26,
+  "patterns": [
+    {"t": 0.6, "kind": "warning", "message": "MOVE UP / DOWN"},
+    {"t": 1.4, "kind": "tip", "text": "BADLANDS SPEEDBIKE  JUMP PITS  BLAST DRONES"},
+    {"t": 3.0, "kind": "block", "shape": "top", "width": 116},
+    {"t": 5.0, "kind": "block", "shape": "bottom", "width": 116},
+    {"t": 6.8, "kind": "block", "shape": "center_gap", "gap_lane": 1, "width": 118},
+    {"t": 8.6, "kind": "low_barricade", "lane": 2, "width": 124},
+    {"t": 10.2, "kind": "pit", "width": 104, "use_ramp": false, "required_jump_height": 42},
+    {"t": 12.0, "kind": "drone", "lane": 2, "enemy_type": "interceptor"},
+    {"t": 13.4, "kind": "checkpoint"},
+    {"t": 14.1, "kind": "warning", "message": "BLAST THE WALL"},
+    {"t": 15.0, "kind": "block", "shape": "full", "width": 98, "destructible": true, "destructible_hits": 3, "score_value": 250},
+    {"t": 16.4, "kind": "block", "shape": "top_bottom_gap", "width": 124},
+    {"t": 18.2, "kind": "low_barricade", "lane": 3, "width": 124},
+    {"t": 20.0, "kind": "pit", "width": 156, "use_ramp": true},
+    {"t": 21.8, "kind": "drone", "lane": 1, "enemy_type": "rifle_flyer"},
+    {"t": 23.0, "kind": "checkpoint"},
+    {"t": 24.2, "kind": "block", "shape": "center_gap", "gap_lane": 3, "width": 126}
+  ]
+}

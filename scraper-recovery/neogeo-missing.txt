@@ -1,0 +1,4 @@
+./aof.zip
+./aof2.zip
+./kof98.zip
+./neogeo.zip

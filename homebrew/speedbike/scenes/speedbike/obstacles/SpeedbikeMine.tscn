@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/sprites/speedbike/obstacles/mine.png" id="1_mine"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_mine"]
+radius = 34.0
+
+[node name="SpeedbikeMine" type="Area2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_mine")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_mine")

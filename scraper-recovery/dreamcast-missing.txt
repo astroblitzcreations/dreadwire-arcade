@@ -1,0 +1,12 @@
+./Daytona USA (USA).gdi
+./House of the Dead.cdi
+./House of the Dead 2, The (Europe)[DCCM].cdi
+./Marvel vs. Capcom 2.cdi
+./Midway's Greatest Arcade Hits Volume 1.cdi
+./Mortal Kombat Gold.cdi
+./NFL Blitz 2000.cdi
+./NFL Blitz 2001.cdi
+./Power Stone 2.cdi
+./San Francisco Rush 2049.cdi
+./Sonic Adventure 2 (USA)[DCRES].cdi
+./Unreal Tournament.cdi

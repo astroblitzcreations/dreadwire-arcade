@@ -1,0 +1,6 @@
+
+# Recovered cabinet interfaces (2026-09-24)
+dtparam=i2c_arm=on
+dtparam=spi=on
+dtoverlay=w1-gpio
+enable_uart=1

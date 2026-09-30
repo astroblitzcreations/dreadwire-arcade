@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/sprites/speedbike/obstacles/center_block.png" id="1_center_block"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_center_block"]
+size = Vector2(112, 122)
+
+[node name="SpeedbikeCenterBlock" type="Area2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_center_block")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_center_block")

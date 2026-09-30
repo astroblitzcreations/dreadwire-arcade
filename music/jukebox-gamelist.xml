@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gameList>
+  <game><path>./01-now-playing.sh</path><name>Now Playing</name><desc>Show the current song, playback state, and jukebox volume.</desc><image>./media/jukebox.svg</image></game>
+  <game><path>./02-play-pause.sh</path><name>Play / Pause</name><desc>Pause or resume the shuffled arcade soundtrack.</desc><image>./media/jukebox.svg</image></game>
+  <game><path>./03-next-song.sh</path><name>Next Random Song</name><desc>Skip immediately to another randomly selected track.</desc><image>./media/jukebox.svg</image></game>
+  <game><path>./04-music-louder.sh</path><name>Music Louder</name><desc>Raise jukebox gain without changing game audio volume.</desc><image>./media/jukebox.svg</image></game>
+  <game><path>./05-music-softer.sh</path><name>Music Softer</name><desc>Lower jukebox gain without changing game audio volume.</desc><image>./media/jukebox.svg</image></game>
+  <game><path>./06-stop-music.sh</path><name>Stop Music</name><desc>Stop soundtrack playback until Play / Pause is selected.</desc><image>./media/jukebox.svg</image></game>
+</gameList>

@@ -1,0 +1,41 @@
+./03.SVC shock card fighter 1 CAPCOM.ngp
+./05.SVC shock card fighter 2.ngp
+./06.Shanghai.ngp
+./07.World Cup football 98.ngp
+./08.Faerie war 2000.ngp
+./09.Samurai 1.ngp
+./10.The samurai was 2.ngp
+./11.Come on! NGP jun.ngp
+./12.Pocket love.ngp
+./13.Pocket tennis balls.ngp
+./14.Pocket cool skateboard.ngp
+./15.Pocket black and white.ngp
+./16.Antique roller skating.ngp
+./19.Alloy warhead 2 mission.ngp
+./21.Monster gallery.ngp
+./22.Small melon seeds growth diary.ngp
+./23.The king of fighters R - 1.ngp
+./25.Boxer and girl fighte.ngp
+./26.Heaven for the king of fighters.ngp
+./28.The moon warrior.ngp
+./29.Mecha century 1.ngp
+./30.Mecha century 2.ngp
+./31.Cotton witch.ngp
+./32.The king of Chinese characters.ngp
+./33.Ray method.ngp
+./34.A puzzle.ngp
+./35.Rock people fight warriors.ngp
+./36.The trams GO! 2.ngp
+./38.Evolution in the magic world.ngp
+./39.Memories of autumn.ngp
+./40.Sonic pocket adventures.ngp
+./41.Jump.ngp
+./42.Paint puzzles.ngp
+./44.Professional baseball.ngp
+./46.Super photo mahjong.ngp
+./47.Cool! Jim.ngp
+./48.The hungry Wolf speaks.ngp
+./49.Magic gems.ngp
+./51.Dragon country.ngp
+./02.SNK VS CAPCOM top combat.ngf
+./20.Poof, poof, poof.ngf

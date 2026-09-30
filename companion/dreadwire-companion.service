@@ -1,0 +1,18 @@
+[Unit]
+Description=Dreadwire Arcade Companion Web App
+After=network-online.target pipewire.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/dreadwire/companion
+ExecStart=/usr/bin/python3 /opt/dreadwire/companion/server.py
+ExecStartPost=/usr/local/bin/update-companion-qr.sh
+Restart=always
+RestartSec=2
+Environment=PYTHONUNBUFFERED=1
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+
+[Install]
+WantedBy=multi-user.target

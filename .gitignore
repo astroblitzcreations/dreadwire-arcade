@@ -1,0 +1,15 @@
+ssh/
+**/build/
+**/.godot/
+*.log
+*.tmp
+*.pyc
+__pycache__/
+private/
+card-files/*.nmconnection
+downloads/
+live/
+screensavers/*.mp4
+remote-test-frame.jpg
+remote-test.mjpeg
+tmp-menu.jpg
