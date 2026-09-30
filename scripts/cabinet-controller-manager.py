@@ -356,7 +356,7 @@ def set_player(player, identity):
     assignments[f"player{player}"] = identity if identity else (FALLBACK if player == 1 else None)
     save(assignments)
     apply(assignments, quiet=True)
-    generate_simple_menu()
+    generate_menu()
 
 
 def configured_device_names():
@@ -387,7 +387,7 @@ def set_preset(name):
         assignments = {"player1": FALLBACK, "player2": None, "player3": None, "player4": None}
     save(assignments)
     apply(assignments, quiet=True)
-    generate_simple_menu()
+    generate_menu()
 
 
 def generate_simple_menu():
@@ -460,7 +460,7 @@ def manager():
         elif selected == "save":
             save(assignments)
             apply(assignments, quiet=True)
-            generate_simple_menu()
+            generate_menu()
             dialog("--msgbox", "Controller settings saved. They will be used when the next game starts.", "8", "64")
             break
     subprocess.run(["clear"], check=False)
@@ -477,12 +477,12 @@ if __name__ == "__main__":
         defaults = {"player1": FALLBACK, "player2": None, "player3": None, "player4": None}
         save(defaults)
         apply(defaults, quiet=True)
-        generate_simple_menu()
+        generate_menu()
     elif "--preset" in sys.argv:
         offset = sys.argv.index("--preset")
         set_preset(sys.argv[offset + 1])
     elif "--generate-menu" in sys.argv:
-        generate_simple_menu()
+        generate_menu()
     elif "--apply" in sys.argv:
         apply(quiet="--quiet" in sys.argv)
     else:

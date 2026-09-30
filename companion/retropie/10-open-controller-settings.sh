@@ -1,3 +1,4 @@
 #!/usr/bin/env bash
 set -e
-exec sudo /usr/local/bin/dreadwire-controller-ui.py
+sudo /usr/local/bin/cabinet-controller-manager.py --generate-menu
+sudo systemctl restart getty@tty1.service
