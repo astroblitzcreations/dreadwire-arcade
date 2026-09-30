@@ -390,40 +390,6 @@ def set_preset(name):
     generate_menu()
 
 
-def generate_simple_menu():
-    """Build a compact card menu with one Player 1 choice per real pad."""
-    assignments = load()
-    devices = detected()
-    mapped = configured_device_names()
-    CONTROLLER_MENU.mkdir(parents=True, exist_ok=True)
-    media = CONTROLLER_MENU / "media"
-    media.mkdir(exist_ok=True)
-    for old in CONTROLLER_MENU.glob("*.sh"):
-        old.unlink()
-    entries = []
-
-    def add(filename, name, description, command):
-        path = CONTROLLER_MENU / filename
-        path.write_text("#!/usr/bin/env bash\nset -e\n" + command + "\n", encoding="utf-8")
-        path.chmod(0o755)
-        entries.append((filename, name, description))
-
-    summary = "   •   ".join(
-        f"P{player}: {label_for(assignments.get(f'player{player}'), devices).split(' (')[0]}"
-        for player in range(1, 3)
-    )
-    add("00-current.sh", "CURRENT: " + summary, "This is the assignment games will use.", "sleep 0.2")
-    add("10-open-settings.sh", "OPEN CONTROLLER SETTINGS", "Use left/right to assign every detected controller to Players 1–4, then explicitly Save or Cancel.", "sudo /usr/local/bin/dreadwire-controller-ui.py")
-    add("20-refresh.sh", "REFRESH CONNECTED CONTROLLERS", "Rescan USB and Bluetooth gamepads without restarting EmulationStation.", "sudo /usr/local/bin/cabinet-controller-manager.py --generate-menu")
-
-    image = "/home/pi/RetroPie/roms/controllers/media/controller.svg"
-    xml = ['<?xml version="1.0" encoding="UTF-8"?>', "<gameList>"]
-    for filename, name, description in entries:
-        xml.extend(["  <game>", f"    <path>./{escape(filename)}</path>", f"    <name>{escape(name)}</name>", f"    <desc>{escape(description)}</desc>", f"    <image>{image}</image>", "  </game>"])
-    xml.append("</gameList>")
-    (CONTROLLER_MENU / "gamelist.xml").write_text("\n".join(xml) + "\n", encoding="utf-8")
-
-
 def manager():
     assignments = load()
     while True:
@@ -486,4 +452,4 @@ if __name__ == "__main__":
     elif "--apply" in sys.argv:
         apply(quiet="--quiet" in sys.argv)
     else:
-        manager()
+        generate_menu()
