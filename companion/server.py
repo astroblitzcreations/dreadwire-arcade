@@ -38,7 +38,7 @@ FAN_CONFIG = STATE_DIR / "fan.json"
 AUDIO_CONFIG = Path("/home/pi/.config/dreadwire-audio.json")
 WS_CLIENTS = set()
 SCREEN_LOCK = asyncio.Lock()
-PACKAGE_VERSION = "1.0.0"
+PACKAGE_VERSION = "1.0.1"
 UPDATE_CONFIG = Path("/etc/dreadwire/update.json")
 
 UPLOADS = {
