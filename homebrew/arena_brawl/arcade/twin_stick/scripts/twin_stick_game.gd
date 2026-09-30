@@ -467,13 +467,18 @@ func _load_difficulty() -> void:
             enemy_count_scale = 0.55
 
 func _ordered_pads() -> Array:
-    var pads = Input.get_connected_joypads()
+    # Keep the physical cabinet players deterministic. The companion service
+    # exposes four always-present virtual pads and Linux may expose both a
+    # wired xpad receiver and a Bluetooth Xbox pad; neither should displace
+    # the active wireless Xbox or the DragonRise cabinet encoder.
+    var pads = Input.get_connected_joypads().filter(func(device):
+        return not Input.get_joy_name(device).to_lower().begins_with("dreadwire player"))
     pads.sort_custom(func(a, b):
         var an = Input.get_joy_name(a).to_lower()
         var bn = Input.get_joy_name(b).to_lower()
-        var arank = 0 if "xbox" in an or "x-box" in an else 2 if "dragonrise" in an else 1
-        var brank = 0 if "xbox" in bn or "x-box" in bn else 2 if "dragonrise" in bn else 1
-        return arank < brank)
+        var arank = 0 if "xbox wireless" in an else 1 if "dragonrise" in an else 2 if "xbox" in an or "x-box" in an else 3
+        var brank = 0 if "xbox wireless" in bn else 1 if "dragonrise" in bn else 2 if "xbox" in bn or "x-box" in bn else 3
+        return arank < brank if arank != brank else a < b)
     return pads
 
 func _nearest_player(point: Vector2) -> Dictionary:
