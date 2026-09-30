@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+percent="${1:-100}"
+out=/run/dreadwire-volume-overlay.png
+
+python3 - "$percent" "$out" <<'PY'
+from PIL import Image, ImageDraw, ImageFont
+import sys
+
+percent = max(0, min(150, int(sys.argv[1])))
+canvas = Image.new("RGB", (1024, 768), (4, 2, 18))
+draw = ImageDraw.Draw(canvas)
+for x in range(0, 1024, 32):
+    draw.line((x, 0, x, 768), fill=(12, 8, 35))
+for y in range(0, 768, 32):
+    draw.line((0, y, 1024, y), fill=(12, 8, 35))
+try:
+    title = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 48)
+    value = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 92)
+    body = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 27)
+except OSError:
+    title = value = body = None
+
+draw.rounded_rectangle((90, 105, 934, 663), 32, fill=(8, 6, 30), outline=(37, 233, 255), width=4)
+draw.text((512, 175), "CABINET VOLUME", font=title, anchor="mm", fill=(37, 233, 255))
+draw.text((512, 300), f"{percent}%", font=value, anchor="mm", fill=(255, 255, 255))
+
+bar = (175, 380, 849, 438)
+draw.rounded_rectangle(bar, 22, fill=(24, 19, 58), outline=(116, 83, 255), width=3)
+fill_right = bar[0] + int((bar[2] - bar[0]) * percent / 150.0)
+if fill_right > bar[0]:
+    draw.rounded_rectangle((bar[0], bar[1], fill_right, bar[3]), 22, fill=(236, 44, 168))
+
+draw.text((512, 510), "LEFT BUTTON  -  VOLUME DOWN", font=body, anchor="mm", fill=(255, 255, 255))
+draw.text((512, 552), "START BUTTON  -  VOLUME UP", font=body, anchor="mm", fill=(255, 255, 255))
+draw.text((512, 610), "PRESS BOTH TO RESTART EMULATIONSTATION", font=body, anchor="mm", fill=(255, 212, 71))
+canvas.save(sys.argv[2])
+PY
+
+exec fbi -T 1 -a -noverbose "$out"

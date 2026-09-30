@@ -20,6 +20,7 @@ ARM_TIMEOUT = 10.0
 SIMULTANEOUS_WINDOW = 0.45
 EVENT = struct.Struct("llHHI")
 overlay_process = None
+volume_mode = False
 
 
 def log(message):
@@ -67,10 +68,61 @@ def perform(action):
         run("systemctl", "restart", "getty@tty1.service")
 
 
-def show_party_overlay():
+def pipewire(*arguments, capture=False):
+    command = [
+        "runuser", "-u", "pi", "--", "env", "XDG_RUNTIME_DIR=/run/user/1000",
+        "pactl", *arguments,
+    ]
+    if capture:
+        return subprocess.check_output(command, text=True, stderr=subprocess.DEVNULL)
+    run(*command)
+
+
+def current_volume():
+    try:
+        output = pipewire("get-sink-volume", "@DEFAULT_SINK@", capture=True)
+        return int(output.split("%", 1)[0].rsplit(None, 1)[-1])
+    except (OSError, subprocess.SubprocessError, ValueError, IndexError):
+        return 100
+
+
+def set_volume(percent):
+    percent = max(0, min(150, percent))
+    pipewire("set-sink-mute", "@DEFAULT_SINK@", "0")
+    pipewire("set-sink-volume", "@DEFAULT_SINK@", f"{percent}%")
+    show_volume_overlay(percent)
+    log(f"cabinet volume set to {percent}%")
+    return percent
+
+
+def show_volume_overlay(percent=None):
+    global overlay_process, volume_mode
+    close_overlay()
+    volume_mode = True
+    if percent is None:
+        percent = current_volume()
+    overlay_process = subprocess.Popen(
+        ["/usr/local/bin/dreadwire-volume-overlay", str(percent)],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+
+
+def close_overlay():
     global overlay_process
     if overlay_process and overlay_process.poll() is None:
         overlay_process.terminate()
+        try:
+            overlay_process.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            overlay_process.kill()
+    overlay_process = None
+
+
+def show_party_overlay():
+    global overlay_process, volume_mode
+    close_overlay()
+    volume_mode = False
     overlay_process = subprocess.Popen(
         ["/usr/local/bin/dreadwire-party-overlay"],
         stdout=subprocess.DEVNULL,
@@ -80,7 +132,9 @@ def show_party_overlay():
 
 
 def close_party_overlay():
-    global overlay_process
+    global overlay_process, volume_mode
+    if volume_mode:
+        return False
     if overlay_process and overlay_process.poll() is None:
         overlay_process.terminate()
         try: overlay_process.wait(timeout=2)
@@ -93,15 +147,20 @@ def close_party_overlay():
 
 
 def monitor(fd):
+    global volume_mode
     pressed = {START: False, LEFT_SIDE: False}
     chord_since = None
     primed = False
     rebooted = False
     armed_until = 0.0
     pending_since = None
+    volume = current_volume()
 
     while True:
         now = time.monotonic()
+        if volume_mode and armed_until and armed_until <= now:
+            close_overlay()
+            volume_mode = False
         ready, _, _ = select.select([fd], [], [], 0.05)
         if ready:
             data = os.read(fd, EVENT.size * 32)
@@ -143,6 +202,8 @@ def monitor(fd):
                 held = now - chord_since
                 if primed and not rebooted:
                     armed_until = now + ARM_TIMEOUT
+                    volume = current_volume()
+                    show_volume_overlay(volume)
                     log("shortcut mode armed for ten seconds")
                 elif held >= PARTY_QR_SECONDS and not rebooted:
                     show_party_overlay()
@@ -162,7 +223,16 @@ def monitor(fd):
                 continue
             armed_until = 0.0
             pending_since = None
-            perform(action)
+            if volume_mode and action == "start":
+                volume = set_volume(volume + 10)
+                armed_until = now + ARM_TIMEOUT
+            elif volume_mode and action == "left":
+                volume = set_volume(volume - 10)
+                armed_until = now + ARM_TIMEOUT
+            else:
+                close_overlay()
+                volume_mode = False
+                perform(action)
 
 
 def main():
