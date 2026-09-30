@@ -741,7 +741,7 @@ async function refresh() {
       remoteGameState !== gameNow &&
       $("#remote").classList.contains("active")
     )
-      scheduleRemoteResync(500);
+      scheduleRemoteResync(1800);
     remoteGameState = gameNow;
     lastStatus = s;
     drawStats();
@@ -1249,7 +1249,7 @@ document.addEventListener(
   { passive: false },
 );
 if ("serviceWorker" in navigator)
-  navigator.serviceWorker.register("/static/sw.js?v=25");
+  navigator.serviceWorker.register("/static/sw.js?v=26");
 syncPadMode();
 setTheme(localStorage.dwPadTheme || "arcade");
 if (token) enter();

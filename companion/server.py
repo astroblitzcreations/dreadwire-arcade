@@ -698,8 +698,6 @@ async def screen_frame(request):
 async def screen_stream(request):
     """Stream the active DRM/KMS plane, including EmulationStation and games."""
     await require(request)
-    if SCREEN_LOCK.locked():
-        raise web.HTTPConflict(text="The cabinet screen is already being viewed")
     response = web.StreamResponse(status=200, headers={
         "Content-Type": "multipart/x-mixed-replace; boundary=ffmpeg",
         "Cache-Control": "no-store, no-cache, must-revalidate",
@@ -712,6 +710,9 @@ async def screen_stream(request):
         request.transport.get_extra_info("socket").setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
     except (AttributeError, OSError):
         pass
+    # A menu/game display transition briefly overlaps the browser's old and
+    # replacement <img> requests. Queue the replacement behind the old stream
+    # instead of returning 409 and leaving the page on its last black frame.
     async with SCREEN_LOCK:
         # Keep one HTTP stream alive while replacing ffmpeg whenever RetroPie
         # crosses menu -> runcommand -> emulator -> menu display modes.
