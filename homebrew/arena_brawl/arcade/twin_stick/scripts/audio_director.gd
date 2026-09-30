@@ -25,13 +25,9 @@ func _ready() -> void:
             var index = AudioServer.bus_count - 1
             AudioServer.set_bus_name(index, bus_name)
             AudioServer.set_bus_send(index, "Master")
-    var master_index = AudioServer.get_bus_index("Master")
-    if master_index >= 0 and AudioServer.get_bus_effect_count(master_index) == 0:
-        var limiter = AudioEffectLimiter.new()
-        limiter.ceiling_db = -2.0
-        limiter.threshold_db = -7.0
-        AudioServer.add_bus_effect(master_index, limiter)
-    AudioServer.set_bus_volume_db(AudioServer.get_bus_index("BrawlSFX"), -3.0)
+    # Leave generous digital headroom on the Pi. Godot's native limiter can
+    # crash the ALSA path on this ARM/Mesa build, while bus headroom is stable.
+    AudioServer.set_bus_volume_db(AudioServer.get_bus_index("BrawlSFX"), -6.0)
     for entry in _json("sfx_manifest").get("sounds", []):
         sound_map[entry["id"]] = entry
     for entry in _json("announcer_lines").get("lines", []):
@@ -221,7 +217,8 @@ func _set_bus_volume(bus_name: String, percent: int) -> void:
         return
     var amount = clampi(percent, 0, 100)
     AudioServer.set_bus_mute(index, amount == 0)
-    AudioServer.set_bus_volume_db(index, linear_to_db(maxf(float(amount) / 100.0, 0.001)))
+    var headroom = -6.0 if bus_name == "BrawlSFX" else -3.0 if bus_name == "BrawlMusic" else 0.0
+    AudioServer.set_bus_volume_db(index, linear_to_db(maxf(float(amount) / 100.0, 0.001)) + headroom)
 
 func stop_all() -> void:
     for player in pool:
