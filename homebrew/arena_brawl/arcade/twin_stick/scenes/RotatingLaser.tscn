@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3]
+[ext_resource type="Script" path="res://arcade/twin_stick/scripts/asset_actor.gd" id="1"]
+[node name="RotatingLaser" type="Node2D"]
+texture_filter = 1
+script = ExtResource("1")
+frames_id = "hazard_rotating_laser"
+animation_name = "warning"
+ground_pivot = Vector2(32, 32)

@@ -444,6 +444,7 @@ def _detect_current_game():
             return Path(roms[-1]).stem if roms else "RetroArch game"
         if "void-run.arm64" in cmd: return "Void Run"
         if "speedbike.arm64" in cmd: return "Speedbike"
+        if "arena-brawl.arm64" in cmd: return "Arena Brawl"
         if "goldmaze.arm64" in cmd: return "Trippy Gold Maze"
     return None
 
@@ -698,7 +699,7 @@ async def screen_stream(request):
             while request.transport is not None and not request.transport.is_closing():
                 game_name = current_game()
                 retroarch_mode = any(proc.info.get("name") == "retroarch" for proc in psutil.process_iter(["name"]))
-                x11_mode = game_name in {"Void Run", "Speedbike", "Trippy Gold Maze"}
+                x11_mode = game_name in {"Void Run", "Speedbike", "Trippy Gold Maze", "Arena Brawl"}
                 # The legacy /dev/fb0 exists on current Raspberry Pi OS but is a
                 # zero-filled compatibility buffer, not the active KMS plane.
                 # Release kmsgrab during runcommand/xinit's ownership handoff,
@@ -785,9 +786,9 @@ async def screen_stream(request):
                             await response.write(header + frame + b"\r\n")
                             # Restart capture as soon as a launch begins or the
                             # active renderer changes so its pixel format stays valid.
-                            changed = (current_game() in {"Void Run", "Speedbike", "Trippy Gold Maze"}) != x11_mode
+                            changed = (current_game() in {"Void Run", "Speedbike", "Trippy Gold Maze", "Arena Brawl"}) != x11_mode
                             if changed or (not x11_mode and display_transition_active()): break
-                        changed = (current_game() in {"Void Run", "Speedbike", "Trippy Gold Maze"}) != x11_mode
+                        changed = (current_game() in {"Void Run", "Speedbike", "Trippy Gold Maze", "Arena Brawl"}) != x11_mode
                         if changed or (not x11_mode and display_transition_active()): break
                 finally:
                     if process.returncode is None:
@@ -840,6 +841,7 @@ async def action(request):
         run("pkill", "-TERM", "-x", "goldmaze.arm64")
         run("pkill", "-TERM", "-x", "void-run.arm64")
         run("pkill", "-TERM", "-x", "speedbike.arm64")
+        run("pkill", "-TERM", "-x", "arena-brawl.arm64")
         run("pkill", "-TERM", "-x", "retroarch")
         await asyncio.sleep(1)
         run("pkill", "-TERM", "-x", "xinit")
@@ -852,6 +854,7 @@ async def action(request):
         run("pkill", "-TERM", "-x", "retroarch")
         run("pkill", "-TERM", "-f", "/opt/dreadwire/void-run/void-run.arm64")
         run("pkill", "-TERM", "-f", "/opt/dreadwire/speedbike/speedbike.arm64")
+        run("pkill", "-TERM", "-f", "/opt/dreadwire/arena-brawl/arena-brawl.arm64")
         run("pkill", "-TERM", "-f", "/opt/dreadwire/goldmaze/goldmaze.arm64")
         await asyncio.sleep(2)
         run("pkill", "-KILL", "-x", "retroarch")
@@ -1142,14 +1145,14 @@ async def select_game(request):
 async def launch_sequence(selection):
     system=selection["system"]; rom=Path(selection["path"])
     selection["status"]="closing-current-game"; await broadcast_party()
-    for name in ("retroarch","flycast","reicast","goldmaze.arm64","void-run.arm64","speedbike.arm64"):
+    for name in ("retroarch","flycast","reicast","goldmaze.arm64","void-run.arm64","speedbike.arm64","arena-brawl.arm64"):
         run("pkill","-TERM","-x",name)
     deadline=time.monotonic()+8
     while time.monotonic()<deadline:
-        running=any(run("pgrep","-x",name).returncode==0 for name in ("retroarch","flycast","reicast","goldmaze.arm64","void-run.arm64","speedbike.arm64"))
+        running=any(run("pgrep","-x",name).returncode==0 for name in ("retroarch","flycast","reicast","goldmaze.arm64","void-run.arm64","speedbike.arm64","arena-brawl.arm64"))
         if not running: break
         await asyncio.sleep(.5)
-    for name in ("retroarch","flycast","reicast","goldmaze.arm64","void-run.arm64","speedbike.arm64"):
+    for name in ("retroarch","flycast","reicast","goldmaze.arm64","void-run.arm64","speedbike.arm64","arena-brawl.arm64"):
         run("pkill","-KILL","-x",name)
     deadline=time.monotonic()+6
     while time.monotonic()<deadline and run("pgrep","-f","/opt/retropie/supplementary/runcommand/runcommand.sh").returncode==0:
@@ -1160,9 +1163,10 @@ async def launch_sequence(selection):
     run("systemctl","stop","getty@tty1.service")
     await asyncio.sleep(1)
     game_unit="dreadwire-game-"+secrets.token_hex(5)
+    launch_command = (["bash", str(rom)] if system == "homebrew" else
+                      ["/opt/retropie/supplementary/runcommand/runcommand.sh", "0", "_SYS_", system, str(rom)])
     process=subprocess.Popen(["systemd-run","--quiet","--wait","--collect","--unit",game_unit,
-                              "openvt","-c","1","-f","-s","-w","--","runuser","-u","pi","--",
-                              "/opt/retropie/supplementary/runcommand/runcommand.sh","0","_SYS_",system,str(rom)],
+                              "openvt","-c","1","-f","-s","-w","--","runuser","-u","pi","--"] + launch_command,
                              stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,start_new_session=True)
     await asyncio.sleep(5)
     if process.poll() is not None:

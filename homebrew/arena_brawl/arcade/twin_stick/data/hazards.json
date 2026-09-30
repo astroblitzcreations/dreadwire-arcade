@@ -1,0 +1,44 @@
+[
+  {
+    "id": "electric_floor",
+    "warning_seconds": 1.3,
+    "active_seconds": 1.2,
+    "cooldown_seconds": 3.2,
+    "damage": 20
+  },
+  {
+    "id": "laser_wall",
+    "warning_seconds": 1.3,
+    "active_seconds": 1.2,
+    "cooldown_seconds": 3.2,
+    "damage": 20
+  },
+  {
+    "id": "crusher",
+    "warning_seconds": 1.3,
+    "active_seconds": 1.2,
+    "cooldown_seconds": 3.2,
+    "damage": 20
+  },
+  {
+    "id": "mine",
+    "warning_seconds": 1.3,
+    "active_seconds": 1.2,
+    "cooldown_seconds": 3.2,
+    "damage": 35
+  },
+  {
+    "id": "flame_vent",
+    "warning_seconds": 1.3,
+    "active_seconds": 1.2,
+    "cooldown_seconds": 3.2,
+    "damage": 20
+  },
+  {
+    "id": "rotating_laser",
+    "warning_seconds": 1.3,
+    "active_seconds": 1.2,
+    "cooldown_seconds": 3.2,
+    "damage": 20
+  }
+]

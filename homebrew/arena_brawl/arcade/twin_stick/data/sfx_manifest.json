@@ -1,0 +1,548 @@
+{
+  "sample_rate_hz": 44100,
+  "encoding": "16-bit PCM WAV",
+  "channels": 1,
+  "synthesis": "Original deterministic oscillator/noise DSP; no ripped game samples.",
+  "sounds": [
+    {
+      "id": "player_hurt",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/player/player_hurt.wav",
+        "res://arcade/twin_stick/assets/audio/player/player_hurt_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "player_death",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/player/player_death.wav",
+        "res://arcade/twin_stick/assets/audio/player/player_death_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "player_respawn",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/player/player_respawn.wav",
+        "res://arcade/twin_stick/assets/audio/player/player_respawn_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "player_low_health",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/player/player_low_health.wav",
+        "res://arcade/twin_stick/assets/audio/player/player_low_health_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "pulse_fire",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/weapons/pulse_fire.wav",
+        "res://arcade/twin_stick/assets/audio/weapons/pulse_fire_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -10
+    },
+    {
+      "id": "automatic_fire",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/weapons/automatic_fire.wav",
+        "res://arcade/twin_stick/assets/audio/weapons/automatic_fire_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -10
+    },
+    {
+      "id": "shotgun_fire",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/weapons/shotgun_fire.wav",
+        "res://arcade/twin_stick/assets/audio/weapons/shotgun_fire_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -10
+    },
+    {
+      "id": "plasma_fire",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/weapons/plasma_fire.wav",
+        "res://arcade/twin_stick/assets/audio/weapons/plasma_fire_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -10
+    },
+    {
+      "id": "rail_fire",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/weapons/rail_fire.wav",
+        "res://arcade/twin_stick/assets/audio/weapons/rail_fire_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -10
+    },
+    {
+      "id": "rocket_launch",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/weapons/rocket_launch.wav",
+        "res://arcade/twin_stick/assets/audio/weapons/rocket_launch_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "flame_loop",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/weapons/flame_loop.wav",
+        "res://arcade/twin_stick/assets/audio/weapons/flame_loop_02.wav"
+      ],
+      "loop": true,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "arc_discharge",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/weapons/arc_discharge.wav",
+        "res://arcade/twin_stick/assets/audio/weapons/arc_discharge_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "twin_pulse_fire",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/weapons/twin_pulse_fire.wav",
+        "res://arcade/twin_stick/assets/audio/weapons/twin_pulse_fire_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -10
+    },
+    {
+      "id": "orbit_fire",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/weapons/orbit_fire.wav",
+        "res://arcade/twin_stick/assets/audio/weapons/orbit_fire_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -10
+    },
+    {
+      "id": "weapon_reload",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/weapons/weapon_reload.wav",
+        "res://arcade/twin_stick/assets/audio/weapons/weapon_reload_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "bullet_hit_metal",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/explosions/bullet_hit_metal.wav",
+        "res://arcade/twin_stick/assets/audio/explosions/bullet_hit_metal_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "bullet_hit_enemy",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/explosions/bullet_hit_enemy.wav",
+        "res://arcade/twin_stick/assets/audio/explosions/bullet_hit_enemy_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "plasma_hit",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/explosions/plasma_hit.wav",
+        "res://arcade/twin_stick/assets/audio/explosions/plasma_hit_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "explosion_small",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/explosions/explosion_small.wav",
+        "res://arcade/twin_stick/assets/audio/explosions/explosion_small_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "explosion_medium",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/explosions/explosion_medium.wav",
+        "res://arcade/twin_stick/assets/audio/explosions/explosion_medium_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "explosion_large",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/explosions/explosion_large.wav",
+        "res://arcade/twin_stick/assets/audio/explosions/explosion_large_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "enemy_hit",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/enemies/enemy_hit.wav",
+        "res://arcade/twin_stick/assets/audio/enemies/enemy_hit_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "enemy_death",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/enemies/enemy_death.wav",
+        "res://arcade/twin_stick/assets/audio/enemies/enemy_death_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "drone_explosion",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/enemies/drone_explosion.wav",
+        "res://arcade/twin_stick/assets/audio/enemies/drone_explosion_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "heavy_death",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/enemies/heavy_death.wav",
+        "res://arcade/twin_stick/assets/audio/enemies/heavy_death_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "runner_attack",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/enemies/runner_attack.wav",
+        "res://arcade/twin_stick/assets/audio/enemies/runner_attack_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "shield_block",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/enemies/shield_block.wav",
+        "res://arcade/twin_stick/assets/audio/enemies/shield_block_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "bomber_throw",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/enemies/bomber_throw.wav",
+        "res://arcade/twin_stick/assets/audio/enemies/bomber_throw_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "turret_deploy",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/enemies/turret_deploy.wav",
+        "res://arcade/twin_stick/assets/audio/enemies/turret_deploy_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "boss_stagger",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/enemies/boss_stagger.wav",
+        "res://arcade/twin_stick/assets/audio/enemies/boss_stagger_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "health_pickup",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/pickups/health_pickup.wav",
+        "res://arcade/twin_stick/assets/audio/pickups/health_pickup_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "weapon_pickup",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/pickups/weapon_pickup.wav",
+        "res://arcade/twin_stick/assets/audio/pickups/weapon_pickup_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "credits_pickup",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/pickups/credits_pickup.wav",
+        "res://arcade/twin_stick/assets/audio/pickups/credits_pickup_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "extra_life",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/pickups/extra_life.wav",
+        "res://arcade/twin_stick/assets/audio/pickups/extra_life_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "jackpot",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/pickups/jackpot.wav",
+        "res://arcade/twin_stick/assets/audio/pickups/jackpot_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "armor_pickup",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/pickups/armor_pickup.wav",
+        "res://arcade/twin_stick/assets/audio/pickups/armor_pickup_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "powerup_pickup",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/pickups/powerup_pickup.wav",
+        "res://arcade/twin_stick/assets/audio/pickups/powerup_pickup_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "prize_pickup",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/pickups/prize_pickup.wav",
+        "res://arcade/twin_stick/assets/audio/pickups/prize_pickup_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "door_warning",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/arena/door_warning.wav",
+        "res://arcade/twin_stick/assets/audio/arena/door_warning_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "door_open",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/arena/door_open.wav",
+        "res://arcade/twin_stick/assets/audio/arena/door_open_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "door_close",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/arena/door_close.wav",
+        "res://arcade/twin_stick/assets/audio/arena/door_close_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "hazard_warning",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/arena/hazard_warning.wav",
+        "res://arcade/twin_stick/assets/audio/arena/hazard_warning_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "electric_floor",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/arena/electric_floor.wav",
+        "res://arcade/twin_stick/assets/audio/arena/electric_floor_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "laser_charge",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/arena/laser_charge.wav",
+        "res://arcade/twin_stick/assets/audio/arena/laser_charge_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "wave_clear",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/arena/wave_clear.wav",
+        "res://arcade/twin_stick/assets/audio/arena/wave_clear_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "boss_arrive",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/arena/boss_arrive.wav",
+        "res://arcade/twin_stick/assets/audio/arena/boss_arrive_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "menu_move",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/ui/menu_move.wav",
+        "res://arcade/twin_stick/assets/audio/ui/menu_move_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "menu_select",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/ui/menu_select.wav",
+        "res://arcade/twin_stick/assets/audio/ui/menu_select_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "pause",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/ui/pause.wav",
+        "res://arcade/twin_stick/assets/audio/ui/pause_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "countdown",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/ui/countdown.wav",
+        "res://arcade/twin_stick/assets/audio/ui/countdown_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "game_start",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/ui/game_start.wav",
+        "res://arcade/twin_stick/assets/audio/ui/game_start_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "game_over",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/ui/game_over.wav",
+        "res://arcade/twin_stick/assets/audio/ui/game_over_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "party_join",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/ui/party_join.wav",
+        "res://arcade/twin_stick/assets/audio/ui/party_join_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    },
+    {
+      "id": "party_ready",
+      "variants": [
+        "res://arcade/twin_stick/assets/audio/ui/party_ready.wav",
+        "res://arcade/twin_stick/assets/audio/ui/party_ready_02.wav"
+      ],
+      "loop": false,
+      "bus": "BrawlSFX",
+      "volume_db": -6
+    }
+  ]
+}

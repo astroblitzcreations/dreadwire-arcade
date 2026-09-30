@@ -1,0 +1,50 @@
+[
+  {
+    "id": "health",
+    "duration_seconds": 0
+  },
+  {
+    "id": "armor",
+    "duration_seconds": 0
+  },
+  {
+    "id": "rapid_fire",
+    "duration_seconds": 12
+  },
+  {
+    "id": "spread_shot",
+    "duration_seconds": 12
+  },
+  {
+    "id": "piercing",
+    "duration_seconds": 12
+  },
+  {
+    "id": "speed_boost",
+    "duration_seconds": 12
+  },
+  {
+    "id": "damage_boost",
+    "duration_seconds": 12
+  },
+  {
+    "id": "invulnerability",
+    "duration_seconds": 12
+  },
+  {
+    "id": "extra_life",
+    "duration_seconds": 0
+  },
+  {
+    "id": "score_multiplier",
+    "duration_seconds": 12
+  },
+  {
+    "id": "credits",
+    "duration_seconds": 0
+  },
+  {
+    "id": "prize_box",
+    "duration_seconds": 0
+  }
+]

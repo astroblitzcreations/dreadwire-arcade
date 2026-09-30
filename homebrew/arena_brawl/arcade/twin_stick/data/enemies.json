@@ -1,0 +1,79 @@
+[
+  {
+    "id": "grunt",
+    "health": 40,
+    "speed": 82,
+    "contact_damage": 12,
+    "score": 100,
+    "drop_chance": 0.12,
+    "move_animation": "walk",
+    "radius": 19,
+    "behavior": "chase"
+  },
+  {
+    "id": "runner",
+    "health": 25,
+    "speed": 146,
+    "contact_damage": 10,
+    "score": 125,
+    "drop_chance": 0.1,
+    "move_animation": "run",
+    "radius": 17,
+    "behavior": "zigzag"
+  },
+  {
+    "id": "drone",
+    "health": 35,
+    "speed": 96,
+    "contact_damage": 10,
+    "score": 175,
+    "drop_chance": 0.12,
+    "move_animation": "hover",
+    "radius": 19,
+    "behavior": "strafe_shoot"
+  },
+  {
+    "id": "shield_guard",
+    "health": 95,
+    "speed": 61,
+    "contact_damage": 16,
+    "score": 250,
+    "drop_chance": 0.16,
+    "move_animation": "walk",
+    "radius": 22,
+    "behavior": "frontal_shield"
+  },
+  {
+    "id": "bomber",
+    "health": 55,
+    "speed": 72,
+    "contact_damage": 12,
+    "score": 225,
+    "drop_chance": 0.15,
+    "move_animation": "walk",
+    "radius": 20,
+    "behavior": "throw_bomb"
+  },
+  {
+    "id": "turret",
+    "health": 85,
+    "speed": 0,
+    "contact_damage": 14,
+    "score": 250,
+    "drop_chance": 0.18,
+    "move_animation": "idle",
+    "radius": 21,
+    "behavior": "fan_shoot"
+  },
+  {
+    "id": "heavy",
+    "health": 180,
+    "speed": 45,
+    "contact_damage": 20,
+    "score": 400,
+    "drop_chance": 0.23,
+    "move_animation": "walk",
+    "radius": 25,
+    "behavior": "burst_shoot"
+  }
+]

@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3]
+[ext_resource type="Script" path="res://arcade/twin_stick/scripts/asset_actor.gd" id="1"]
+[node name="Player" type="Node2D"]
+texture_filter = 1
+script = ExtResource("1")
+frames_id = "volt"
+animation_name = "idle_s"
+ground_pivot = Vector2(32, 48)
+frame_size = Vector2(64, 64)
+weapon_id = "pulse_pistol"

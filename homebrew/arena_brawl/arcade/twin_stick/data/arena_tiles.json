@@ -1,0 +1,465 @@
+{
+  "atlas": "res://arcade/twin_stick/assets/tilesets/arena/arena_tiles.png",
+  "tile_size": [
+    64,
+    64
+  ],
+  "columns": 8,
+  "terrain_mode": "match_sides",
+  "terrain_mask_bits": {
+    "n": 1,
+    "e": 2,
+    "s": 4,
+    "w": 8
+  },
+  "tiles": [
+    {
+      "name": "floor_a",
+      "atlas_coords": [
+        0,
+        0
+      ]
+    },
+    {
+      "name": "floor_b",
+      "atlas_coords": [
+        1,
+        0
+      ]
+    },
+    {
+      "name": "grid_floor",
+      "atlas_coords": [
+        2,
+        0
+      ]
+    },
+    {
+      "name": "damaged_floor",
+      "atlas_coords": [
+        3,
+        0
+      ]
+    },
+    {
+      "name": "vent",
+      "atlas_coords": [
+        4,
+        0
+      ]
+    },
+    {
+      "name": "maintenance_hatch",
+      "atlas_coords": [
+        5,
+        0
+      ]
+    },
+    {
+      "name": "electric_off",
+      "atlas_coords": [
+        6,
+        0
+      ]
+    },
+    {
+      "name": "electric_on",
+      "atlas_coords": [
+        7,
+        0
+      ]
+    },
+    {
+      "name": "hazard_yellow",
+      "atlas_coords": [
+        0,
+        1
+      ]
+    },
+    {
+      "name": "hazard_red",
+      "atlas_coords": [
+        1,
+        1
+      ]
+    },
+    {
+      "name": "wall_n",
+      "atlas_coords": [
+        2,
+        1
+      ]
+    },
+    {
+      "name": "wall_s",
+      "atlas_coords": [
+        3,
+        1
+      ]
+    },
+    {
+      "name": "wall_w",
+      "atlas_coords": [
+        4,
+        1
+      ]
+    },
+    {
+      "name": "wall_e",
+      "atlas_coords": [
+        5,
+        1
+      ]
+    },
+    {
+      "name": "corner_nw",
+      "atlas_coords": [
+        6,
+        1
+      ]
+    },
+    {
+      "name": "corner_ne",
+      "atlas_coords": [
+        7,
+        1
+      ]
+    },
+    {
+      "name": "corner_sw",
+      "atlas_coords": [
+        0,
+        2
+      ]
+    },
+    {
+      "name": "corner_se",
+      "atlas_coords": [
+        1,
+        2
+      ]
+    },
+    {
+      "name": "wall_damaged",
+      "atlas_coords": [
+        2,
+        2
+      ]
+    },
+    {
+      "name": "wall_light_blue",
+      "atlas_coords": [
+        3,
+        2
+      ]
+    },
+    {
+      "name": "wall_light_pink",
+      "atlas_coords": [
+        4,
+        2
+      ]
+    },
+    {
+      "name": "arena_entrance",
+      "atlas_coords": [
+        5,
+        2
+      ]
+    },
+    {
+      "name": "arena_exit",
+      "atlas_coords": [
+        6,
+        2
+      ]
+    },
+    {
+      "name": "door_threshold",
+      "atlas_coords": [
+        7,
+        2
+      ]
+    },
+    {
+      "name": "floor_small_panels",
+      "atlas_coords": [
+        0,
+        3
+      ]
+    },
+    {
+      "name": "floor_dark",
+      "atlas_coords": [
+        1,
+        3
+      ]
+    },
+    {
+      "name": "floor_circuit",
+      "atlas_coords": [
+        2,
+        3
+      ]
+    },
+    {
+      "name": "floor_grate",
+      "atlas_coords": [
+        3,
+        3
+      ]
+    },
+    {
+      "name": "wall_pipe",
+      "atlas_coords": [
+        4,
+        3
+      ]
+    },
+    {
+      "name": "warning_stripe",
+      "atlas_coords": [
+        5,
+        3
+      ]
+    },
+    {
+      "name": "floor_prize",
+      "atlas_coords": [
+        6,
+        3
+      ]
+    },
+    {
+      "name": "floor_center",
+      "atlas_coords": [
+        7,
+        3
+      ]
+    },
+    {
+      "name": "terrain_mask_00",
+      "atlas_coords": [
+        0,
+        4
+      ]
+    },
+    {
+      "name": "terrain_mask_01",
+      "atlas_coords": [
+        1,
+        4
+      ]
+    },
+    {
+      "name": "terrain_mask_02",
+      "atlas_coords": [
+        2,
+        4
+      ]
+    },
+    {
+      "name": "terrain_mask_03",
+      "atlas_coords": [
+        3,
+        4
+      ]
+    },
+    {
+      "name": "terrain_mask_04",
+      "atlas_coords": [
+        4,
+        4
+      ]
+    },
+    {
+      "name": "terrain_mask_05",
+      "atlas_coords": [
+        5,
+        4
+      ]
+    },
+    {
+      "name": "terrain_mask_06",
+      "atlas_coords": [
+        6,
+        4
+      ]
+    },
+    {
+      "name": "terrain_mask_07",
+      "atlas_coords": [
+        7,
+        4
+      ]
+    },
+    {
+      "name": "terrain_mask_08",
+      "atlas_coords": [
+        0,
+        5
+      ]
+    },
+    {
+      "name": "terrain_mask_09",
+      "atlas_coords": [
+        1,
+        5
+      ]
+    },
+    {
+      "name": "terrain_mask_10",
+      "atlas_coords": [
+        2,
+        5
+      ]
+    },
+    {
+      "name": "terrain_mask_11",
+      "atlas_coords": [
+        3,
+        5
+      ]
+    },
+    {
+      "name": "terrain_mask_12",
+      "atlas_coords": [
+        4,
+        5
+      ]
+    },
+    {
+      "name": "terrain_mask_13",
+      "atlas_coords": [
+        5,
+        5
+      ]
+    },
+    {
+      "name": "terrain_mask_14",
+      "atlas_coords": [
+        6,
+        5
+      ]
+    },
+    {
+      "name": "terrain_mask_15",
+      "atlas_coords": [
+        7,
+        5
+      ]
+    },
+    {
+      "name": "junction_n",
+      "atlas_coords": [
+        0,
+        6
+      ]
+    },
+    {
+      "name": "junction_s",
+      "atlas_coords": [
+        1,
+        6
+      ]
+    },
+    {
+      "name": "junction_w",
+      "atlas_coords": [
+        2,
+        6
+      ]
+    },
+    {
+      "name": "junction_e",
+      "atlas_coords": [
+        3,
+        6
+      ]
+    },
+    {
+      "name": "pillar",
+      "atlas_coords": [
+        4,
+        6
+      ]
+    },
+    {
+      "name": "column_base",
+      "atlas_coords": [
+        5,
+        6
+      ]
+    },
+    {
+      "name": "floor_bolts",
+      "atlas_coords": [
+        6,
+        6
+      ]
+    },
+    {
+      "name": "floor_large_panel",
+      "atlas_coords": [
+        7,
+        6
+      ]
+    },
+    {
+      "name": "floor_stain",
+      "atlas_coords": [
+        0,
+        7
+      ]
+    },
+    {
+      "name": "floor_scratches",
+      "atlas_coords": [
+        1,
+        7
+      ]
+    },
+    {
+      "name": "decal_damage",
+      "atlas_coords": [
+        2,
+        7
+      ]
+    },
+    {
+      "name": "decal_robot_oil",
+      "atlas_coords": [
+        3,
+        7
+      ]
+    },
+    {
+      "name": "decal_blood",
+      "atlas_coords": [
+        4,
+        7
+      ]
+    },
+    {
+      "name": "decal_arrow",
+      "atlas_coords": [
+        5,
+        7
+      ]
+    },
+    {
+      "name": "decal_danger",
+      "atlas_coords": [
+        6,
+        7
+      ]
+    },
+    {
+      "name": "decal_scorch",
+      "atlas_coords": [
+        7,
+        7
+      ]
+    }
+  ]
+}

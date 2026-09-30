@@ -1,0 +1,59 @@
+[
+  {
+    "id": "enforcer",
+    "display_name": "THE ENFORCER",
+    "health": 1600,
+    "speed": 55,
+    "score": 5000,
+    "frame_size": 128,
+    "radius": 43,
+    "attacks": [
+      "sweep",
+      "charge",
+      "slam"
+    ]
+  },
+  {
+    "id": "prize_crusher",
+    "display_name": "PRIZE CRUSHER",
+    "health": 2300,
+    "speed": 40,
+    "score": 10000,
+    "frame_size": 192,
+    "radius": 64,
+    "attacks": [
+      "missile_ring",
+      "arm_sweep",
+      "explosive_crate"
+    ]
+  },
+  {
+    "id": "neon_widow",
+    "display_name": "NEON WIDOW",
+    "health": 2800,
+    "speed": 90,
+    "score": 15000,
+    "frame_size": 192,
+    "radius": 56,
+    "attacks": [
+      "web_fan",
+      "drone_summon",
+      "leap"
+    ]
+  },
+  {
+    "id": "executive",
+    "display_name": "THE EXECUTIVE",
+    "health": 4000,
+    "speed": 28,
+    "score": 25000,
+    "frame_size": 256,
+    "radius": 76,
+    "attacks": [
+      "laser_ring",
+      "missiles",
+      "electric_floor",
+      "summon"
+    ]
+  }
+]

@@ -1,0 +1,276 @@
+{
+  "voice_description": "Processed offline eSpeak en-us+m3 synthetic robotic announcer. Not a human performance or imitation of a real actor.",
+  "minimum_general_line_delay_seconds": 4.0,
+  "lines": [
+    {
+      "id": "game_start_01",
+      "category": "game_start",
+      "text": "Contestants, enter the arena!",
+      "path": "res://arcade/twin_stick/assets/audio/announcer/announcer_game_start_01.wav",
+      "cooldown_seconds": 4,
+      "priority": 2,
+      "weight": 1,
+      "status": "SYNTHETIC_AUDIO_RENDERED"
+    },
+    {
+      "id": "game_start_02",
+      "category": "game_start",
+      "text": "Welcome to the prize fight!",
+      "path": "res://arcade/twin_stick/assets/audio/announcer/announcer_game_start_02.wav",
+      "cooldown_seconds": 4,
+      "priority": 2,
+      "weight": 1,
+      "status": "SYNTHETIC_AUDIO_RENDERED"
+    },
+    {
+      "id": "game_start_03",
+      "category": "game_start",
+      "text": "You want prizes? Earn them!",
+      "path": "res://arcade/twin_stick/assets/audio/announcer/announcer_game_start_03.wav",
+      "cooldown_seconds": 4,
+      "priority": 2,
+      "weight": 1,
+      "status": "SYNTHETIC_AUDIO_RENDERED"
+    },
+    {
+      "id": "wave_start_01",
+      "category": "wave_start",
+      "text": "The ratings are climbing!",
+      "path": "res://arcade/twin_stick/assets/audio/announcer/announcer_wave_start_01.wav",
+      "cooldown_seconds": 4,
+      "priority": 2,
+      "weight": 1,
+      "status": "SYNTHETIC_AUDIO_RENDERED"
+    },
+    {
+      "id": "wave_start_02",
+      "category": "wave_start",
+      "text": "New wave. New trouble.",
+      "path": "res://arcade/twin_stick/assets/audio/announcer/announcer_wave_start_02.wav",
+      "cooldown_seconds": 4,
+      "priority": 2,
+      "weight": 1,
+      "status": "SYNTHETIC_AUDIO_RENDERED"
+    },
+    {
+      "id": "wave_start_03",
+      "category": "wave_start",
+      "text": "Keep moving, contestants!",
+      "path": "res://arcade/twin_stick/assets/audio/announcer/announcer_wave_start_03.wav",
+      "cooldown_seconds": 4,
+      "priority": 2,
+      "weight": 1,
+      "status": "SYNTHETIC_AUDIO_RENDERED"
+    },
+    {
+      "id": "boss_start_01",
+      "category": "boss_start",
+      "text": "Champion approaching!",
+      "path": "res://arcade/twin_stick/assets/audio/announcer/announcer_boss_start_01.wav",
+      "cooldown_seconds": 4,
+      "priority": 8,
+      "weight": 1,
+      "status": "SYNTHETIC_AUDIO_RENDERED"
+    },
+    {
+      "id": "boss_start_02",
+      "category": "boss_start",
+      "text": "Survive this!",
+      "path": "res://arcade/twin_stick/assets/audio/announcer/announcer_boss_start_02.wav",
+      "cooldown_seconds": 4,
+      "priority": 8,
+      "weight": 1,
+      "status": "SYNTHETIC_AUDIO_RENDERED"
+    },
+    {
+      "id": "boss_start_03",
+      "category": "boss_start",
+      "text": "This contestant plays for keeps!",
+      "path": "res://arcade/twin_stick/assets/audio/announcer/announcer_boss_start_03.wav",
+      "cooldown_seconds": 4,
+      "priority": 8,
+      "weight": 1,
+      "status": "SYNTHETIC_AUDIO_RENDERED"
+    },
+    {
+      "id": "pickup_01",
+      "category": "pickup",
+      "text": "New hardware. More trouble.",
+      "path": "res://arcade/twin_stick/assets/audio/announcer/announcer_pickup_01.wav",
+      "cooldown_seconds": 8,
+      "priority": 2,
+      "weight": 1,
+      "status": "SYNTHETIC_AUDIO_RENDERED"
+    },
+    {
+      "id": "pickup_02",
+      "category": "pickup",
+      "text": "Prize secured!",
+      "path": "res://arcade/twin_stick/assets/audio/announcer/announcer_pickup_02.wav",
+      "cooldown_seconds": 8,
+      "priority": 2,
+      "weight": 1,
+      "status": "SYNTHETIC_AUDIO_RENDERED"
+    },
+    {
+      "id": "big_kill_01",
+      "category": "big_kill",
+      "text": "Now that is entertainment!",
+      "path": "res://arcade/twin_stick/assets/audio/announcer/announcer_big_kill_01.wav",
+      "cooldown_seconds": 4,
+      "priority": 2,
+      "weight": 1,
+      "status": "SYNTHETIC_AUDIO_RENDERED"
+    },
+    {
+      "id": "big_kill_02",
+      "category": "big_kill",
+      "text": "That is going to leave a crater!",
+      "path": "res://arcade/twin_stick/assets/audio/announcer/announcer_big_kill_02.wav",
+      "cooldown_seconds": 4,
+      "priority": 2,
+      "weight": 1,
+      "status": "SYNTHETIC_AUDIO_RENDERED"
+    },
+    {
+      "id": "player_low_health_01",
+      "category": "player_low_health",
+      "text": "Armor failing. Stay alive!",
+      "path": "res://arcade/twin_stick/assets/audio/announcer/announcer_player_low_health_01.wav",
+      "cooldown_seconds": 4,
+      "priority": 2,
+      "weight": 1,
+      "status": "SYNTHETIC_AUDIO_RENDERED"
+    },
+    {
+      "id": "player_low_health_02",
+      "category": "player_low_health",
+      "text": "You are one hit from the highlight reel!",
+      "path": "res://arcade/twin_stick/assets/audio/announcer/announcer_player_low_health_02.wav",
+      "cooldown_seconds": 4,
+      "priority": 2,
+      "weight": 1,
+      "status": "SYNTHETIC_AUDIO_RENDERED"
+    },
+    {
+      "id": "player_death_01",
+      "category": "player_death",
+      "text": "Our contestant is off the air!",
+      "path": "res://arcade/twin_stick/assets/audio/announcer/announcer_player_death_01.wav",
+      "cooldown_seconds": 4,
+      "priority": 2,
+      "weight": 1,
+      "status": "SYNTHETIC_AUDIO_RENDERED"
+    },
+    {
+      "id": "player_death_02",
+      "category": "player_death",
+      "text": "That round goes to the arena.",
+      "path": "res://arcade/twin_stick/assets/audio/announcer/announcer_player_death_02.wav",
+      "cooldown_seconds": 4,
+      "priority": 2,
+      "weight": 1,
+      "status": "SYNTHETIC_AUDIO_RENDERED"
+    },
+    {
+      "id": "jackpot_01",
+      "category": "jackpot",
+      "text": "That is a jackpot!",
+      "path": "res://arcade/twin_stick/assets/audio/announcer/announcer_jackpot_01.wav",
+      "cooldown_seconds": 4,
+      "priority": 2,
+      "weight": 1,
+      "status": "SYNTHETIC_AUDIO_RENDERED"
+    },
+    {
+      "id": "jackpot_02",
+      "category": "jackpot",
+      "text": "Double payout!",
+      "path": "res://arcade/twin_stick/assets/audio/announcer/announcer_jackpot_02.wav",
+      "cooldown_seconds": 4,
+      "priority": 2,
+      "weight": 1,
+      "status": "SYNTHETIC_AUDIO_RENDERED"
+    },
+    {
+      "id": "room_clear_01",
+      "category": "room_clear",
+      "text": "Wave cleared!",
+      "path": "res://arcade/twin_stick/assets/audio/announcer/announcer_room_clear_01.wav",
+      "cooldown_seconds": 4,
+      "priority": 2,
+      "weight": 1,
+      "status": "SYNTHETIC_AUDIO_RENDERED"
+    },
+    {
+      "id": "room_clear_02",
+      "category": "room_clear",
+      "text": "Prize room unlocked!",
+      "path": "res://arcade/twin_stick/assets/audio/announcer/announcer_room_clear_02.wav",
+      "cooldown_seconds": 4,
+      "priority": 2,
+      "weight": 1,
+      "status": "SYNTHETIC_AUDIO_RENDERED"
+    },
+    {
+      "id": "bonus_01",
+      "category": "bonus",
+      "text": "Bonus round!",
+      "path": "res://arcade/twin_stick/assets/audio/announcer/announcer_bonus_01.wav",
+      "cooldown_seconds": 4,
+      "priority": 2,
+      "weight": 1,
+      "status": "SYNTHETIC_AUDIO_RENDERED"
+    },
+    {
+      "id": "bonus_02",
+      "category": "bonus",
+      "text": "Audience approval rising!",
+      "path": "res://arcade/twin_stick/assets/audio/announcer/announcer_bonus_02.wav",
+      "cooldown_seconds": 4,
+      "priority": 2,
+      "weight": 1,
+      "status": "SYNTHETIC_AUDIO_RENDERED"
+    },
+    {
+      "id": "final_boss_01",
+      "category": "final_boss",
+      "text": "Final round!",
+      "path": "res://arcade/twin_stick/assets/audio/announcer/announcer_final_boss_01.wav",
+      "cooldown_seconds": 4,
+      "priority": 8,
+      "weight": 1,
+      "status": "SYNTHETIC_AUDIO_RENDERED"
+    },
+    {
+      "id": "final_boss_02",
+      "category": "final_boss",
+      "text": "The network is fighting back!",
+      "path": "res://arcade/twin_stick/assets/audio/announcer/announcer_final_boss_02.wav",
+      "cooldown_seconds": 4,
+      "priority": 8,
+      "weight": 1,
+      "status": "SYNTHETIC_AUDIO_RENDERED"
+    },
+    {
+      "id": "victory_01",
+      "category": "victory",
+      "text": "A new arena champion!",
+      "path": "res://arcade/twin_stick/assets/audio/announcer/announcer_victory_01.wav",
+      "cooldown_seconds": 4,
+      "priority": 8,
+      "weight": 1,
+      "status": "SYNTHETIC_AUDIO_RENDERED"
+    },
+    {
+      "id": "victory_02",
+      "category": "victory",
+      "text": "You survived. Collect your winnings!",
+      "path": "res://arcade/twin_stick/assets/audio/announcer/announcer_victory_02.wav",
+      "cooldown_seconds": 4,
+      "priority": 8,
+      "weight": 1,
+      "status": "SYNTHETIC_AUDIO_RENDERED"
+    }
+  ]
+}

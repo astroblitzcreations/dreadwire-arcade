@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3]
+[ext_resource type="Script" path="res://arcade/twin_stick/scripts/asset_actor.gd" id="1"]
+[node name="SecurityDoor" type="Node2D"]
+texture_filter = 1
+script = ExtResource("1")
+frames_id = "security_door"
+animation_name = "closed"
+ground_pivot = Vector2(64, 64)
+frame_size = Vector2(128, 128)
+weapon_id = ""
