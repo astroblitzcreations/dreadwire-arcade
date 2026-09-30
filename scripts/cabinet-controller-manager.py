@@ -6,7 +6,6 @@ from html import escape
 import os
 from pathlib import Path
 import re
-import shlex
 import subprocess
 import sys
 import xml.etree.ElementTree as ET
@@ -292,31 +291,18 @@ def generate_menu():
         path.chmod(0o755)
         entries.append((filename, name, description))
 
-    summary = "   •   ".join(
-        f"P{player}: {label_for(assignments.get(f'player{player}'), devices).split(' (')[0]}"
-        for player in range(1, 5)
-    )
-    add("00-current-setup.sh", "CURRENT SETUP", summary + ". Select another card below to change it.", "sleep 0.2")
-
     for player in range(1, 5):
-        for number, (identity, info) in enumerate(devices.items(), start=1):
-            is_current = assignments.get(f"player{player}") == identity
-            marker = "✓ " if is_current else ""
-            cabinet = " — CABINET FAIL-SAFE" if identity == FALLBACK else ""
-            add(
-                f"{player}{number:02d}-p{player}-{info['node']}.sh",
-                f"{marker}PLAYER {player}: {info['name']}{cabinet}",
-                f"Use {info['name']} as Player {player} inside games. USB identity is remembered across reboots.",
-                f"sudo /usr/local/bin/cabinet-controller-manager.py --set {player} {shlex.quote(identity)}\n"
-                "sudo systemctl restart getty@tty1.service",
-            )
-        if player > 1:
-            add(
-                f"{player}90-disable-p{player}.sh", f"PLAYER {player}: AUTOMATIC / UNASSIGNED",
-                f"Remove the forced assignment for Player {player}.",
-                f"sudo /usr/local/bin/cabinet-controller-manager.py --disable {player}\n"
-                "sudo systemctl restart getty@tty1.service",
-            )
+        current = assignments.get(f"player{player}")
+        current_label = label_for(current, devices).split(" (")[0]
+        cabinet = " — CABINET FAIL-SAFE" if current == FALLBACK else ""
+        add(
+            f"{player}00-player-{player}.sh",
+            f"✓ PLAYER {player}: {current_label}{cabinet}",
+            f"Press A to cycle Player {player} through every connected controller"
+            + (" and Automatic / Unassigned." if player > 1 else ". Player 1 always has a fail-safe."),
+            f"sudo /usr/local/bin/cabinet-controller-manager.py --cycle {player}\n"
+            "sudo systemctl restart getty@tty1.service",
+        )
 
     add(
         "990-restore-cabinet-defaults.sh", "RESTORE SAFE CABINET DEFAULTS",
@@ -357,6 +343,19 @@ def set_player(player, identity):
     save(assignments)
     apply(assignments, quiet=True)
     generate_menu()
+
+
+def cycle_player(player):
+    assignments = load()
+    devices = detected()
+    options = list(devices)
+    if player > 1:
+        options.append(None)
+    if not options:
+        return
+    current = assignments.get(f"player{player}")
+    position = options.index(current) if current in options else -1
+    set_player(player, options[(position + 1) % len(options)])
 
 
 def configured_device_names():
@@ -433,7 +432,10 @@ def manager():
 
 
 if __name__ == "__main__":
-    if "--set" in sys.argv:
+    if "--cycle" in sys.argv:
+        offset = sys.argv.index("--cycle")
+        cycle_player(int(sys.argv[offset + 1]))
+    elif "--set" in sys.argv:
         offset = sys.argv.index("--set")
         set_player(int(sys.argv[offset + 1]), sys.argv[offset + 2])
     elif "--disable" in sys.argv:
