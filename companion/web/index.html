@@ -8,7 +8,7 @@
     />
     <meta name="theme-color" content="#09051d" />
     <link rel="manifest" href="/static/manifest.webmanifest" />
-    <link rel="stylesheet" href="/static/app.css?v=20" />
+    <link rel="stylesheet" href="/static/app.css?v=21" />
     <link rel="stylesheet" href="/static/controller-layout.css?v=15" />
     <title>Dreadwire Arcade Remote</title>
   </head>
@@ -53,7 +53,7 @@
     <main id="app" hidden>
       <header>
         <div><b>DREADWIRE</b><span>ARCADE REMOTE</span></div>
-        <i id="connection">OFFLINE</i>
+        <div class="sessionTools"><i id="connection">OFFLINE</i><button id="logoutBtn">LOG OUT</button></div>
       </header>
       <nav>
         <button data-tab="pad" class="active">CONTROLLER</button
@@ -387,6 +387,6 @@
       </div>
       <div id="toast"></div>
     </main>
-    <script src="/static/app.js?v=20"></script>
+    <script src="/static/app.js?v=21"></script>
   </body>
 </html>

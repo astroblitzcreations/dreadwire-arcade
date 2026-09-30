@@ -33,6 +33,6 @@ screen or game.
 
 Game search uses a shared confirmation screen: a permitted player selects a
 title, both phones see who chose it, and either permitted player may start it.
-The default policy permits the first two queued players; administrators can
+The default policy permits any player currently in the queue; administrators can
 change it under Admin → Party Game Control. Launching cleanly releases the
 current emulator and starts the selected ROM on the cabinet's active console.

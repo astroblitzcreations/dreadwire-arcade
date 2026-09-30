@@ -1,6 +1,7 @@
 let token = localStorage.dwToken || "",
   session = null,
   ws = null,
+  loggingOut = false,
   editing = false,
   selected = null,
   remoteGameState = null,
@@ -136,6 +137,7 @@ $$("nav button").forEach(
     }),
 );
 function connect() {
+  if (loggingOut || !token) return;
   if (ws) {
     ws.onclose = null;
     ws.close();
@@ -150,11 +152,27 @@ function connect() {
     $("#connection").classList.add("online");
   };
   ws.onclose = () => {
+    if (loggingOut) return;
     $("#connection").textContent = "RECONNECTING";
     $("#connection").classList.remove("online");
     setTimeout(connect, 1200);
   };
 }
+$("#logoutBtn").onclick = async () => {
+  loggingOut = true;
+  $("#logoutBtn").disabled = true;
+  $("#logoutBtn").textContent = "LOGGING OUT…";
+  try {
+    await api("/api/logout", { method: "POST" });
+  } catch (_) {
+    // Local logout still succeeds if the cabinet briefly drops offline.
+  }
+  ws?.close();
+  partySocket?.close();
+  localStorage.removeItem("dwToken");
+  token = "";
+  location.reload();
+};
 function send(o) {
   if (ws?.readyState === 1) ws.send(JSON.stringify(o));
 }
@@ -866,7 +884,7 @@ async function loadSettings() {
     $("#uploadsEnabled").checked = s.uploads_enabled;
     $("#largeUploads").checked = s.large_uploads;
     $("#uploadLimit").value = s.normal_limit_mb;
-    $("#launchPolicy").value = s.party_launch_policy || "first_two";
+    $("#launchPolicy").value = s.party_launch_policy || "any_queued";
   } catch (e) {
     toast(e.message);
   }

@@ -39,11 +39,12 @@ ARCADE_MODE_STATE = STATE_DIR / "mode.json"
 AUDIO_CONFIG = Path("/home/pi/.config/dreadwire-audio.json")
 WS_CLIENTS = set()
 PARTY_CLIENTS = set()
+PARTY_CONNECTIONS = {}
 PARTY_QUEUE = []
 PARTY_CHAT = []
 GAME_SELECTION = {}
 SCREEN_LOCK = asyncio.Lock()
-PACKAGE_VERSION = "1.1.1"
+PACKAGE_VERSION = "1.1.2"
 UPDATE_CONFIG = Path("/etc/dreadwire/update.json")
 
 UPLOADS = {
@@ -70,7 +71,7 @@ MIME_TYPES = {".png":"image/png",".jpg":"image/jpeg",".jpeg":"image/jpeg",".webp
 
 def settings():
     base={"media_enabled":True,"uploads_enabled":True,"large_uploads":False,"normal_limit_mb":100,
-          "party_launch_policy":"first_two"}
+          "party_launch_policy":"any_queued"}
     try: base.update(json.loads(SETTINGS_STATE.read_text()))
     except (OSError,ValueError,TypeError): pass
     return base
@@ -132,6 +133,10 @@ def db():
         id INTEGER PRIMARY KEY, user_key TEXT, name TEXT NOT NULL,
         message TEXT NOT NULL, created REAL NOT NULL);
     """)
+    columns={row[1] for row in conn.execute("PRAGMA table_info(party_queue)")}
+    if "last_seen" not in columns:
+        conn.execute("ALTER TABLE party_queue ADD COLUMN last_seen REAL")
+        conn.execute("UPDATE party_queue SET last_seen=joined WHERE last_seen IS NULL")
     return conn
 
 
@@ -543,6 +548,16 @@ async def register(request):
 async def me(request):
     s = await require(request)
     return web.json_response({k:s.get(k) for k in ("role","user_id","name")})
+
+
+async def logout(request):
+    token=request_token(request); session=TOKENS.pop(token,None)
+    if session:
+        key=str(session.get("user_id") or session["name"])
+        with db() as conn: conn.execute("DELETE FROM party_queue WHERE user_key=?",(key,))
+        log_event(session["name"],"logout",user_id=session.get("user_id"))
+        await broadcast_party()
+    return web.json_response({"ok":True})
 
 
 async def profile_layout(request):
@@ -1047,7 +1062,7 @@ async def search_games(request):
 def game_control_allowed(session):
     user_key=str(session.get("user_id") or session["name"])
     if session.get("role")=="admin": return True
-    policy=settings().get("party_launch_policy","first_two")
+    policy=settings().get("party_launch_policy","any_queued")
     if policy=="everyone": return True
     if policy=="admin_only": return False
     with db() as conn:
@@ -1188,7 +1203,7 @@ def party_state():
         queue=[dict(row) for row in conn.execute("SELECT id,name,state,joined,invited_until,accepted FROM party_queue ORDER BY CASE state WHEN 'active' THEN 0 WHEN 'invited' THEN 1 ELSE 2 END,joined LIMIT 50")]
         chat=[dict(row) for row in conn.execute("SELECT name AS sender,message,created AS at FROM party_chat ORDER BY id DESC LIMIT 50")][::-1]
     selected={key:value for key,value in GAME_SELECTION.items() if key!="path"} if GAME_SELECTION else None
-    return {"mode":mode,"launch_policy":settings().get("party_launch_policy","first_two"),"selected_game":selected,
+    return {"mode":mode,"launch_policy":settings().get("party_launch_policy","any_queued"),"selected_game":selected,
             "count":len(queue),"queue":queue,"current":next((x for x in queue if x["state"]=="active"),None),
             "invited":next((x for x in queue if x["state"]=="invited"),None),"chat":chat,
             "expired":[row["name"] for row in expired],"server_time":now}
@@ -1220,7 +1235,7 @@ async def party_queue(request):
     name=session["name"][:40]; key=str(session.get("user_id") or name)
     with db() as conn:
         if action == "join":
-            conn.execute("INSERT INTO party_queue(user_key,name,state,joined) VALUES(?,?,'waiting',?) ON CONFLICT(user_key) DO UPDATE SET name=excluded.name,state='waiting',joined=excluded.joined,invited_until=NULL,accepted=NULL",(key,name,time.time()))
+            conn.execute("INSERT INTO party_queue(user_key,name,state,joined,last_seen) VALUES(?,?,'waiting',?,?) ON CONFLICT(user_key) DO UPDATE SET name=excluded.name,state='waiting',joined=excluded.joined,last_seen=excluded.last_seen,invited_until=NULL,accepted=NULL",(key,name,time.time(),time.time()))
         elif action == "leave": conn.execute("DELETE FROM party_queue WHERE user_key=?",(key,))
         elif action == "accept":
             row=conn.execute("SELECT state,invited_until FROM party_queue WHERE user_key=?",(key,)).fetchone()
@@ -1242,7 +1257,8 @@ async def party_queue(request):
 
 async def party_socket(request):
     session=await require(request); ws=web.WebSocketResponse(heartbeat=15,max_msg_size=4096); await ws.prepare(request)
-    PARTY_CLIENTS.add(ws)
+    PARTY_CLIENTS.add(ws); PARTY_CONNECTIONS[ws]=str(session.get("user_id") or session["name"])
+    with db() as conn: conn.execute("UPDATE party_queue SET last_seen=? WHERE user_key=?",(time.time(),PARTY_CONNECTIONS[ws]))
     with db() as conn: conn.execute("INSERT INTO party_chat(user_key,name,message,created) VALUES(?,?,?,?)",
                                     (str(session.get("user_id") or session["name"]), "SYSTEM", f'{session["name"]} joined the party chat', time.time()))
     await broadcast_party()
@@ -1259,7 +1275,7 @@ async def party_socket(request):
                         conn.execute("DELETE FROM party_chat WHERE id NOT IN (SELECT id FROM party_chat ORDER BY id DESC LIMIT 500)")
                     await broadcast_party()
     finally:
-        PARTY_CLIENTS.discard(ws)
+        PARTY_CLIENTS.discard(ws); PARTY_CONNECTIONS.pop(ws,None)
         with db() as conn: conn.execute("INSERT INTO party_chat(user_key,name,message,created) VALUES(?,?,?,?)",
                                         (str(session.get("user_id") or session["name"]), "SYSTEM", f'{session["name"]} left the party chat', time.time()))
         await broadcast_party()
@@ -1269,6 +1285,11 @@ async def party_socket(request):
 async def party_clock_context(app):
     async def clock():
         while True:
+            now=time.time(); connected=set(PARTY_CONNECTIONS.values())
+            with db() as conn:
+                for key in connected: conn.execute("UPDATE party_queue SET last_seen=? WHERE user_key=?",(now,key))
+                conn.execute("DELETE FROM party_queue WHERE state!='active' AND COALESCE(last_seen,joined)<?",(now-120,))
+                conn.execute("DELETE FROM party_queue WHERE state='active' AND COALESCE(last_seen,joined)<?",(now-900,))
             await broadcast_party()
             await asyncio.sleep(1)
     task=asyncio.create_task(clock())
@@ -1307,7 +1328,7 @@ async def controller(request):
 app = web.Application(client_max_size=4 * 1024**3)
 app.cleanup_ctx.append(physical_controller_context)
 app.cleanup_ctx.append(party_clock_context)
-app.add_routes([web.get("/", index), web.post("/api/login", login), web.post("/api/guest", guest),
+app.add_routes([web.get("/", index), web.post("/api/login", login), web.post("/api/guest", guest), web.post("/api/logout", logout),
                 web.post("/api/register", register), web.get("/api/me", me), web.get("/api/status", status),
                 web.get("/api/layout/{preset}", profile_layout), web.put("/api/layout/{preset}", profile_layout),
                 web.get("/api/admin/users", admin_users), web.post("/api/admin/reset-password", admin_reset),
