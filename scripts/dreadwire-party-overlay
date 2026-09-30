@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+sudo /usr/local/bin/update-companion-qr.sh
+qr=/home/pi/RetroPie/roms/companion/media/arcade-remote-qr.png
+out=/run/dreadwire-party-qr.png
+python3 - "$qr" "$out" <<'PY'
+from PIL import Image, ImageDraw, ImageFont
+import sys
+qr=Image.open(sys.argv[1]).convert("RGB").resize((320,320))
+canvas=Image.new("RGB",(1024,768),(4,2,18)); draw=ImageDraw.Draw(canvas)
+for x in range(0,1024,32): draw.line((x,0,x,768),fill=(12,8,35))
+for y in range(0,768,32): draw.line((0,y,1024,y),fill=(12,8,35))
+try:
+    title=ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",48)
+    body=ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",25)
+except OSError: title=body=None
+draw.rounded_rectangle((68,55,956,713),30,fill=(8,6,30),outline=(37,233,255),width=4)
+draw.text((512,100),"DREADWIRE PARTY MODE",font=title,anchor="mm",fill=(37,233,255))
+draw.text((512,160),"SCAN TO JOIN THE LIVE PLAYER QUEUE",font=body,anchor="mm",fill=(255,255,255))
+canvas.paste(qr,(352,205))
+draw.text((512,570),"Your phone will alert you when it is your turn.",font=body,anchor="mm",fill=(255,212,71))
+draw.text((512,625),"You have 60 seconds to accept. Press any cabinet button to close.",font=body,anchor="mm",fill=(190,186,210))
+canvas.save(sys.argv[2])
+PY
+exec fbi -T 1 -a -noverbose "$out"

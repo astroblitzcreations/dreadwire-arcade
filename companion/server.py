@@ -19,7 +19,7 @@ from urllib.parse import quote
 from pathlib import Path
 
 from aiohttp import web, WSMsgType
-from evdev import UInput, InputDevice, ecodes as e, AbsInfo
+from evdev import UInput, InputDevice, ecodes as e, AbsInfo, list_devices
 from PIL import Image
 import psutil
 
@@ -35,10 +35,14 @@ USER_DB = STATE_DIR / "users.db"
 SETTINGS_STATE = STATE_DIR / "settings.json"
 FAN_STATE = Path("/run/dreadwire-argon-fan.json")
 FAN_CONFIG = STATE_DIR / "fan.json"
+ARCADE_MODE_STATE = STATE_DIR / "mode.json"
 AUDIO_CONFIG = Path("/home/pi/.config/dreadwire-audio.json")
 WS_CLIENTS = set()
+PARTY_CLIENTS = set()
+PARTY_QUEUE = []
+PARTY_CHAT = []
 SCREEN_LOCK = asyncio.Lock()
-PACKAGE_VERSION = "1.0.2"
+PACKAGE_VERSION = "1.1.0"
 UPDATE_CONFIG = Path("/etc/dreadwire/update.json")
 
 UPLOADS = {
@@ -112,6 +116,19 @@ def db():
       CREATE TABLE IF NOT EXISTS activity(
         id INTEGER PRIMARY KEY, at REAL NOT NULL, user_id INTEGER,
         actor TEXT NOT NULL, event TEXT NOT NULL, detail TEXT);
+      CREATE TABLE IF NOT EXISTS high_scores(
+        id INTEGER PRIMARY KEY, user_id INTEGER, username TEXT NOT NULL,
+        game_title TEXT NOT NULL COLLATE NOCASE, score INTEGER NOT NULL,
+        created REAL NOT NULL);
+      CREATE INDEX IF NOT EXISTS high_scores_game_score
+        ON high_scores(game_title,score DESC,created ASC);
+      CREATE TABLE IF NOT EXISTS party_queue(
+        id INTEGER PRIMARY KEY, user_key TEXT UNIQUE NOT NULL, name TEXT NOT NULL,
+        state TEXT NOT NULL DEFAULT 'waiting', joined REAL NOT NULL,
+        invited_until REAL, accepted REAL);
+      CREATE TABLE IF NOT EXISTS party_chat(
+        id INTEGER PRIMARY KEY, user_key TEXT, name TEXT NOT NULL,
+        message TEXT NOT NULL, created REAL NOT NULL);
     """)
     return conn
 
@@ -994,6 +1011,209 @@ async def update_install(request):
     return web.json_response({"ok":True,"message":"Update started. The cabinet will restart when installation finishes."})
 
 
+def game_catalog(query=""):
+    """Return EmulationStation metadata without trusting ROM paths from clients."""
+    query=query.casefold().strip(); matches=[]
+    if len(query) < 2: return matches
+    for system_dir in sorted(ROM_ROOT.iterdir()) if ROM_ROOT.exists() else []:
+        if not system_dir.is_dir(): continue
+        candidates=(system_dir / "gamelist.xml", Path("/opt/retropie/configs/all/emulationstation/gamelists") / system_dir.name / "gamelist.xml")
+        gamelist=next((p for p in candidates if p.is_file()),None)
+        if not gamelist: continue
+        try:
+            import xml.etree.ElementTree as ET
+            root=ET.parse(gamelist).getroot()
+            for game in root.findall("game"):
+                title=(game.findtext("name") or "").strip(); path=(game.findtext("path") or "").strip()
+                if query not in title.casefold(): continue
+                image=(game.findtext("image") or "").strip(); desc=(game.findtext("desc") or "").strip()
+                matches.append({"title":title,"system":system_dir.name,"path":path,"image":image,"description":desc[:240]})
+                if len(matches) >= 50: return matches
+        except (OSError, ValueError, ET.ParseError): continue
+    return matches
+
+
+async def search_games(request):
+    await require(request)
+    return web.json_response({"games":await asyncio.to_thread(game_catalog,request.query.get("q",""))})
+
+
+async def launch_game(request):
+    session=await require(request); data=await request.json()
+    system=str(data.get("system","")); relative=str(data.get("path",""))
+    if not SAFE_SYSTEM.fullmatch(system): raise web.HTTPBadRequest(text="Invalid system")
+    user_key=str(session.get("user_id") or session["name"])
+    with db() as conn: active=conn.execute("SELECT user_key FROM party_queue WHERE state='active' LIMIT 1").fetchone()
+    if session.get("role")!="admin" and (not active or active["user_key"]!=user_key):
+        raise web.HTTPForbidden(text="Only the current queued player or admin can launch games")
+    system_root=(ROM_ROOT/system).resolve()
+    rom=(system_root/relative.removeprefix("./")).resolve()
+    if system_root not in rom.parents or not rom.is_file(): raise web.HTTPNotFound(text="ROM file not found")
+    subprocess.Popen(["runuser","-u","pi","--","/opt/retropie/supplementary/runcommand/runcommand.sh","0","_SYS_",system,str(rom)],
+                     stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,start_new_session=True)
+    log_event(session["name"],"remote-game-launch",f"{system}/{rom.name}",session.get("user_id"))
+    return web.json_response({"ok":True,"message":f"Launching {rom.name}"})
+
+
+def controller_telemetry():
+    batteries=[]
+    for capacity in Path("/sys/class/power_supply").glob("*/capacity"):
+        try:
+            base=capacity.parent; scope=text_file(base / "scope", "").strip().lower()
+            kind=text_file(base / "type", "").strip().lower()
+            if scope == "system" or kind in {"mains","usb","usb_c"}: continue
+            batteries.append({"name":text_file(base / "model_name", "").strip() or text_file(base / "manufacturer", "").strip() or base.name,
+                              "battery":int(capacity.read_text().strip()),"charging":text_file(base / "status", "").strip()})
+        except (OSError,ValueError): continue
+    devices=[]
+    for path in list_devices():
+        try:
+            device=InputDevice(path); caps=device.capabilities()
+            if e.EV_ABS not in caps and e.EV_KEY not in caps: continue
+            keys=set(caps.get(e.EV_KEY,[]))
+            if not ({e.BTN_GAMEPAD,e.BTN_JOYSTICK,e.BTN_SOUTH,e.BTN_START} & keys): continue
+            battery=next((b for b in batteries if b["name"].casefold() in device.name.casefold() or device.name.casefold() in b["name"].casefold()),None)
+            devices.append({"name":device.name,"path":path,"connection":"Bluetooth" if "bluetooth" in (device.phys or "").casefold() else "USB / wired",
+                            "battery":battery["battery"] if battery else None,"charging":battery["charging"] if battery else "",
+                            "virtual":device.name.startswith("Dreadwire ")})
+        except OSError: continue
+    return devices
+
+
+async def telemetry_controllers(request):
+    await require(request)
+    return web.json_response({"controllers":await asyncio.to_thread(controller_telemetry)})
+
+
+async def scores(request):
+    session=await require(request)
+    if request.method == "POST":
+        data=await request.json(); game=str(data.get("game","")).strip()[:120]
+        try: score=int(data.get("score"))
+        except (TypeError,ValueError): raise web.HTTPBadRequest(text="Score must be a number")
+        if not game or score < 0 or score > 2_147_483_647: raise web.HTTPBadRequest(text="Invalid game or score")
+        with db() as conn: conn.execute("INSERT INTO high_scores(user_id,username,game_title,score,created) VALUES(?,?,?,?,?)",
+                                       (session.get("user_id"),session["name"],game,score,time.time()))
+        log_event(session["name"],"score-submitted",f"{game}: {score}",session.get("user_id"))
+    game=str(request.query.get("game","")).strip()[:120]
+    with db() as conn:
+        if game: rows=conn.execute("SELECT username,game_title,score,created FROM high_scores WHERE game_title=? ORDER BY score DESC,created ASC LIMIT 20",(game,))
+        else: rows=conn.execute("SELECT username,game_title,score,created FROM high_scores ORDER BY created DESC LIMIT 30")
+        result=[dict(row) for row in rows]
+    return web.json_response({"scores":result,"game":game})
+
+
+def party_state():
+    now=time.time()
+    try: mode=json.loads(ARCADE_MODE_STATE.read_text()).get("mode","classic")
+    except (OSError,ValueError,TypeError): mode="classic"
+    with db() as conn:
+        expired=conn.execute("SELECT name FROM party_queue WHERE state='invited' AND invited_until<?",(now,)).fetchall()
+        conn.execute("DELETE FROM party_queue WHERE state='invited' AND invited_until<?",(now,))
+        active=conn.execute("SELECT id FROM party_queue WHERE state IN ('active','invited') ORDER BY joined LIMIT 1").fetchone()
+        if not active:
+            waiting=conn.execute("SELECT id FROM party_queue WHERE state='waiting' ORDER BY joined LIMIT 1").fetchone()
+            if waiting: conn.execute("UPDATE party_queue SET state='invited',invited_until=? WHERE id=?",(now+60,waiting["id"]))
+        queue=[dict(row) for row in conn.execute("SELECT id,name,state,joined,invited_until,accepted FROM party_queue ORDER BY CASE state WHEN 'active' THEN 0 WHEN 'invited' THEN 1 ELSE 2 END,joined LIMIT 50")]
+        chat=[dict(row) for row in conn.execute("SELECT name AS sender,message,created AS at FROM party_chat ORDER BY id DESC LIMIT 50")][::-1]
+    return {"mode":mode,"count":len(queue),"queue":queue,"current":next((x for x in queue if x["state"]=="active"),None),
+            "invited":next((x for x in queue if x["state"]=="invited"),None),"chat":chat,
+            "expired":[row["name"] for row in expired],"server_time":now}
+
+
+async def broadcast_party():
+    payload=json.dumps({"type":"state",**party_state()})
+    stale=[]
+    for ws in PARTY_CLIENTS:
+        try: await ws.send_str(payload)
+        except (ConnectionError,RuntimeError): stale.append(ws)
+    for ws in stale: PARTY_CLIENTS.discard(ws)
+
+
+async def party_status(request):
+    await require(request)
+    return web.json_response(party_state())
+
+
+async def party_display(_):
+    state=party_state()
+    return web.json_response({"mode":state["mode"],"count":state["count"],
+                              "current":state["current"]["name"] if state["current"] else None,
+                              "waiting":[item["name"] for item in state["queue"] if item["state"]=="waiting"][:8]})
+
+
+async def party_queue(request):
+    session=await require(request); data=await request.json(); action=str(data.get("action","join"))
+    name=session["name"][:40]; key=str(session.get("user_id") or name)
+    with db() as conn:
+        if action == "join":
+            conn.execute("INSERT INTO party_queue(user_key,name,state,joined) VALUES(?,?,'waiting',?) ON CONFLICT(user_key) DO UPDATE SET name=excluded.name,state='waiting',joined=excluded.joined,invited_until=NULL,accepted=NULL",(key,name,time.time()))
+        elif action == "leave": conn.execute("DELETE FROM party_queue WHERE user_key=?",(key,))
+        elif action == "accept":
+            row=conn.execute("SELECT state,invited_until FROM party_queue WHERE user_key=?",(key,)).fetchone()
+            if not row or row["state"]!="invited" or (row["invited_until"] or 0)<time.time(): raise web.HTTPConflict(text="Your invitation expired")
+            conn.execute("UPDATE party_queue SET state='active',accepted=?,invited_until=NULL WHERE user_key=?",(time.time(),key))
+        elif action in {"advance","clear","remove","extend"}:
+            active=conn.execute("SELECT user_key FROM party_queue WHERE state='active' LIMIT 1").fetchone()
+            if session.get("role")!="admin" and (not active or active["user_key"]!=key): raise web.HTTPForbidden(text="Current player or admin required")
+            if action == "advance": conn.execute("DELETE FROM party_queue WHERE state IN ('active','invited')")
+            elif action == "clear": conn.execute("DELETE FROM party_queue")
+            elif action == "remove": conn.execute("DELETE FROM party_queue WHERE id=?",(int(data.get("id",0)),))
+            elif action == "extend":
+                minutes=max(1,min(3,int(data.get("minutes",1))))
+                conn.execute("UPDATE party_queue SET invited_until=COALESCE(invited_until,?)+? WHERE state='invited'",(time.time(),minutes*60))
+        else: raise web.HTTPBadRequest(text="Unknown queue action")
+    log_event(name,f"party-{action}",user_id=session.get("user_id")); await broadcast_party()
+    return web.json_response(party_state())
+
+
+async def party_socket(request):
+    session=await require(request); ws=web.WebSocketResponse(heartbeat=15,max_msg_size=4096); await ws.prepare(request)
+    PARTY_CLIENTS.add(ws)
+    with db() as conn: conn.execute("INSERT INTO party_chat(user_key,name,message,created) VALUES(?,?,?,?)",
+                                    (str(session.get("user_id") or session["name"]), "SYSTEM", f'{session["name"]} joined the party chat', time.time()))
+    await broadcast_party()
+    try:
+        async for msg in ws:
+            if msg.type != WSMsgType.TEXT: continue
+            try: data=json.loads(msg.data)
+            except ValueError: continue
+            if data.get("type") == "chat":
+                body=str(data.get("message","")).strip()[:240]
+                if body:
+                    with db() as conn:
+                        conn.execute("INSERT INTO party_chat(user_key,name,message,created) VALUES(?,?,?,?)",(str(session.get("user_id") or session["name"]),session["name"][:40],body,time.time()))
+                        conn.execute("DELETE FROM party_chat WHERE id NOT IN (SELECT id FROM party_chat ORDER BY id DESC LIMIT 500)")
+                    await broadcast_party()
+    finally:
+        PARTY_CLIENTS.discard(ws)
+        with db() as conn: conn.execute("INSERT INTO party_chat(user_key,name,message,created) VALUES(?,?,?,?)",
+                                        (str(session.get("user_id") or session["name"]), "SYSTEM", f'{session["name"]} left the party chat', time.time()))
+        await broadcast_party()
+    return ws
+
+
+async def party_clock_context(app):
+    async def clock():
+        while True:
+            await broadcast_party()
+            await asyncio.sleep(1)
+    task=asyncio.create_task(clock())
+    yield
+    task.cancel()
+    try: await task
+    except asyncio.CancelledError: pass
+
+
+async def party_overlay(_): return web.FileResponse(WEB / "overlay.html")
+
+
+async def party_qr(_):
+    path=Path("/home/pi/RetroPie/roms/companion/media/arcade-remote-qr.png")
+    if not path.is_file(): raise web.HTTPNotFound(text="QR code is being prepared")
+    return web.FileResponse(path)
+
+
 async def controller(request):
     await require(request)
     try: player=max(1,min(4,int(request.query.get("player","1"))))
@@ -1013,6 +1233,7 @@ async def controller(request):
 
 app = web.Application(client_max_size=4 * 1024**3)
 app.cleanup_ctx.append(physical_controller_context)
+app.cleanup_ctx.append(party_clock_context)
 app.add_routes([web.get("/", index), web.post("/api/login", login), web.post("/api/guest", guest),
                 web.post("/api/register", register), web.get("/api/me", me), web.get("/api/status", status),
                 web.get("/api/layout/{preset}", profile_layout), web.put("/api/layout/{preset}", profile_layout),
@@ -1022,6 +1243,11 @@ app.add_routes([web.get("/", index), web.post("/api/login", login), web.post("/a
                 web.get("/api/wifi", wifi_networks), web.post("/api/wifi/connect", wifi_connect),
                 web.post("/api/wifi/forget", wifi_forget),
                 web.get("/api/update", update_status), web.post("/api/update/install", update_install),
+                web.get("/api/games/search", search_games), web.get("/api/telemetry/controllers", telemetry_controllers),
+                web.post("/api/games/launch", launch_game),
+                web.get("/api/scores", scores), web.post("/api/scores", scores),
+                web.get("/api/party", party_status), web.get("/api/party/display", party_display), web.post("/api/party/queue", party_queue),
+                web.get("/ws/party", party_socket), web.get("/overlay-qr", party_overlay), web.get("/api/party/qr.png", party_qr),
                 web.get("/api/audio", audio_control), web.put("/api/audio", audio_control),
                 web.get("/api/screen.jpg", screen_frame), web.get("/api/screen.mjpeg", screen_stream),
                 web.get("/api/media", media_list), web.get("/api/media/{category}/{filename}", media_file),

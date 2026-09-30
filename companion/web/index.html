@@ -8,7 +8,7 @@
     />
     <meta name="theme-color" content="#09051d" />
     <link rel="manifest" href="/static/manifest.webmanifest" />
-    <link rel="stylesheet" href="/static/app.css?v=18" />
+    <link rel="stylesheet" href="/static/app.css?v=19" />
     <link rel="stylesheet" href="/static/controller-layout.css?v=15" />
     <title>Dreadwire Arcade Remote</title>
   </head>
@@ -59,6 +59,7 @@
         <button data-tab="pad" class="active">CONTROLLER</button
         ><button data-tab="remote">REMOTE PLAY</button
         ><button data-tab="library">LIBRARY</button
+        ><button data-tab="party">PARTY</button
         ><button data-tab="media">UPLOADS</button
         ><button data-tab="wifi">WI-FI</button
         ><button data-tab="admin">ADMIN</button
@@ -157,6 +158,39 @@
           <button id="refreshLibrary">REFRESH</button>
         </div>
         <div id="libraryItems" class="mediaGrid"></div>
+      </section>
+      <section id="party" class="tab">
+        <div class="grid partyGrid">
+          <div class="card partyQueueCard">
+            <h2>Live Player Queue <small id="arcadeModeLabel">CLASSIC</small></h2>
+            <p class="hint">The first player is currently up. Join once—your place stays live on every connected phone.</p>
+            <div class="inline"><button id="joinQueue" class="primary">JOIN QUEUE</button><button id="leaveQueue">LEAVE QUEUE</button></div>
+            <div id="turnInvite" class="turnInvite" hidden><b>YOUR TURN!</b><span id="turnCountdown">60 seconds</span><button id="acceptTurn" class="primary">ACCEPT &amp; PLAY</button></div>
+            <div id="partyQueue" class="resultList"></div>
+            <div class="inline"><button id="extendQueue">GIVE +1 MINUTE</button><button id="advanceQueue">NEXT PLAYER</button><button id="clearQueue" class="adminOnly danger">CLEAR QUEUE</button></div>
+            <a class="downloadBtn" href="/overlay-qr" target="_blank">OPEN CABINET QR VIEW</a>
+          </div>
+          <div class="card">
+            <h2>Party Chat</h2>
+            <div id="partyChat" class="chatLog"></div>
+            <div class="inline"><input id="chatMessage" maxlength="240" placeholder="Message the queue…" /><button id="sendChat">SEND</button></div>
+          </div>
+          <div class="card">
+            <h2>Find a Game</h2>
+            <div class="inline"><input id="gameSearch" placeholder="Search every system…" /><button id="searchGames">SEARCH</button></div>
+            <div id="gameResults" class="resultList"></div>
+          </div>
+          <div class="card">
+            <h2>High Scores</h2>
+            <div class="inline"><input id="scoreGame" placeholder="Game title" /><input id="scoreValue" type="number" min="0" placeholder="Score" /><button id="submitScore">SUBMIT</button></div>
+            <div id="scoreBoard" class="resultList"></div>
+            <small>Phone-entered scores are marked as player submissions. Direct game verification can be added per homebrew title.</small>
+          </div>
+          <div class="card">
+            <h2>Connected Controllers</h2>
+            <div id="controllerTelemetry" class="resultList">Checking…</div>
+          </div>
+        </div>
       </section>
       <section id="media" class="tab">
         <div class="grid">
@@ -330,6 +364,6 @@
       </div>
       <div id="toast"></div>
     </main>
-    <script src="/static/app.js?v=18"></script>
+    <script src="/static/app.js?v=19"></script>
   </body>
 </html>

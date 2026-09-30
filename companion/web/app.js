@@ -131,6 +131,7 @@ $$("nav button").forEach(
       }
       if (b.dataset.tab === "audio") loadAudio();
       if (b.dataset.tab === "library") loadLibrary();
+      if (b.dataset.tab === "party") loadParty();
       if (b.dataset.tab === "wifi") loadWifi();
     }),
 );
@@ -997,6 +998,90 @@ async function loadUsers() {
   }
 }
 $("#loadUsers").onclick = loadUsers;
+let partySocket = null;
+function drawParty(state) {
+  const queue = state.queue || [];
+  document.body.dataset.arcadeMode = state.mode || "classic";
+  $("#arcadeModeLabel").textContent = (state.mode || "classic").toUpperCase();
+  const invited = state.invited;
+  const mine = invited && invited.name === session?.name;
+  $("#turnInvite").hidden = !mine;
+  if (mine) {
+    const seconds = Math.max(0, Math.ceil((invited.invited_until - (state.server_time || Date.now()/1000))));
+    $("#turnCountdown").textContent = seconds + " seconds to accept";
+    if (!window.dwLastInvite || window.dwLastInvite !== invited.id) {
+      window.dwLastInvite = invited.id;
+      if (Notification.permission === "granted") new Notification("Dreadwire Arcade: your turn!", {body:"Come to the cabinet and tap Accept within one minute."});
+      else if (Notification.permission === "default") Notification.requestPermission();
+      navigator.vibrate?.([250,100,250,100,500]);
+    }
+  }
+  $("#partyQueue").innerHTML = queue.length
+    ? queue.map((p, index) => '<div class="queuePlayer ' + p.state + '"><b>' + (p.state === "active" ? "PLAYING" : p.state === "invited" ? "CALLING NOW" : "#" + (index + 1)) + '</b><span>' + esc(p.name) + '</span>' + (session?.role === "admin" ? '<button data-queue-remove="' + p.id + '">REMOVE</button>' : "") + '</div>').join("")
+    : '<p class="hint">The queue is open—be the first player.</p>';
+  $("#partyChat").innerHTML = (state.chat || []).map((m) => '<div class="chatLine"><time>' + new Date(m.at*1000).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}) + '</time><b>' + esc(m.sender) + ':</b> <span>' + esc(m.message) + '</span></div>').join("") || '<p class="hint">Chat is quiet.</p>';
+  $("#partyChat").scrollTop = $("#partyChat").scrollHeight;
+  $$('[data-queue-remove]').forEach((button) => button.onclick = () => changeQueue("remove", "", +button.dataset.queueRemove));
+}
+async function loadParty() {
+  try {
+    drawParty(await api("/api/party"));
+    const telemetry = await api("/api/telemetry/controllers");
+    $("#controllerTelemetry").innerHTML = telemetry.controllers.length
+      ? telemetry.controllers.map((c, i) => '<div class="controllerStat"><b>P' + (i + 1) + ' • ' + esc(c.name) + '</b><span>' + esc(c.connection) + ' • ' + (c.battery == null ? "battery unavailable" : c.battery + "%") + (c.charging ? " • " + esc(c.charging) : "") + '</span></div>').join("")
+      : '<p class="hint">No physical gamepads detected.</p>';
+  } catch (e) { toast(e.message); }
+  if (!partySocket || partySocket.readyState > 1) {
+    const scheme = location.protocol === "https:" ? "wss" : "ws";
+    partySocket = new WebSocket(scheme + "://" + location.host + "/ws/party?token=" + encodeURIComponent(token));
+    partySocket.onmessage = (event) => { try { const data = JSON.parse(event.data); if (data.type === "state") drawParty(data); } catch (_) {} };
+  }
+  loadScores();
+}
+async function changeQueue(action, name = "", id = 0, minutes = 1) {
+  try {
+    const state = await api("/api/party/queue", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action,name,id,minutes})});
+    drawParty(state);
+    toast(action === "join" ? "You joined the player queue" : action === "advance" ? "Queue advanced" : "Queue updated");
+  } catch (e) { toast(e.message); }
+}
+$("#joinQueue").onclick = () => changeQueue("join");
+$("#leaveQueue").onclick = () => changeQueue("leave");
+$("#acceptTurn").onclick = () => changeQueue("accept");
+$("#extendQueue").onclick = () => changeQueue("extend", "", 0, 1);
+$("#advanceQueue").onclick = () => changeQueue("advance");
+$("#clearQueue").onclick = () => confirm("Clear the entire player queue?") && changeQueue("clear");
+function sendPartyChat() {
+  const message=$("#chatMessage").value.trim();
+  if (!message || !partySocket || partySocket.readyState !== WebSocket.OPEN) return;
+  partySocket.send(JSON.stringify({type:"chat",message})); $("#chatMessage").value="";
+}
+$("#sendChat").onclick = sendPartyChat;
+$("#chatMessage").onkeydown = (event) => { if (event.key === "Enter") sendPartyChat(); };
+async function searchGameCatalog() {
+  const query = $("#gameSearch").value.trim();
+  if (query.length < 2) return toast("Enter at least two letters");
+  try {
+    const data = await api("/api/games/search?q=" + encodeURIComponent(query));
+    $("#gameResults").innerHTML = data.games.length ? data.games.map((g) => '<div class="gameResult"><button data-score-game="' + encodeURIComponent(g.title) + '"><b>' + esc(g.title) + '</b><span>' + esc(g.system.toUpperCase()) + '</span></button><button data-launch-system="' + encodeURIComponent(g.system) + '" data-launch-path="' + encodeURIComponent(g.path) + '">LAUNCH</button></div>').join("") : '<p class="hint">No matching games.</p>';
+    $$('[data-score-game]').forEach((button) => button.onclick = () => { $("#scoreGame").value = decodeURIComponent(button.dataset.scoreGame); loadScores(); });
+    $$('[data-launch-system]').forEach((button) => button.onclick = async () => { try { const result=await api("/api/games/launch",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({system:decodeURIComponent(button.dataset.launchSystem),path:decodeURIComponent(button.dataset.launchPath)})}); toast(result.message); } catch(e) { toast(e.message); } });
+  } catch (e) { toast(e.message); }
+}
+$("#searchGames").onclick = searchGameCatalog;
+$("#gameSearch").onkeydown = (event) => { if (event.key === "Enter") searchGameCatalog(); };
+async function loadScores() {
+  try {
+    const game = $("#scoreGame").value.trim();
+    const data = await api("/api/scores" + (game ? "?game=" + encodeURIComponent(game) : ""));
+    $("#scoreBoard").innerHTML = data.scores.length ? data.scores.map((s, i) => '<div class="scoreRow"><b>' + (i + 1) + ". " + esc(s.username) + '</b><span>' + esc(s.game_title) + " • " + Number(s.score).toLocaleString() + '</span></div>').join("") : '<p class="hint">No scores submitted yet.</p>';
+  } catch (e) { toast(e.message); }
+}
+$("#submitScore").onclick = async () => {
+  const game = $("#scoreGame").value.trim(), score = Number($("#scoreValue").value);
+  if (!game || !Number.isInteger(score) || score < 0) return toast("Enter a game and whole-number score");
+  try { await api("/api/scores", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({game,score})}); $("#scoreValue").value = ""; toast("Score added"); loadScores(); } catch (e) { toast(e.message); }
+};
 async function loadWifi() {
   if (session?.role !== "admin") return;
   $("#wifiNetworks").innerHTML = '<p class="hint">Scanning…</p>';

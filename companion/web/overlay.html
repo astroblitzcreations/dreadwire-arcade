@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Dreadwire Party Mode</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;overflow:hidden;background:radial-gradient(circle at 50% 20%,#261354,#080416 58%,#020107);color:#fff;font-family:system-ui,sans-serif}.panel{width:min(760px,90vw);text-align:center;padding:34px;border:2px solid #25e9ff;border-radius:25px;background:#09071be8;box-shadow:0 0 45px #25e9ff55,inset 0 0 40px #fa2b8a22}h1{margin:0;color:#25e9ff;letter-spacing:.13em;text-shadow:0 0 18px #25e9ff}p{font-size:1.18rem}.qr{width:min(280px,44vh);padding:12px;background:#fff;border-radius:16px;box-shadow:0 0 28px #fa2b8a}.queue{margin-top:18px;color:#ffd447;font-weight:800;font-size:1.2rem}.hint{color:#aaa;font-size:.9rem}
+  </style>
+</head>
+<body><main class="panel"><h1>JOIN PARTY MODE</h1><p>Scan to use your phone as a controller and join the player queue.</p><img class="qr" src="/api/party/qr.png" alt="Dreadwire Arcade QR code"><div class="queue" id="queue">Loading live queue…</div><p class="hint">Works on normal Wi-Fi and the cabinet's offline direct network.</p></main><script>async function update(){try{const r=await fetch("/api/party/display"),d=await r.json();document.getElementById("queue").textContent=d.current?"Playing: "+d.current+" • "+(d.count-1)+" waiting":d.count+" player"+(d.count===1?"":"s")+" queued";}catch(e){}}update();setInterval(update,2000);</script></body>
+</html>

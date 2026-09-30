@@ -17,3 +17,16 @@ Connect a phone to the cabinet's normal network or its offline `Dreadwire-Arcade
 ## Release
 
 Push a version tag such as `v1.0.1`. GitHub Actions builds the update archive and publishes a release. Put user-facing changes in the release notes so cabinets can display them.
+## Party Mode (v1.1)
+
+The Arcade Remote Party tab provides a persistent phone queue, 60-second turn
+invitations, accept/expire handling, one-minute extensions, admin moderation,
+timestamped live chat, high-score boards, ROM search/launch, and real connected
+controller discovery. Browser notifications and vibration alert a queued player
+when it is their turn.
+
+On the cabinet, open **Arcade Remote → Arcade Mode** to choose Classic, Party,
+Tournament, or Free Play. Holding Start plus the left flipper for two seconds
+(then releasing before the three-second safety-shortcut threshold) displays the
+local join QR. The next cabinet button closes it and returns to the current
+screen or game.

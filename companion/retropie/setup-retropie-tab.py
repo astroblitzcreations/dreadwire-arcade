@@ -5,10 +5,12 @@ import xml.etree.ElementTree as ET
 
 SYSTEMS = Path('/home/pi/.emulationstation/es_systems.cfg')
 ROMS = Path('/home/pi/RetroPie/roms/companion')
-SOURCE = Path('/tmp/dreadwire-companion/retropie')
+SOURCE = Path(__file__).resolve().parent
 ROMS.mkdir(parents=True, exist_ok=True); (ROMS/'media').mkdir(exist_ok=True)
-for script in ('01-scan-qr.sh','02-connection-info.sh','03-restart-remote.sh','04-mobile-player1.sh','05-battery-help.sh'):
-    shutil.copy2(SOURCE/script, ROMS/script); (ROMS/script).chmod(0o755)
+for script in ('01-scan-qr.sh','02-connection-info.sh','03-restart-remote.sh','04-mobile-player1.sh','05-battery-help.sh','06-arcade-mode.sh'):
+    source=SOURCE/script
+    if source.exists(): shutil.copy2(source, ROMS/script)
+    if (ROMS/script).exists(): (ROMS/script).chmod(0o755)
 
 tree=ET.parse(SYSTEMS); root=tree.getroot()
 for node in list(root.findall('system')):
@@ -26,6 +28,7 @@ entries=[
  ('./03-restart-remote.sh','RESTART REMOTE SERVICE','Restart the phone companion without rebooting the cabinet.'),
  ('./04-mobile-player1.sh','MAKE PHONE PLAYER 1','Assign the mobile virtual gamepad as RetroArch Player 1.'),
  ('./05-battery-help.sh','BATTERY CALIBRATION HELP','Learn how manual INIU readings produce a runtime estimate.'),
+ ('./06-arcade-mode.sh','ARCADE MODE — CLASSIC / PARTY / TOURNAMENT','Choose Classic, Party, Tournament, or Free Play mode.'),
 ]
 game_root=ET.Element('gameList')
 for path,name,desc in entries:

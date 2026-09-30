@@ -14,10 +14,12 @@ EV_KEY = 1
 START = 295  # joystick button 7
 LEFT_SIDE = 297  # joystick button 9 / BTN_BASE4
 ARM_SECONDS = 3.0
+PARTY_QR_SECONDS = 2.0
 REBOOT_SECONDS = 8.0
 ARM_TIMEOUT = 10.0
 SIMULTANEOUS_WINDOW = 0.45
 EVENT = struct.Struct("llHHI")
+overlay_process = None
 
 
 def log(message):
@@ -65,6 +67,31 @@ def perform(action):
         run("systemctl", "restart", "getty@tty1.service")
 
 
+def show_party_overlay():
+    global overlay_process
+    if overlay_process and overlay_process.poll() is None:
+        overlay_process.terminate()
+    overlay_process = subprocess.Popen(
+        ["/usr/local/bin/dreadwire-party-overlay"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    log("party QR overlay opened; next cabinet button closes it")
+
+
+def close_party_overlay():
+    global overlay_process
+    if overlay_process and overlay_process.poll() is None:
+        overlay_process.terminate()
+        try: overlay_process.wait(timeout=2)
+        except subprocess.TimeoutExpired: overlay_process.kill()
+        overlay_process = None
+        log("party QR overlay closed")
+        return True
+    overlay_process = None
+    return False
+
+
 def monitor(fd):
     pressed = {START: False, LEFT_SIDE: False}
     chord_since = None
@@ -80,7 +107,11 @@ def monitor(fd):
             data = os.read(fd, EVENT.size * 32)
             for offset in range(0, len(data) - EVENT.size + 1, EVENT.size):
                 _, _, event_type, code, value = EVENT.unpack_from(data, offset)
-                if event_type != EV_KEY or code not in pressed or value == 2:
+                if event_type != EV_KEY or value == 2:
+                    continue
+                if value == 1 and close_party_overlay():
+                    continue
+                if code not in pressed:
                     continue
                 pressed[code] = bool(value)
                 now = time.monotonic()
@@ -109,9 +140,12 @@ def monitor(fd):
                     run("systemctl", "reboot")
                     return
             elif chord_since is not None:
+                held = now - chord_since
                 if primed and not rebooted:
                     armed_until = now + ARM_TIMEOUT
                     log("shortcut mode armed for ten seconds")
+                elif held >= PARTY_QR_SECONDS and not rebooted:
+                    show_party_overlay()
                 chord_since = None
                 primed = False
         elif pending_since is not None:
