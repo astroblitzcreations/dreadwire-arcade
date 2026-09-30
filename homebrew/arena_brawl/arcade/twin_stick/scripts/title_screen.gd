@@ -51,6 +51,16 @@ func _build_scene() -> void:
     subtitle.add_theme_font_size_override("font_size", 18)
     subtitle.add_theme_color_override("font_color", Color(.25, .92, 1))
     add_child(subtitle)
+    var score_config = ConfigFile.new()
+    if score_config.load("user://arena_brawl_scores.cfg") == OK:
+        var champion = Label.new()
+        champion.text = "HOUSE CHAMPION: %s  %08d" % [String(score_config.get_value("champion", "name", "---")), int(score_config.get_value("champion", "score", 0))]
+        champion.position = Vector2(90, 292)
+        champion.size = Vector2(588, 34)
+        champion.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+        champion.add_theme_font_size_override("font_size", 16)
+        champion.add_theme_color_override("font_color", Color(1, .72, .18))
+        add_child(champion)
 
     card = Panel.new()
     card.position = Vector2(92, 340)

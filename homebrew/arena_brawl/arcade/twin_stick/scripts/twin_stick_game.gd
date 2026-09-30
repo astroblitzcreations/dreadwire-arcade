@@ -79,6 +79,11 @@ var route_history: Array[String] = []
 var prize_spawn_timer := 12.0
 var tally_time := 0.0
 var high_score_music_started := false
+const NAME_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+var name_entry_chars: Array[int] = [0, 0, 0]
+var name_entry_cursor := 0
+var high_score_saved := false
+var name_axis_latched: Dictionary = {}
 
 func _ready() -> void:
     texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -123,6 +128,10 @@ func restart() -> void:
     prize_spawn_timer = randf_range(10.0, 16.0)
     tally_time = 0.0
     high_score_music_started = false
+    name_entry_chars = [0, 0, 0]
+    name_entry_cursor = 0
+    high_score_saved = false
+    name_axis_latched.clear()
     game_over = false
     victory = false
     demo_paused = false
@@ -145,6 +154,10 @@ func _new_player(index: int, point: Vector2) -> Dictionary:
 func _input(event: InputEvent) -> void:
     if control_wizard_open:
         if _capture_control_event(event):
+            get_viewport().set_input_as_handled()
+        return
+    if victory and tally_time >= 7.0:
+        if _handle_name_entry(event):
             get_viewport().set_input_as_handled()
         return
     if attract_mode and (event is InputEventKey or event is InputEventJoypadButton or event is InputEventMouseButton):
@@ -239,6 +252,61 @@ func _input(event: InputEvent) -> void:
         if event.button_index == MOUSE_BUTTON_WHEEL_UP:
             _cycle_weapon(players[0])
             get_viewport().set_input_as_handled()
+
+func _handle_name_entry(event: InputEvent) -> bool:
+    if high_score_saved:
+        if event is InputEventKey and event.pressed or event is InputEventJoypadButton and event.pressed:
+            get_tree().change_scene_to_file(BASE + "scenes/TitleScreen.tscn")
+            return true
+        return false
+    if event is InputEventKey and event.pressed and not event.echo:
+        match event.physical_keycode:
+            KEY_LEFT: name_entry_cursor = wrapi(name_entry_cursor - 1, 0, 3)
+            KEY_RIGHT: name_entry_cursor = wrapi(name_entry_cursor + 1, 0, 3)
+            KEY_UP: name_entry_chars[name_entry_cursor] = wrapi(name_entry_chars[name_entry_cursor] + 1, 0, NAME_CHARS.length())
+            KEY_DOWN: name_entry_chars[name_entry_cursor] = wrapi(name_entry_chars[name_entry_cursor] - 1, 0, NAME_CHARS.length())
+            KEY_ENTER, KEY_KP_ENTER, KEY_SPACE: _save_high_score()
+            _: return false
+        return true
+    if event is InputEventJoypadButton and event.pressed:
+        match event.button_index:
+            JOY_BUTTON_DPAD_LEFT: name_entry_cursor = wrapi(name_entry_cursor - 1, 0, 3)
+            JOY_BUTTON_DPAD_RIGHT: name_entry_cursor = wrapi(name_entry_cursor + 1, 0, 3)
+            JOY_BUTTON_DPAD_UP: name_entry_chars[name_entry_cursor] = wrapi(name_entry_chars[name_entry_cursor] + 1, 0, NAME_CHARS.length())
+            JOY_BUTTON_DPAD_DOWN: name_entry_chars[name_entry_cursor] = wrapi(name_entry_chars[name_entry_cursor] - 1, 0, NAME_CHARS.length())
+            JOY_BUTTON_A, JOY_BUTTON_START: _save_high_score()
+            _: return false
+        return true
+    if event is InputEventJoypadMotion:
+        var key = "%d:%d" % [event.device, event.axis]
+        var active = absf(event.axis_value) > .7
+        var was_active = bool(name_axis_latched.get(key, false))
+        name_axis_latched[key] = active
+        if not active or was_active:
+            return active
+        if event.axis == JOY_AXIS_LEFT_X:
+            name_entry_cursor = wrapi(name_entry_cursor + (1 if event.axis_value > 0 else -1), 0, 3)
+            return true
+        if event.axis == JOY_AXIS_LEFT_Y:
+            name_entry_chars[name_entry_cursor] = wrapi(name_entry_chars[name_entry_cursor] + (-1 if event.axis_value > 0 else 1), 0, NAME_CHARS.length())
+            return true
+    return false
+
+func _save_high_score() -> void:
+    var initials = ""
+    for index in name_entry_chars:
+        initials += NAME_CHARS[index]
+    var winner = 0 if players[0]["score"] >= players[1]["score"] else 1
+    var config = ConfigFile.new()
+    config.load("user://arena_brawl_scores.cfg")
+    var old_score = int(config.get_value("champion", "score", 0))
+    if players[winner]["score"] >= old_score:
+        config.set_value("champion", "name", initials)
+        config.set_value("champion", "score", players[winner]["score"])
+        config.set_value("champion", "cash", players[winner]["cash"])
+        config.set_value("champion", "gold", players[winner]["gold"])
+        config.save("user://arena_brawl_scores.cfg")
+    high_score_saved = true
 
 func _cycle_weapon(player: Dictionary) -> void:
     var i = weapon_ids.find(player["weapon"])
@@ -1200,13 +1268,7 @@ func _draw() -> void:
     for point in [Vector2(384, 150), Vector2(384, 980), Vector2(38, 555), Vector2(730, 555)]:
         _sprite("tilesets/arena/door_" + door_state + ".png", point, int(game_time * 8) % (4 if door_state == "warning" else 1))
     if phase == "entrance":
-        draw_rect(Rect2(0, 128, 768, 896), Color(.015, .02, .055, .76))
-        for y in range(225, 920, 95):
-            draw_line(Vector2(65, y), Vector2(703, y), Color(.08, .4, .58, .38), 2)
-        draw_line(Vector2(65, 920), Vector2(330, 570), Color(.1, .9, 1, .8), 5)
-        draw_line(Vector2(703, 920), Vector2(438, 570), Color(1, .25, .75, .8), 5)
-        _label("DREADWIRE TV STUDIOS", Vector2(384, 220), 28, Color(1, .78, .18), true)
-        _label("CONTESTANTS TO THE ARENA", Vector2(384, 260), 19, Color(.35, .9, 1), true)
+        _draw_backstage_entrance()
         if not entrance_banner.is_empty():
             var banner_y = 360.0 + sin(entrance_elapsed * 3.0) * 7.0
             draw_rect(Rect2(80, banner_y - 48, 608, 82), Color(.12, .01, .05, .95))
@@ -1220,6 +1282,86 @@ func _draw() -> void:
         _label("▼", Vector2(384, 920), 38, arrow_color, true)
         _label("◀", Vector2(82, 565), 38, arrow_color, true)
         _label("▶", Vector2(686, 565), 38, arrow_color, true)
+        _draw_route_map()
+    _draw_game_entities()
+
+func _draw_backstage_entrance() -> void:
+    # A warm television-studio backstage instead of abstract guide beams.
+    draw_rect(Rect2(0, 128, 768, 896), Color(.018, .012, .028, .97))
+    draw_rect(Rect2(0, 128, 768, 150), Color(.07, .025, .055))
+    draw_rect(Rect2(0, 278, 768, 480), Color(.055, .045, .07))
+    # Acoustic wall panels and brass trim.
+    for column in range(8):
+        var panel = Rect2(18 + column * 94, 305, 76, 390)
+        draw_rect(panel, Color(.075, .06, .09))
+        draw_rect(panel, Color(.25, .16, .23), false, 3)
+    draw_line(Vector2(0, 282), Vector2(768, 282), Color(.88, .58, .18), 5)
+    draw_line(Vector2(0, 704), Vector2(768, 704), Color(.88, .58, .18), 5)
+    # Central stage portal with red velvet curtains.
+    draw_rect(Rect2(262, 310, 244, 390), Color(.008, .01, .018))
+    draw_rect(Rect2(252, 300, 264, 410), Color(.9, .62, .18), false, 7)
+    for fold in range(6):
+        var fold_x = 258.0 + fold * 20.0
+        draw_colored_polygon(PackedVector2Array([
+            Vector2(fold_x, 305), Vector2(fold_x + 22, 305),
+            Vector2(fold_x + 13, 610), Vector2(fold_x - 3, 610)]),
+            Color(.34 + (fold % 2) * .1, .015, .065))
+        var right_x = 488.0 - fold * 20.0
+        draw_colored_polygon(PackedVector2Array([
+            Vector2(right_x, 305), Vector2(right_x + 22, 305),
+            Vector2(right_x + 25, 610), Vector2(right_x + 9, 610)]),
+            Color(.34 + (fold % 2) * .1, .015, .065))
+    draw_colored_polygon(PackedVector2Array([
+        Vector2(260, 305), Vector2(508, 305), Vector2(476, 388),
+        Vector2(384, 350), Vector2(292, 388)]), Color(.48, .02, .09))
+    # Dressing-room doors for each contestant.
+    for side in range(2):
+        var door_x = 48.0 if side == 0 else 590.0
+        var accent = Color(.08, .75, 1) if side == 0 else Color(1, .55, .12)
+        draw_rect(Rect2(door_x, 390, 130, 270), Color(.025, .03, .055))
+        draw_rect(Rect2(door_x, 390, 130, 270), accent, false, 4)
+        draw_circle(Vector2(door_x + (112 if side == 0 else 18), 530), 7, Color(1, .78, .22))
+        _label("P%d" % (side + 1), Vector2(door_x + 65, 445), 28, accent, true)
+        _label("READY", Vector2(door_x + 65, 480), 16, Color(.9, .88, .8), true)
+    # Carpet and footlights lead naturally to the stage, without laser lines.
+    draw_colored_polygon(PackedVector2Array([
+        Vector2(190, 1024), Vector2(578, 1024), Vector2(468, 650), Vector2(300, 650)]),
+        Color(.24, .018, .06))
+    draw_colored_polygon(PackedVector2Array([
+        Vector2(238, 1024), Vector2(530, 1024), Vector2(450, 650), Vector2(318, 650)]),
+        Color(.38, .025, .075))
+    for bulb in range(9):
+        var bx = 96.0 + bulb * 72.0
+        var glow = .72 + sin(entrance_elapsed * 5.0 + bulb) * .22
+        draw_circle(Vector2(bx, 738), 10, Color(1, .64, .16, glow))
+        draw_circle(Vector2(bx, 738), 4, Color(1, .96, .7))
+    # Soft moving spotlights and studio sign.
+    var sweep = sin(entrance_elapsed * .7) * 55.0
+    draw_colored_polygon(PackedVector2Array([Vector2(120 + sweep, 278), Vector2(250 + sweep, 278), Vector2(415, 720), Vector2(330, 720)]), Color(1, .8, .45, .075))
+    draw_colored_polygon(PackedVector2Array([Vector2(518 - sweep, 278), Vector2(648 - sweep, 278), Vector2(438, 720), Vector2(353, 720)]), Color(.35, .75, 1, .075))
+    draw_rect(Rect2(152, 158, 464, 92), Color(.018, .02, .04))
+    draw_rect(Rect2(152, 158, 464, 92), Color(1, .63, .16), false, 4)
+    _label("DREADWIRE TV STUDIOS", Vector2(384, 202), 29, Color(1, .82, .3), true)
+    _label("LIVE • ARENA BRAWL", Vector2(384, 232), 16, Color(.65, .88, 1), true)
+
+func _draw_route_map() -> void:
+    var map_origin = Vector2(384, 315)
+    draw_rect(Rect2(258, 272, 252, 120), Color(.008, .015, .035, .9))
+    draw_rect(Rect2(258, 272, 252, 120), Color(.18, .72, .9), false, 2)
+    _label("STUDIO ROUTE", Vector2(384, 296), 15, Color(.6, .9, 1), true)
+    var point = map_origin
+    draw_circle(point, 7, Color(.3, 1, .6))
+    var visible_steps = route_history.slice(maxi(0, route_history.size() - 6))
+    for route in visible_steps:
+        var delta = {"NORTH": Vector2(0, -22), "SOUTH": Vector2(0, 22), "WEST": Vector2(-30, 0), "EAST": Vector2(30, 0)}[route]
+        var next = point + delta
+        draw_line(point, next, Color(.35, .72, .9), 3)
+        draw_circle(next, 6, Color(1, .65, .14))
+        point = next
+    draw_circle(point, 10 + sin(game_time * 5) * 2, Color(1, .2, .55), false, 3)
+    _label("BOSS %d ROOMS" % maxi(1, 5 - (wave_index % 5)), Vector2(384, 380), 13, Color(1, .72, .2), true)
+
+func _draw_game_entities() -> void:
     for hazard in hazards:
         var age: float = hazard["time"]
         var state = "warning" if age < 0 else "active" if fmod(age, 4.5) < 1.2 else "cooldown"
@@ -1360,6 +1502,19 @@ func _draw_prize_tally() -> void:
         _label("SCORE %08d" % p["score"], Vector2(x + 130, 870), 19, Color.WHITE, true)
         if i == winner and tally_time > 5.0:
             _label("★ WINNER ★", Vector2(x + 130, 925), 24, Color(1, .8, .12), true)
+    if tally_time >= 7.0:
+        draw_rect(Rect2(164, 936, 440, 76), Color(.03, .01, .06, .96))
+        draw_rect(Rect2(164, 936, 440, 76), Color(1, .18, .62), false, 3)
+        if high_score_saved:
+            _label("CHAMPION SAVED — PRESS ANY BUTTON", Vector2(384, 982), 18, Color(.3, 1, .7), true)
+        else:
+            var initials = ""
+            for index in name_entry_chars:
+                initials += NAME_CHARS[index]
+            _label("ENTER CHAMPION NAME", Vector2(300, 965), 16, Color(.65, .9, 1), true)
+            _label(initials, Vector2(493, 989), 29, Color(1, .78, .16), true)
+            var cursor_x = 468 + name_entry_cursor * 18
+            draw_line(Vector2(cursor_x, 997), Vector2(cursor_x + 15, 997), Color(1, .2, .62), 3)
 
 func _draw_pause_menu() -> void:
     var panel = Rect2(104, 180, 560, 760)
