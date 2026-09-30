@@ -41,8 +41,9 @@ WS_CLIENTS = set()
 PARTY_CLIENTS = set()
 PARTY_QUEUE = []
 PARTY_CHAT = []
+GAME_SELECTION = {}
 SCREEN_LOCK = asyncio.Lock()
-PACKAGE_VERSION = "1.1.0"
+PACKAGE_VERSION = "1.1.1"
 UPDATE_CONFIG = Path("/etc/dreadwire/update.json")
 
 UPLOADS = {
@@ -68,7 +69,8 @@ MIME_TYPES = {".png":"image/png",".jpg":"image/jpeg",".jpeg":"image/jpeg",".webp
 
 
 def settings():
-    base={"media_enabled":True,"uploads_enabled":True,"large_uploads":False,"normal_limit_mb":100}
+    base={"media_enabled":True,"uploads_enabled":True,"large_uploads":False,"normal_limit_mb":100,
+          "party_launch_policy":"first_two"}
     try: base.update(json.loads(SETTINGS_STATE.read_text()))
     except (OSError,ValueError,TypeError): pass
     return base
@@ -907,6 +909,10 @@ async def app_settings(request):
     data=await request.json()
     for key in ("media_enabled","uploads_enabled","large_uploads"):
         if key in data: cfg[key]=bool(data[key])
+    if "party_launch_policy" in data:
+        policy=str(data["party_launch_policy"])
+        if policy not in {"admin_only","current_only","first_two","any_queued","everyone"}: raise web.HTTPBadRequest(text="Unknown game-launch policy")
+        cfg["party_launch_policy"]=policy
     if "normal_limit_mb" in data: cfg["normal_limit_mb"]=max(5,min(1000,int(data["normal_limit_mb"])))
     write_settings(cfg); log_event(s["name"],"settings-changed",json.dumps(cfg))
     return web.json_response(cfg)
@@ -1038,21 +1044,86 @@ async def search_games(request):
     return web.json_response({"games":await asyncio.to_thread(game_catalog,request.query.get("q",""))})
 
 
-async def launch_game(request):
-    session=await require(request); data=await request.json()
-    system=str(data.get("system","")); relative=str(data.get("path",""))
-    if not SAFE_SYSTEM.fullmatch(system): raise web.HTTPBadRequest(text="Invalid system")
+def game_control_allowed(session):
     user_key=str(session.get("user_id") or session["name"])
-    with db() as conn: active=conn.execute("SELECT user_key FROM party_queue WHERE state='active' LIMIT 1").fetchone()
-    if session.get("role")!="admin" and (not active or active["user_key"]!=user_key):
-        raise web.HTTPForbidden(text="Only the current queued player or admin can launch games")
+    if session.get("role")=="admin": return True
+    policy=settings().get("party_launch_policy","first_two")
+    if policy=="everyone": return True
+    if policy=="admin_only": return False
+    with db() as conn:
+        rows=conn.execute("SELECT user_key,state FROM party_queue ORDER BY CASE state WHEN 'active' THEN 0 WHEN 'invited' THEN 1 ELSE 2 END,joined").fetchall()
+    if policy=="current_only": return bool(rows and rows[0]["state"]=="active" and rows[0]["user_key"]==user_key)
+    if policy=="first_two": return user_key in [row["user_key"] for row in rows[:2]]
+    return user_key in [row["user_key"] for row in rows]
+
+
+def resolve_game(system,relative):
+    if not SAFE_SYSTEM.fullmatch(system): raise web.HTTPBadRequest(text="Invalid system")
     system_root=(ROM_ROOT/system).resolve()
     rom=(system_root/relative.removeprefix("./")).resolve()
     if system_root not in rom.parents or not rom.is_file(): raise web.HTTPNotFound(text="ROM file not found")
-    subprocess.Popen(["runuser","-u","pi","--","/opt/retropie/supplementary/runcommand/runcommand.sh","0","_SYS_",system,str(rom)],
-                     stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,start_new_session=True)
+    return rom
+
+
+async def select_game(request):
+    session=await require(request)
+    if not game_control_allowed(session): raise web.HTTPForbidden(text="You are not currently allowed to select games")
+    data=await request.json()
+    if data.get("action")=="clear":
+        GAME_SELECTION.clear(); await broadcast_party(); return web.json_response(party_state())
+    system=str(data.get("system","")); relative=str(data.get("path","")); rom=resolve_game(system,relative)
+    GAME_SELECTION.clear(); GAME_SELECTION.update({"id":secrets.token_urlsafe(8),"title":str(data.get("title") or rom.stem)[:120],
+        "system":system,"path":str(rom),"selected_by":session["name"],"selected_at":time.time(),"status":"selected"})
+    log_event(session["name"],"game-selected",f"{system}/{rom.name}",session.get("user_id"))
+    await broadcast_party()
+    return web.json_response({"ok":True,"message":f'{GAME_SELECTION["title"]} selected',"selection":GAME_SELECTION["id"]})
+
+
+async def launch_sequence(selection):
+    system=selection["system"]; rom=Path(selection["path"])
+    selection["status"]="closing-current-game"; await broadcast_party()
+    for name in ("retroarch","flycast","reicast","goldmaze.arm64","void-run.arm64","speedbike.arm64"):
+        run("pkill","-TERM","-x",name)
+    deadline=time.monotonic()+8
+    while time.monotonic()<deadline:
+        running=any(run("pgrep","-x",name).returncode==0 for name in ("retroarch","flycast","reicast","goldmaze.arm64","void-run.arm64","speedbike.arm64"))
+        if not running: break
+        await asyncio.sleep(.5)
+    for name in ("retroarch","flycast","reicast","goldmaze.arm64","void-run.arm64","speedbike.arm64"):
+        run("pkill","-KILL","-x",name)
+    deadline=time.monotonic()+6
+    while time.monotonic()<deadline and run("pgrep","-f","/opt/retropie/supplementary/runcommand/runcommand.sh").returncode==0:
+        await asyncio.sleep(.5)
+    await asyncio.sleep(1)
+    selection["status"]="launching"; await broadcast_party()
+    run("/usr/local/bin/dreadwire-musicctl.py","gamepause")
+    run("systemctl","stop","getty@tty1.service")
+    await asyncio.sleep(1)
+    process=subprocess.Popen(["openvt","-c","1","-f","-s","-w","--","runuser","-u","pi","--",
+                              "/opt/retropie/supplementary/runcommand/runcommand.sh","0","_SYS_",system,str(rom)],
+                             stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,start_new_session=True)
+    await asyncio.sleep(5)
+    if process.poll() is not None:
+        selection["status"]="launch-failed"; await broadcast_party()
+        run("systemctl","restart","getty@tty1.service"); run("/usr/local/bin/dreadwire-musicctl.py","gameresume")
+        return
+    GAME_SELECTION.clear(); await broadcast_party()
+    await asyncio.to_thread(process.wait)
+    run("systemctl","restart","getty@tty1.service")
+    run("/usr/local/bin/dreadwire-musicctl.py","gameresume")
+
+
+async def launch_game(request):
+    session=await require(request)
+    if not game_control_allowed(session): raise web.HTTPForbidden(text="You are not currently allowed to start games")
+    data=await request.json()
+    if not GAME_SELECTION or str(data.get("selection_id",""))!=GAME_SELECTION.get("id"): raise web.HTTPConflict(text="That game selection expired")
+    if GAME_SELECTION.get("status")!="selected": raise web.HTTPConflict(text="A game is already launching")
+    selection=GAME_SELECTION.copy(); GAME_SELECTION.update(selection)
+    system=selection["system"]; rom=Path(selection["path"])
+    asyncio.create_task(launch_sequence(GAME_SELECTION))
     log_event(session["name"],"remote-game-launch",f"{system}/{rom.name}",session.get("user_id"))
-    return web.json_response({"ok":True,"message":f"Launching {rom.name}"})
+    return web.json_response({"ok":True,"message":f'Preparing {selection["title"]}'})
 
 
 def controller_telemetry():
@@ -1116,7 +1187,9 @@ def party_state():
             if waiting: conn.execute("UPDATE party_queue SET state='invited',invited_until=? WHERE id=?",(now+60,waiting["id"]))
         queue=[dict(row) for row in conn.execute("SELECT id,name,state,joined,invited_until,accepted FROM party_queue ORDER BY CASE state WHEN 'active' THEN 0 WHEN 'invited' THEN 1 ELSE 2 END,joined LIMIT 50")]
         chat=[dict(row) for row in conn.execute("SELECT name AS sender,message,created AS at FROM party_chat ORDER BY id DESC LIMIT 50")][::-1]
-    return {"mode":mode,"count":len(queue),"queue":queue,"current":next((x for x in queue if x["state"]=="active"),None),
+    selected={key:value for key,value in GAME_SELECTION.items() if key!="path"} if GAME_SELECTION else None
+    return {"mode":mode,"launch_policy":settings().get("party_launch_policy","first_two"),"selected_game":selected,
+            "count":len(queue),"queue":queue,"current":next((x for x in queue if x["state"]=="active"),None),
             "invited":next((x for x in queue if x["state"]=="invited"),None),"chat":chat,
             "expired":[row["name"] for row in expired],"server_time":now}
 
@@ -1244,7 +1317,7 @@ app.add_routes([web.get("/", index), web.post("/api/login", login), web.post("/a
                 web.post("/api/wifi/forget", wifi_forget),
                 web.get("/api/update", update_status), web.post("/api/update/install", update_install),
                 web.get("/api/games/search", search_games), web.get("/api/telemetry/controllers", telemetry_controllers),
-                web.post("/api/games/launch", launch_game),
+                web.post("/api/games/select", select_game), web.post("/api/games/launch", launch_game),
                 web.get("/api/scores", scores), web.post("/api/scores", scores),
                 web.get("/api/party", party_status), web.get("/api/party/display", party_display), web.post("/api/party/queue", party_queue),
                 web.get("/ws/party", party_socket), web.get("/overlay-qr", party_overlay), web.get("/api/party/qr.png", party_qr),

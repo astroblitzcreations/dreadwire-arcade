@@ -8,7 +8,7 @@
     />
     <meta name="theme-color" content="#09051d" />
     <link rel="manifest" href="/static/manifest.webmanifest" />
-    <link rel="stylesheet" href="/static/app.css?v=19" />
+    <link rel="stylesheet" href="/static/app.css?v=20" />
     <link rel="stylesheet" href="/static/controller-layout.css?v=15" />
     <title>Dreadwire Arcade Remote</title>
   </head>
@@ -287,7 +287,17 @@
                 type="number"
                 min="5"
                 max="1000" /></label
-            ><button id="saveSettings">SAVE MEDIA SETTINGS</button>
+            ><button id="saveSettings">SAVE SETTINGS</button>
+            <h3>Party Game Control</h3>
+            <label>Who may select and start games?
+              <select id="launchPolicy">
+                <option value="first_two">First two queued players</option>
+                <option value="current_only">Current player only</option>
+                <option value="any_queued">Any queued player</option>
+                <option value="everyone">Every connected player</option>
+                <option value="admin_only">Administrator only</option>
+              </select>
+            </label>
             <p class="hint">
               Uploads and deletion always require the administrator account.
             </p>
@@ -362,8 +372,21 @@
           <a id="viewerDownload" class="downloadBtn" download>DOWNLOAD</a>
         </div>
       </div>
+      <div id="gameChoice" class="viewer" hidden>
+        <div class="viewerPanel gameChoicePanel">
+          <h2>GAME SELECTED</h2>
+          <h1 id="choiceTitle"></h1>
+          <p><b id="choiceSystem"></b> • chosen by <span id="choicePlayer"></span></p>
+          <p id="choiceStatus">Ready to start on the cabinet.</p>
+          <div class="inline">
+            <button id="confirmGame" class="primary">START THIS GAME</button>
+            <button id="cancelGame">CHOOSE ANOTHER</button>
+          </div>
+          <small>Both permitted players see this choice and either may start it.</small>
+        </div>
+      </div>
       <div id="toast"></div>
     </main>
-    <script src="/static/app.js?v=19"></script>
+    <script src="/static/app.js?v=20"></script>
   </body>
 </html>

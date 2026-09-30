@@ -30,3 +30,9 @@ Tournament, or Free Play. Holding Start plus the left flipper for two seconds
 (then releasing before the three-second safety-shortcut threshold) displays the
 local join QR. The next cabinet button closes it and returns to the current
 screen or game.
+
+Game search uses a shared confirmation screen: a permitted player selects a
+title, both phones see who chose it, and either permitted player may start it.
+The default policy permits the first two queued players; administrators can
+change it under Admin → Party Game Control. Launching cleanly releases the
+current emulator and starts the selected ROM on the cabinet's active console.

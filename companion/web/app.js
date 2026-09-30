@@ -866,6 +866,7 @@ async function loadSettings() {
     $("#uploadsEnabled").checked = s.uploads_enabled;
     $("#largeUploads").checked = s.large_uploads;
     $("#uploadLimit").value = s.normal_limit_mb;
+    $("#launchPolicy").value = s.party_launch_policy || "first_two";
   } catch (e) {
     toast(e.message);
   }
@@ -956,6 +957,7 @@ $("#saveSettings").onclick = async () => {
         uploads_enabled: $("#uploadsEnabled").checked,
         large_uploads: $("#largeUploads").checked,
         normal_limit_mb: +$("#uploadLimit").value,
+        party_launch_policy: $("#launchPolicy").value,
       }),
     });
     toast("Media settings saved");
@@ -999,10 +1001,24 @@ async function loadUsers() {
 }
 $("#loadUsers").onclick = loadUsers;
 let partySocket = null;
+let selectedGame = null;
+function drawGameChoice(choice) {
+  selectedGame = choice || null;
+  $("#gameChoice").hidden = !choice;
+  if (!choice) return;
+  $("#choiceTitle").textContent = choice.title;
+  $("#choiceSystem").textContent = String(choice.system || "").toUpperCase();
+  $("#choicePlayer").textContent = choice.selected_by;
+  const busy = choice.status !== "selected";
+  $("#choiceStatus").textContent = busy ? choice.status.replaceAll("-", " ").toUpperCase() : "Ready to start on the cabinet.";
+  $("#confirmGame").disabled = busy;
+  $("#cancelGame").disabled = busy;
+}
 function drawParty(state) {
   const queue = state.queue || [];
   document.body.dataset.arcadeMode = state.mode || "classic";
   $("#arcadeModeLabel").textContent = (state.mode || "classic").toUpperCase();
+  drawGameChoice(state.selected_game);
   const invited = state.invited;
   const mine = invited && invited.name === session?.name;
   $("#turnInvite").hidden = !mine;
@@ -1063,9 +1079,9 @@ async function searchGameCatalog() {
   if (query.length < 2) return toast("Enter at least two letters");
   try {
     const data = await api("/api/games/search?q=" + encodeURIComponent(query));
-    $("#gameResults").innerHTML = data.games.length ? data.games.map((g) => '<div class="gameResult"><button data-score-game="' + encodeURIComponent(g.title) + '"><b>' + esc(g.title) + '</b><span>' + esc(g.system.toUpperCase()) + '</span></button><button data-launch-system="' + encodeURIComponent(g.system) + '" data-launch-path="' + encodeURIComponent(g.path) + '">LAUNCH</button></div>').join("") : '<p class="hint">No matching games.</p>';
+    $("#gameResults").innerHTML = data.games.length ? data.games.map((g) => '<div class="gameResult"><button data-score-game="' + encodeURIComponent(g.title) + '"><b>' + esc(g.title) + '</b><span>' + esc(g.system.toUpperCase()) + '</span></button><button data-select-title="' + encodeURIComponent(g.title) + '" data-select-system="' + encodeURIComponent(g.system) + '" data-select-path="' + encodeURIComponent(g.path) + '">SELECT</button></div>').join("") : '<p class="hint">No matching games.</p>';
     $$('[data-score-game]').forEach((button) => button.onclick = () => { $("#scoreGame").value = decodeURIComponent(button.dataset.scoreGame); loadScores(); });
-    $$('[data-launch-system]').forEach((button) => button.onclick = async () => { try { const result=await api("/api/games/launch",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({system:decodeURIComponent(button.dataset.launchSystem),path:decodeURIComponent(button.dataset.launchPath)})}); toast(result.message); } catch(e) { toast(e.message); } });
+    $$('[data-select-system]').forEach((button) => button.onclick = async () => { try { const result=await api("/api/games/select",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({title:decodeURIComponent(button.dataset.selectTitle),system:decodeURIComponent(button.dataset.selectSystem),path:decodeURIComponent(button.dataset.selectPath)})}); toast(result.message); } catch(e) { toast(e.message); } });
   } catch (e) { toast(e.message); }
 }
 $("#searchGames").onclick = searchGameCatalog;
@@ -1081,6 +1097,13 @@ $("#submitScore").onclick = async () => {
   const game = $("#scoreGame").value.trim(), score = Number($("#scoreValue").value);
   if (!game || !Number.isInteger(score) || score < 0) return toast("Enter a game and whole-number score");
   try { await api("/api/scores", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({game,score})}); $("#scoreValue").value = ""; toast("Score added"); loadScores(); } catch (e) { toast(e.message); }
+};
+$("#confirmGame").onclick = async () => {
+  if (!selectedGame) return;
+  try { const result=await api("/api/games/launch",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({selection_id:selectedGame.id})}); toast(result.message); } catch(e) { toast(e.message); }
+};
+$("#cancelGame").onclick = async () => {
+  try { await api("/api/games/select",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"clear"})}); } catch(e) { toast(e.message); }
 };
 async function loadWifi() {
   if (session?.role !== "admin") return;
