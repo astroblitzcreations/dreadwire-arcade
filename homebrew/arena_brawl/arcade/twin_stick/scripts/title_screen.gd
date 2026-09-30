@@ -10,6 +10,7 @@ var mode_button: Button
 var players_button: Button
 var music: AudioStreamPlayer
 var elapsed := 0.0
+var starting_game := false
 
 func _ready() -> void:
     texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -188,8 +189,28 @@ func _save_settings() -> void:
     config.save("user://arena_brawl_game.cfg")
 
 func _start_game() -> void:
+    # A focused Button may receive ui_accept itself while this screen's raw
+    # joypad handler also confirms it.  Do not allow those two callbacks to
+    # replace the SceneTree twice in one frame (that crashes the ARM renderer).
+    if starting_game:
+        return
+    starting_game = true
+    for button in menu_buttons:
+        button.disabled = true
     _save_settings()
-    get_tree().change_scene_to_file(BASE + "scenes/TwinStickTest.tscn")
+    if is_instance_valid(music):
+        music.stop()
+        music.stream = null
+    call_deferred("_enter_arena")
+
+func _enter_arena() -> void:
+    await get_tree().process_frame
+    var result = get_tree().change_scene_to_file(BASE + "scenes/TwinStickTest.tscn")
+    if result != OK:
+        starting_game = false
+        for button in menu_buttons:
+            button.disabled = false
+        push_error("Arena scene failed to load: %s" % error_string(result))
 
 func _start_music() -> void:
     music = AudioStreamPlayer.new()
