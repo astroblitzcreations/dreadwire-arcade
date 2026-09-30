@@ -276,6 +276,11 @@ class MobilePad:
                     "b": e.KEY_ESC, "x": e.KEY_SPACE, "y": e.KEY_S,
                 }.get(message["code"])
                 if menu_key is not None:
+                    # Touch taps can be shorter than EmulationStation's input
+                    # polling window. Keep the release separated from the
+                    # press so A/Start reliably launches the selected game.
+                    if not value:
+                        time.sleep(.12)
                     self.keyboard.write(e.EV_KEY, menu_key, value)
                     self.keyboard.syn()
         elif kind == "dpad":
@@ -692,6 +697,12 @@ async def screen_stream(request):
         "X-Accel-Buffering": "no",
     })
     await response.prepare(request)
+    # MJPEG is latency-sensitive: do not let small frames wait for TCP's
+    # coalescing timer on a fast local network.
+    try:
+        request.transport.get_extra_info("socket").setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+    except (AttributeError, OSError):
+        pass
     async with SCREEN_LOCK:
         # Keep one HTTP stream alive while replacing ffmpeg whenever RetroPie
         # crosses menu -> runcommand -> emulator -> menu display modes.
@@ -734,15 +745,15 @@ async def screen_stream(request):
                                 await asyncio.sleep(.05)
                                 continue
                             image = image.convert("RGB").transpose(Image.Transpose.ROTATE_270)
-                            image.thumbnail((288, 384), Image.Resampling.BILINEAR)
-                            output = BytesIO(); image.save(output, "JPEG", quality=68, optimize=False)
+                            image.thumbnail((360, 480), Image.Resampling.BILINEAR)
+                            output = BytesIO(); image.save(output, "JPEG", quality=72, optimize=False)
                             frame = output.getvalue()
                             header = (b"--ffmpeg\r\nContent-Type: image/jpeg\r\nContent-Length: "
                                       + str(len(frame)).encode() + b"\r\n\r\n")
                             await response.write(header + frame + b"\r\n")
                         finally:
                             captured.unlink(missing_ok=True)
-                    await asyncio.sleep(.12)
+                    await asyncio.sleep(.06)
                     continue
                 if not x11_mode and display_transition_active():
                     await asyncio.sleep(.12)
@@ -753,18 +764,18 @@ async def screen_stream(request):
                     capture_args = (
                         "runuser", "-u", "pi", "--", "env", "DISPLAY=:0",
                         "ffmpeg", "-hide_banner", "-loglevel", "error",
-                        "-f", "x11grab", "-video_size", "768x1024", "-framerate", "12", "-i", ":0",
-                        "-vf", "scale=288:384:flags=fast_bilinear",
+                        "-f", "x11grab", "-video_size", "768x1024", "-framerate", "15", "-i", ":0",
+                        "-vf", "scale=360:480:flags=fast_bilinear",
                     )
                 else:
                     capture_args = (
                         "ffmpeg", "-hide_banner", "-loglevel", "error",
-                        "-f", "kmsgrab", "-device", "/dev/dri/card1", "-framerate", "8", "-i", "-",
-                        "-vf", "hwdownload,format=bgra,transpose=clock,scale=288:384:flags=fast_bilinear",
+                        "-f", "kmsgrab", "-device", "/dev/dri/card1", "-framerate", "12", "-i", "-",
+                        "-vf", "hwdownload,format=bgra,transpose=clock,scale=360:480:flags=fast_bilinear",
                     )
                 process = await asyncio.create_subprocess_exec(
                     *capture_args,
-                    "-q:v", "12", "-flush_packets", "1", "-f", "image2pipe", "-vcodec", "mjpeg", "pipe:1",
+                    "-threads", "2", "-q:v", "9", "-flush_packets", "1", "-f", "image2pipe", "-vcodec", "mjpeg", "pipe:1",
                     stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL,
                 )
                 try:

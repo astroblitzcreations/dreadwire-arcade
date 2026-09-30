@@ -185,14 +185,6 @@ $$("[data-button]").forEach((b) => {
     downAt = performance.now();
     b.setPointerCapture?.(e.pointerId);
     b.classList.add("active");
-    if (
-      code === "a" &&
-      !lastStatus?.game &&
-      $("#remote").classList.contains("active")
-    ) {
-      stopRemoteStream();
-      scheduleRemoteResync(2600);
-    }
     send({ type: "button", code, pressed: true });
     navigator.vibrate?.(12);
   };
@@ -203,12 +195,6 @@ $$("[data-button]").forEach((b) => {
     const release = () => send({ type: "button", code, pressed: false }),
       wait = Math.max(0, 80 - (performance.now() - downAt));
     setTimeout(release, wait);
-    if (
-      code === "a" &&
-      !lastStatus?.game &&
-      $("#remote").classList.contains("active")
-    )
-      scheduleRemoteResync(2600);
   };
   b.onpointerdown = down;
   b.onpointerup = up;
@@ -249,6 +235,23 @@ function stickUp() {
 stick.onpointerup = stickUp;
 stick.onpointercancel = stickUp;
 const dstate = { up: false, down: false, left: false, right: false };
+function releaseRemoteControls() {
+  knob.style.transform = "";
+  send({ type: "axis", x: 0, y: 0 });
+  Object.keys(dstate).forEach((key) => (dstate[key] = false));
+  send({ type: "dpad", x: 0, y: 0 });
+  $$('[data-button]').forEach((button) => {
+    button.classList.remove("active");
+    send({ type: "button", code: button.dataset.button, pressed: false });
+  });
+}
+addEventListener("pointerup", releaseRemoteControls);
+addEventListener("pointercancel", releaseRemoteControls);
+addEventListener("blur", releaseRemoteControls);
+addEventListener("pagehide", releaseRemoteControls);
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) releaseRemoteControls();
+});
 function dsend() {
   send({
     type: "dpad",
