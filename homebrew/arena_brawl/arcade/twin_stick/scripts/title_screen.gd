@@ -10,7 +10,10 @@ var mode_button: Button
 var players_button: Button
 var music: AudioStreamPlayer
 var elapsed := 0.0
+var idle_elapsed := 0.0
 var starting_game := false
+var logo_left: TextureRect
+var logo_right: TextureRect
 
 func _ready() -> void:
     texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -36,21 +39,9 @@ func _build_scene() -> void:
     shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
     add_child(shade)
 
-    var shadow = TextureRect.new()
-    shadow.texture = load(BASE + "assets/ui/menus/arena_brawl_logo.png")
-    shadow.position = Vector2(96, 99)
-    shadow.size = Vector2(576, 185)
-    shadow.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-    shadow.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-    shadow.modulate = Color(0, 0, 0, .75)
-    add_child(shadow)
-    var logo = TextureRect.new()
-    logo.texture = shadow.texture
-    logo.position = Vector2(87, 87)
-    logo.size = shadow.size
-    logo.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-    logo.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-    add_child(logo)
+    var logo_texture: Texture2D = load(BASE + "assets/ui/menus/arena_brawl_logo.png")
+    logo_left = _logo_half(logo_texture, Rect2(0, 0, logo_texture.get_width() / 2.0, logo_texture.get_height()), Vector2(-300, 87))
+    logo_right = _logo_half(logo_texture, Rect2(logo_texture.get_width() / 2.0, 0, logo_texture.get_width() / 2.0, logo_texture.get_height()), Vector2(768, 87))
 
     var subtitle = Label.new()
     subtitle.text = "TWIN-STICK CARNAGE // CABINET EDITION"
@@ -129,11 +120,32 @@ func _menu_button(label: String, y: float, callback: Callable) -> Button:
     card.add_child(button)
     return button
 
+func _logo_half(texture: Texture2D, region: Rect2, start: Vector2) -> TextureRect:
+    var atlas = AtlasTexture.new()
+    atlas.atlas = texture
+    atlas.region = region
+    var half = TextureRect.new()
+    half.texture = atlas
+    half.position = start
+    half.size = Vector2(288, 185)
+    half.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    half.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+    add_child(half)
+    return half
+
 func _process(delta: float) -> void:
     elapsed += delta
+    idle_elapsed += delta
+    var slide = clampf(elapsed / 1.15, 0.0, 1.0)
+    slide = 1.0 - pow(1.0 - slide, 3.0)
+    logo_left.position.x = lerpf(-300.0, 96.0, slide)
+    logo_right.position.x = lerpf(768.0, 384.0, slide)
+    card.modulate.a = clampf((elapsed - .75) / .55, 0.0, 1.0)
     if card:
         card.rotation = sin(elapsed * .75) * .004
         card.position.y = 340 + sin(elapsed * 1.15) * 4
+    if idle_elapsed >= 30.0 and not starting_game:
+        _start_attract()
     queue_redraw()
 
 func _draw() -> void:
@@ -150,6 +162,7 @@ func _draw() -> void:
         draw_line(Vector2(384 + i * 42, 690), Vector2(384 + i * 130, 1024), Color(.75, .08, .65, .18), 2)
 
 func _input(event: InputEvent) -> void:
+    idle_elapsed = 0.0
     if event is InputEventKey and event.pressed and not event.echo:
         if event.physical_keycode in [KEY_U, KEY_SPACE, KEY_ENTER, KEY_KP_ENTER]:
             _press_focused()
@@ -186,9 +199,20 @@ func _save_settings() -> void:
     var config = ConfigFile.new()
     config.set_value("game", "difficulty", difficulty)
     config.set_value("game", "two_players", two_players)
+    config.set_value("game", "attract_mode", false)
     config.save("user://arena_brawl_game.cfg")
 
-func _start_game() -> void:
+func _start_attract() -> void:
+    if starting_game:
+        return
+    var config = ConfigFile.new()
+    config.set_value("game", "difficulty", "afraid")
+    config.set_value("game", "two_players", true)
+    config.set_value("game", "attract_mode", true)
+    config.save("user://arena_brawl_game.cfg")
+    _start_game(false)
+
+func _start_game(clear_attract: bool = true) -> void:
     # A focused Button may receive ui_accept itself while this screen's raw
     # joypad handler also confirms it.  Do not allow those two callbacks to
     # replace the SceneTree twice in one frame (that crashes the ARM renderer).
@@ -197,7 +221,8 @@ func _start_game() -> void:
     starting_game = true
     for button in menu_buttons:
         button.disabled = true
-    _save_settings()
+    if clear_attract:
+        _save_settings()
     if is_instance_valid(music):
         music.stop()
         music.stream = null
@@ -214,7 +239,7 @@ func _enter_arena() -> void:
 
 func _start_music() -> void:
     music = AudioStreamPlayer.new()
-    var stream = load(BASE + "assets/audio/music/arcade_title.ogg")
+    var stream = load(BASE + "assets/audio/music/title_screen.ogg")
     if stream is AudioStreamOggVorbis:
         stream.loop = true
     music.stream = stream

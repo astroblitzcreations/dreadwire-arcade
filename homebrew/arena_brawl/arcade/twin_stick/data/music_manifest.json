@@ -100,6 +100,55 @@
       "loop_end_sample_exclusive": 784000,
       "bus": "BrawlMusic",
       "recommended_volume_db": -16
+    },
+    {
+      "id": "circuit_1",
+      "path": "res://arcade/twin_stick/assets/audio/music/circuit_1.ogg",
+      "loop": true,
+      "bus": "BrawlMusic",
+      "recommended_volume_db": -14
+    },
+    {
+      "id": "circuit_2",
+      "path": "res://arcade/twin_stick/assets/audio/music/circuit_2.ogg",
+      "loop": true,
+      "bus": "BrawlMusic",
+      "recommended_volume_db": -14
+    },
+    {
+      "id": "circuit_3",
+      "path": "res://arcade/twin_stick/assets/audio/music/circuit_3.ogg",
+      "loop": true,
+      "bus": "BrawlMusic",
+      "recommended_volume_db": -14
+    },
+    {
+      "id": "inner_sanctum",
+      "path": "res://arcade/twin_stick/assets/audio/music/inner_sanctum.ogg",
+      "loop": true,
+      "bus": "BrawlMusic",
+      "recommended_volume_db": -14
+    },
+    {
+      "id": "junkyard",
+      "path": "res://arcade/twin_stick/assets/audio/music/junkyard.ogg",
+      "loop": true,
+      "bus": "BrawlMusic",
+      "recommended_volume_db": -14
+    },
+    {
+      "id": "win_game",
+      "path": "res://arcade/twin_stick/assets/audio/music/win_game.ogg",
+      "loop": false,
+      "bus": "BrawlMusic",
+      "recommended_volume_db": -14
+    },
+    {
+      "id": "high_score",
+      "path": "res://arcade/twin_stick/assets/audio/music/high_score.ogg",
+      "loop": true,
+      "bus": "BrawlMusic",
+      "recommended_volume_db": -14
     }
   ]
 }

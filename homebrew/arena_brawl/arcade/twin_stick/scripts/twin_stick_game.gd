@@ -45,7 +45,7 @@ var shake: float = 0.0
 var next_enemy_uid: int = 1
 var exit_armed_until: float = 0.0
 const PAUSE_ITEMS = ["RESUME GAME", "RESTART GAME", "RECONFIGURE PLAYER 1", "RECONFIGURE PLAYER 2", "PLAYER 1 CONTROLLER", "PLAYER 2 CONTROLLER", "MUSIC", "SOUND EFFECTS", "VOICE", "CONTROLLER HELP", "EXIT TO ARCADE"]
-const CONTROL_ACTIONS = ["MOVE UP", "MOVE DOWN", "MOVE LEFT", "MOVE RIGHT", "FIRE", "LOCK AIM", "PAUSE", "SELECT", "START"]
+const CONTROL_ACTIONS = ["MOVE UP", "MOVE DOWN", "MOVE LEFT", "MOVE RIGHT", "FIRE", "FIRE UP", "FIRE DOWN", "FIRE LEFT", "FIRE RIGHT", "LOCK AIM", "PAUSE", "SELECT", "START"]
 var pause_selection := 0
 var control_wizard_open := false
 var control_wizard_step := 0
@@ -65,6 +65,7 @@ var sfx_volume := 85
 var voice_volume := 90
 var controller_help_timer := 0.0
 var difficulty := "normal"
+var attract_mode := false
 var enemy_health_scale := 1.0
 var enemy_speed_scale := 0.88
 var enemy_fire_scale := 1.18
@@ -123,12 +124,20 @@ func _new_player(index: int, point: Vector2) -> Dictionary:
         "move": Vector2.ZERO, "dir": "s", "invuln": 2.5,
         "respawn": 0.0, "damage_flash": 0.0, "buffs": {}, "anim_time": 0.0,
         "fire_held": false, "lock_held": false, "locked_aim": Vector2.UP,
-        "continue_timer": 0.0}
+        "continue_timer": 0.0, "continues": 3}
 
 func _input(event: InputEvent) -> void:
     if control_wizard_open:
         if _capture_control_event(event):
             get_viewport().set_input_as_handled()
+        return
+    if attract_mode and (event is InputEventKey or event is InputEventJoypadButton or event is InputEventMouseButton):
+        var config = ConfigFile.new()
+        config.set_value("game", "difficulty", difficulty)
+        config.set_value("game", "two_players", p2_enabled)
+        config.set_value("game", "attract_mode", false)
+        config.save("user://arena_brawl_game.cfg")
+        get_tree().change_scene_to_file(BASE + "scenes/TitleScreen.tscn")
         return
     if event is InputEventKey and event.pressed and not event.echo:
         if demo_paused:
@@ -197,6 +206,10 @@ func _input(event: InputEvent) -> void:
                 _activate_pause_item()
             elif event.button_index == JOY_BUTTON_B:
                 _set_pause(false)
+            get_viewport().set_input_as_handled()
+            return
+        if game_over and (mapped == "START" or event.button_index == JOY_BUTTON_START):
+            get_tree().change_scene_to_file(BASE + "scenes/TitleScreen.tscn")
             get_viewport().set_input_as_handled()
             return
         if mapped in ["PAUSE", "START"] or event.button_index == JOY_BUTTON_START:
@@ -468,6 +481,7 @@ func _load_difficulty() -> void:
     if config.load("user://arena_brawl_game.cfg") == OK:
         difficulty = String(config.get_value("game", "difficulty", "normal"))
         p2_enabled = bool(config.get_value("game", "two_players", true))
+        attract_mode = bool(config.get_value("game", "attract_mode", false))
     match difficulty:
         "easy":
             enemy_health_scale = 0.78
@@ -569,7 +583,8 @@ func _update_players(dt: float) -> void:
             continue
         if p["lives"] <= 0:
             p["continue_timer"] = maxf(0.0, p["continue_timer"] - dt)
-            if p["continue_timer"] > 0 and _continue_requested(int(p["id"])):
+            if p["continue_timer"] > 0 and p["continues"] > 0 and _continue_requested(int(p["id"])):
+                p["continues"] -= 1
                 p["lives"] = 3
                 p["health"] = 100.0
                 p["respawn"] = 0.0
@@ -632,13 +647,38 @@ func _update_players(dt: float) -> void:
             if custom_move.length() > 0.1:
                 move = custom_move
             var mapped_fire = _mapped_action_pressed(device_name, device, "FIRE")
-            var action_fire = mapped_fire or Input.is_joy_button_pressed(device, JOY_BUTTON_A) or Input.is_joy_button_pressed(device, JOY_BUTTON_X)
+            var fixed_aim = Vector2(
+                float(_mapped_action_pressed(device_name, device, "FIRE RIGHT")) - float(_mapped_action_pressed(device_name, device, "FIRE LEFT")),
+                float(_mapped_action_pressed(device_name, device, "FIRE DOWN")) - float(_mapped_action_pressed(device_name, device, "FIRE UP")))
+            var has_directional_bindings = not String((controller_mappings.get(device_name.strip_edges(), {}) as Dictionary).get("FIRE UP", "")).is_empty()
+            if not has_directional_bindings:
+                fixed_aim = Vector2(
+                    float(Input.is_joy_button_pressed(device, JOY_BUTTON_B)) - float(Input.is_joy_button_pressed(device, JOY_BUTTON_X)),
+                    float(Input.is_joy_button_pressed(device, JOY_BUTTON_A)) - float(Input.is_joy_button_pressed(device, JOY_BUTTON_Y)))
+            if fixed_aim.length() > 0.1:
+                aim = fixed_aim.normalized()
+                firing = true
+            var action_fire = mapped_fire
             var action_lock = _mapped_action_pressed(device_name, device, "LOCK AIM")
             fire_button = fire_button or action_fire
             lock_button = lock_button or action_lock
             firing = firing or action_fire or Input.get_joy_axis(device, JOY_AXIS_TRIGGER_RIGHT) > 0.3
             if action_fire and right.length() <= 0.1 and move.length() > 0.1 and not lock_button:
                 aim = move.normalized()
+        if attract_mode:
+            var target_enemy: Dictionary = {}
+            var nearest = INF
+            for enemy in enemies:
+                var distance = p["pos"].distance_squared_to(enemy["pos"])
+                if distance < nearest:
+                    nearest = distance
+                    target_enemy = enemy
+            if not target_enemy.is_empty():
+                aim = (target_enemy["pos"] - p["pos"]).normalized()
+                firing = true
+                fire_button = true
+                var orbit = Vector2.from_angle(game_time * .75 + p["id"] * PI)
+                move = (orbit + (p["pos"] - target_enemy["pos"]).normalized() * .45).normalized()
         # FIRE and LOCK AIM are intentionally separate. FIRE normally follows
         # travel direction. Pressing LOCK snapshots that direction; while it is
         # held, the player can move anywhere without rotating the stream.
@@ -736,7 +776,7 @@ func _update_waves(dt: float) -> void:
         wave_index += 1
         if wave_index >= waves.size():
             victory = true
-            audio.play_music("victory")
+            audio.play_music("win_game")
             audio.announce("victory", true)
             return
         phase = "warning"
@@ -754,10 +794,10 @@ func _begin_wave() -> void:
     if not str(wave["boss"]).is_empty():
         count = maxi(4, count / 3)
         _spawn_enemy(wave["boss"], Vector2(384, 260), true)
-        audio.play_music("boss_theme")
+        audio.play_music("inner_sanctum")
         audio.announce("final_boss" if wave_index == 19 else "boss_start", true)
     else:
-        audio.play_music("arena_combat_02" if wave_index > 8 else "arena_combat_01")
+        audio.play_music("circuit_3" if wave_index >= 14 else "circuit_2" if wave_index >= 7 else "circuit_1")
     for j in range(count):
         var point: Vector2 = doors[j % doors.size()] + Vector2(randf_range(-28, 28), randf_range(-28, 28))
         # Move a spawn to the opposite door if a live player is too close.
@@ -1105,6 +1145,11 @@ func _draw() -> void:
         if p["invuln"] > 0 and int(game_time * 15) % 2 == 0:
             tint.a = .45
         _sprite("sprites/effects/ground_shadow.png", p["pos"] + Vector2(0, 9))
+        var locator_color = Color(.08, .85, 1, .92) if p["id"] == 0 else Color(1, .72, .08, .92)
+        var locator_radius = 30.0 + sin(game_time * 5.0 + p["id"] * 1.7) * 3.0
+        draw_arc(p["pos"] + Vector2(0, 5), locator_radius, 0, TAU, 40, Color(locator_color, .24), 8)
+        draw_arc(p["pos"] + Vector2(0, 5), locator_radius, 0, TAU, 40, locator_color, 3)
+        _label("P%d" % (p["id"] + 1), p["pos"] + Vector2(0, -48), 17, locator_color, true)
         _sprite("sprites/players/" + p["name"] + "_" + action + ".png", p["pos"], frame, DIRS.find(p["dir"]), Vector2(-1, -1), tint)
         if dead:
             continue
@@ -1157,10 +1202,10 @@ func _hud() -> void:
         draw_rect(Rect2(x, 34, 245 * maxf(0, p["health"]) / 100, 12), Color(.25, .9, .5))
         if p["armor"] > 0:
             draw_rect(Rect2(x, 48, 245 * p["armor"] / 100, 4), Color(.1, .6, 1))
-        _label("LIVES %d" % p["lives"], Vector2(x, 70), 14, color)
+        _label("LIVES %d  CONT %d" % [p["lives"], p["continues"]], Vector2(x, 70), 14, color)
         if p["lives"] <= 0 and p["continue_timer"] > 0:
             _label("CONTINUE? %d" % ceili(p["continue_timer"]), Vector2(x, 70), 16, Color(1, .35, .65))
-            _label("PRESS FIRE", Vector2(x + 116, 70), 14, Color(1, .8, .2))
+            _label("START (%d LEFT)" % p["continues"], Vector2(x + 116, 70), 14, Color(1, .8, .2))
         _label(weapons[p["weapon"]]["display_name"], Vector2(x, 92), 14)
     _label("ARENA BRAWL", Vector2(384, 70), 22, Color(.5, .8, .95), true)
     _label("WAVE %02d/20" % (wave_index + 1), Vector2(384, 104), 18, Color(1, .35, .85), true)
@@ -1184,7 +1229,7 @@ func _hud() -> void:
             _draw_pause_menu()
         else:
             _label("CHAMPIONS!" if victory else "GAME OVER", Vector2(384, 450), 52, Color(1, .76, .22), true)
-            _label("START: RESUME    R: RESTART    ESC: EXIT", Vector2(384, 515), 20, Color.WHITE, true)
+            _label("START: TITLE    R: RESTART    ESC: EXIT", Vector2(384, 515), 20, Color.WHITE, true)
 
 func _draw_pause_menu() -> void:
     var panel = Rect2(104, 180, 560, 760)

@@ -155,7 +155,7 @@ func announce(category: String, priority: bool = false) -> void:
     last_voice = chosen["id"]
     voice_delay = float(chosen.get("cooldown_seconds", 4.0))
 
-func announce_sequence(paths: Array[String], priority: bool = true) -> void:
+func announce_sequence(paths: Array, priority: bool = true) -> void:
     if voice_muted:
         return
     if priority:
@@ -176,8 +176,8 @@ func play_music(id: String) -> void:
         return
     if music_player.stream == stream and music_player.playing:
         return
-    if stream is AudioStreamOggVorbis:
-        stream.loop = true
+    if stream is AudioStreamOggVorbis or stream is AudioStreamMP3:
+        stream.loop = bool(music_map[id].get("loop", true))
     music_player.stream = stream
     music_player.play()
     music_player.stream_paused = music_muted
