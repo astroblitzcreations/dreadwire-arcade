@@ -44,7 +44,7 @@ var texture_seed: int = 0
 var shake: float = 0.0
 var next_enemy_uid: int = 1
 var exit_armed_until: float = 0.0
-const PAUSE_ITEMS = ["RESUME GAME", "RESTART GAME", "RECONFIGURE CONTROLS", "MUSIC", "SOUND EFFECTS", "VOICE", "CONTROLLER HELP", "EXIT TO ARCADE"]
+const PAUSE_ITEMS = ["RESUME GAME", "RESTART GAME", "RECONFIGURE CONTROLS", "PLAYER 1 CONTROLLER", "PLAYER 2 CONTROLLER", "MUSIC", "SOUND EFFECTS", "VOICE", "CONTROLLER HELP", "EXIT TO ARCADE"]
 const CONTROL_ACTIONS = ["MOVE UP", "MOVE DOWN", "MOVE LEFT", "MOVE RIGHT", "FIRE", "LOCK AIM", "PAUSE", "SELECT", "START"]
 var pause_selection := 0
 var control_wizard_open := false
@@ -54,6 +54,7 @@ var control_wizard_name := ""
 var control_wizard_hold_button := -1
 var control_wizard_hold_time := 0.0
 var controller_mappings: Dictionary = {}
+var player_controllers: Array[String] = ["", ""]
 var joy_axis_latched: Dictionary = {}
 var music_enabled := true
 var sfx_enabled := true
@@ -88,6 +89,7 @@ func _ready() -> void:
     add_child(audio)
     _load_difficulty()
     _load_controller_mappings()
+    _refresh_player_controllers()
     _make_crt()
     restart()
 
@@ -264,26 +266,30 @@ func _activate_pause_item() -> void:
             restart()
             _set_pause(false)
         2: _start_control_wizard()
-        3: _adjust_pause_setting(10)
-        4: _adjust_pause_setting(10)
+        3: _cycle_player_controller(0, 1)
+        4: _cycle_player_controller(1, 1)
         5: _adjust_pause_setting(10)
-        6: controller_help_timer = 6.0
-        7: get_tree().quit()
+        6: _adjust_pause_setting(10)
+        7: _adjust_pause_setting(10)
+        8: controller_help_timer = 6.0
+        9: get_tree().quit()
     queue_redraw()
 
 func _adjust_pause_setting(amount: int) -> void:
     match pause_selection:
-        3:
+        3: _cycle_player_controller(0, amount)
+        4: _cycle_player_controller(1, amount)
+        5:
             music_volume = clampi(music_volume + amount, 0, 100)
             music_enabled = music_volume > 0
             audio.set_music_enabled(music_enabled)
             audio.set_music_volume(music_volume)
-        4:
+        6:
             sfx_volume = clampi(sfx_volume + amount, 0, 100)
             sfx_enabled = sfx_volume > 0
             audio.set_sfx_enabled(sfx_enabled)
             audio.set_sfx_volume(sfx_volume)
-        5:
+        7:
             voice_volume = clampi(voice_volume + amount, 0, 100)
             voice_enabled = voice_volume > 0
             audio.set_voice_enabled(voice_enabled)
@@ -413,6 +419,8 @@ func _save_controller_mappings() -> void:
     config.set_value("audio", "music_volume", music_volume)
     config.set_value("audio", "sfx_volume", sfx_volume)
     config.set_value("audio", "voice_volume", voice_volume)
+    config.set_value("players", "player1_controller", player_controllers[0])
+    config.set_value("players", "player2_controller", player_controllers[1])
     config.save("user://arena_brawl_controls.cfg")
 
 func _load_controller_mappings() -> void:
@@ -424,6 +432,10 @@ func _load_controller_mappings() -> void:
             music_volume = int(config.get_value(section, "music_volume", music_volume))
             sfx_volume = int(config.get_value(section, "sfx_volume", sfx_volume))
             voice_volume = int(config.get_value(section, "voice_volume", voice_volume))
+            continue
+        if section == "players":
+            player_controllers[0] = String(config.get_value(section, "player1_controller", ""))
+            player_controllers[1] = String(config.get_value(section, "player2_controller", ""))
             continue
         controller_mappings[section] = {}
         for key in config.get_section_keys(section):
@@ -476,10 +488,58 @@ func _ordered_pads() -> Array:
     pads.sort_custom(func(a, b):
         var an = Input.get_joy_name(a).to_lower()
         var bn = Input.get_joy_name(b).to_lower()
-        var arank = 0 if "xbox wireless" in an else 1 if "dragonrise" in an else 2 if "xbox" in an or "x-box" in an else 3
-        var brank = 0 if "xbox wireless" in bn else 1 if "dragonrise" in bn else 2 if "xbox" in bn or "x-box" in bn else 3
+        var arank = 0 if "xbox wireless" in an else 1 if _is_cabinet_pad(a) else 2 if "xbox" in an or "x-box" in an else 3
+        var brank = 0 if "xbox wireless" in bn else 1 if _is_cabinet_pad(b) else 2 if "xbox" in bn or "x-box" in bn else 3
         return arank < brank if arank != brank else a < b)
     return pads
+
+func _is_cabinet_pad(device: int) -> bool:
+    var name = Input.get_joy_name(device).to_lower()
+    var info = Input.get_joy_info(device)
+    return "dragonrise" in name or (int(info.get("vendor_id", -1)) == 0x79 and int(info.get("product_id", -1)) == 0x06)
+
+func _pad_label(device: int) -> String:
+    return "BUILT-IN CABINET (DragonRise)" if _is_cabinet_pad(device) else Input.get_joy_name(device).strip_edges()
+
+func _physical_pad_names() -> Array[String]:
+    var names: Array[String] = []
+    for device in _ordered_pads():
+        var name = _pad_label(device)
+        if not names.has(name):
+            names.append(name)
+    return names
+
+func _refresh_player_controllers() -> void:
+    var names = _physical_pad_names()
+    if names.is_empty():
+        return
+    if player_controllers[0].is_empty() or not names.has(player_controllers[0]):
+        player_controllers[0] = names[0]
+    if player_controllers[1].is_empty() or not names.has(player_controllers[1]) or player_controllers[1] == player_controllers[0]:
+        player_controllers[1] = names[1] if names.size() > 1 else ""
+    _save_controller_mappings()
+
+func _cycle_player_controller(player_id: int, amount: int) -> void:
+    var names = _physical_pad_names()
+    if names.is_empty():
+        return
+    var current = names.find(player_controllers[player_id])
+    var next = wrapi(current + (1 if amount > 0 else -1), 0, names.size())
+    var chosen = names[next]
+    var other = 1 - player_id
+    if player_controllers[other] == chosen:
+        player_controllers[other] = player_controllers[player_id]
+    player_controllers[player_id] = chosen
+    _save_controller_mappings()
+    queue_redraw()
+
+func _assigned_pad(player_id: int) -> int:
+    if player_id < 0 or player_id >= player_controllers.size():
+        return -1
+    for device in Input.get_connected_joypads():
+        if _pad_label(device) == player_controllers[player_id] or Input.get_joy_name(device).strip_edges() == player_controllers[player_id]:
+            return device
+    return -1
 
 func _nearest_player(point: Vector2) -> Dictionary:
     var result: Dictionary = {}
@@ -500,13 +560,12 @@ func _direction(vector: Vector2) -> String:
     return DIRS[index]
 
 func _update_players(dt: float) -> void:
-    var pads = _ordered_pads()
     for p in players:
         if p["id"] == 1 and not p2_enabled:
             continue
         if p["lives"] <= 0:
             p["continue_timer"] = maxf(0.0, p["continue_timer"] - dt)
-            if p["continue_timer"] > 0 and _continue_requested(int(p["id"]), pads):
+            if p["continue_timer"] > 0 and _continue_requested(int(p["id"])):
                 p["lives"] = 3
                 p["health"] = 100.0
                 p["respawn"] = 0.0
@@ -553,10 +612,11 @@ func _update_players(dt: float) -> void:
                 aim = key_aim.normalized()
             firing = Input.is_action_pressed("brawl_p2_fire") or key_aim.length() > 0.1
         # Cabinet/first gamepad is P1. A second gamepad or phone becomes P2.
-        var pad_slot = p["id"] if p["id"] < pads.size() else -1
-        if pad_slot >= 0 and pad_slot < pads.size():
-            var device = pads[pad_slot]
+        var device = _assigned_pad(int(p["id"]))
+        if device >= 0:
             var left = INPUT_SETUP.deadzone(Vector2(Input.get_joy_axis(device, JOY_AXIS_LEFT_X), Input.get_joy_axis(device, JOY_AXIS_LEFT_Y)))
+            if _is_cabinet_pad(device):
+                left = Vector2(-left.y, left.x)
             var right = INPUT_SETUP.deadzone(Vector2(Input.get_joy_axis(device, JOY_AXIS_RIGHT_X), Input.get_joy_axis(device, JOY_AXIS_RIGHT_Y)))
             if left.length() > 0:
                 move = left
@@ -605,12 +665,12 @@ func _update_players(dt: float) -> void:
         game_over = true
         audio.play_music("game_over")
 
-func _continue_requested(player_id: int, pads: Array) -> bool:
+func _continue_requested(player_id: int) -> bool:
     if player_id == 1 and Input.is_physical_key_pressed(KEY_U):
         return true
-    if player_id >= pads.size():
+    var device = _assigned_pad(player_id)
+    if device < 0:
         return false
-    var device = pads[player_id]
     return Input.is_joy_button_pressed(device, JOY_BUTTON_A) or Input.is_joy_button_pressed(device, JOY_BUTTON_START)
 
 func _fire_player(p: Dictionary) -> void:
@@ -1136,14 +1196,17 @@ func _draw_pause_menu() -> void:
         _label("Mappings are saved only for Arena Brawl", Vector2(384, 770), 16, Color(.65, .7, .82), true)
         return
     for i in range(PAUSE_ITEMS.size()):
-        var row = Rect2(155, 270 + i * 67, 458, 50)
+        var row = Rect2(155, 252 + i * 58, 458, 46)
         var selected = i == pause_selection
         draw_rect(row, Color(.08, .48, .72, .5) if selected else Color(.025, .04, .1, .9))
         draw_rect(row, Color(1, .82, .18) if selected else Color(.12, .32, .48), false, 2)
         var label = PAUSE_ITEMS[i]
-        if i == 3: label = "MUSIC VOLUME: %d%%" % music_volume
-        elif i == 4: label = "SOUND EFFECTS: %d%%" % sfx_volume
-        elif i == 5: label = "ANNOUNCER VOICE: %d%%" % voice_volume
+        if i == 3: label = "P1: " + (player_controllers[0] if not player_controllers[0].is_empty() else "UNASSIGNED")
+        elif i == 4: label = "P2: " + (player_controllers[1] if not player_controllers[1].is_empty() else "UNASSIGNED")
+        elif i == 5: label = "MUSIC VOLUME: %d%%" % music_volume
+        elif i == 6: label = "SOUND EFFECTS: %d%%" % sfx_volume
+        elif i == 7: label = "ANNOUNCER VOICE: %d%%" % voice_volume
+        if label.length() > 36: label = label.substr(0, 33) + "..."
         _label(label, row.position + Vector2(row.size.x / 2, 33), 20, Color.WHITE, true)
     if controller_help_timer > 0:
         _label("MOVE + HOLD FIRE = LOCK SHOT DIRECTION", Vector2(384, 852), 16, Color(.4, 1, .75), true)
