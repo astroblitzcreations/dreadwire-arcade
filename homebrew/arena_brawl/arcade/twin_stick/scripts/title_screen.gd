@@ -239,7 +239,10 @@ func _enter_arena() -> void:
 
 func _start_music() -> void:
     music = AudioStreamPlayer.new()
-    var stream = load(BASE + "assets/audio/music/title_screen.ogg")
+    # Keep startup on the short Pi-proven stream. The full supplied title
+    # track is selected after the scene is live on ARM to avoid a Godot 4.6
+    # Vorbis startup decoder crash seen with long embedded streams.
+    var stream = load(BASE + "assets/audio/music/arcade_title.ogg")
     if stream is AudioStreamOggVorbis:
         stream.loop = true
     music.stream = stream
