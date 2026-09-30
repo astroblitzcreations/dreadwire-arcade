@@ -71,6 +71,14 @@ var enemy_speed_scale := 0.88
 var enemy_fire_scale := 1.18
 var enemy_damage_scale := 0.85
 var enemy_count_scale := 0.9
+var entrance_elapsed := 0.0
+var entrance_go_played := false
+var entrance_banner_played := false
+var entrance_banner := ""
+var route_history: Array[String] = []
+var prize_spawn_timer := 12.0
+var tally_time := 0.0
+var high_score_music_started := false
 
 func _ready() -> void:
     texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -105,21 +113,29 @@ func restart() -> void:
     players = [_new_player(0, Vector2(280, 545)), _new_player(1, Vector2(488, 545))]
     wave_index = 0
     game_time = 0.0
-    phase = "warning"
-    phase_timer = 2.0
+    phase = "entrance"
+    phase_timer = 12.0
+    entrance_elapsed = 0.0
+    entrance_go_played = false
+    entrance_banner_played = false
+    entrance_banner = ""
+    route_history.clear()
+    prize_spawn_timer = randf_range(10.0, 16.0)
+    tally_time = 0.0
+    high_score_music_started = false
     game_over = false
     victory = false
     demo_paused = false
     if audio != null:
         audio.stop_all()
-        audio.play_music("arena_combat_01")
-        audio.announce_sequence(["voice_contestant_1.wav", "voice_good_luck.wav", "voice_youll_need_it.wav"])
+        audio.play_music("circuit_1")
+        audio.announce_sequence(["voice_contestant_1.wav", "voice_contestant_2.wav", "voice_cheer_2.wav"] if p2_enabled else ["voice_contestant_1.wav", "voice_cheer_2.wav"])
     for i in range(weapon_ids.size()):
         drops.append({"kind": "weapon", "id": weapon_ids[i], "pos": Vector2(155 + (i % 5) * 115, 820 + int(i / 5) * 72), "life": 40.0})
 
 func _new_player(index: int, point: Vector2) -> Dictionary:
     return {"id": index, "name": "volt" if index == 0 else "nova", "pos": point,
-        "health": 100.0, "armor": 0.0, "lives": 3, "score": 0,
+        "health": 100.0, "armor": 0.0, "lives": 3, "score": 0, "cash": 0, "gold": 0,
         "weapon": "pulse_pistol", "fire_timer": 0.0, "aim": Vector2.UP,
         "move": Vector2.ZERO, "dir": "s", "invuln": 2.5,
         "respawn": 0.0, "damage_flash": 0.0, "buffs": {}, "anim_time": 0.0,
@@ -239,15 +255,62 @@ func _process(delta: float) -> void:
             _advance_control_wizard()
     if not demo_paused and not game_over and not victory:
         game_time += dt
-        _update_players(dt)
-        _update_waves(dt)
-        _update_enemies(dt)
-        _update_shots(dt)
-        _update_drops(dt)
-        _update_hazards(dt)
+        if phase == "entrance":
+            _update_entrance(dt)
+        else:
+            _update_players(dt)
+            _update_waves(dt)
+            _update_enemies(dt)
+            _update_shots(dt)
+            _update_drops(dt)
+            _update_hazards(dt)
+            _update_random_prizes(dt)
+    elif victory:
+        tally_time += dt
+        if tally_time >= 7.0 and not high_score_music_started:
+            high_score_music_started = true
+            audio.play_music("high_score")
     _update_visuals(dt if not demo_paused else 0.0)
     shake = move_toward(shake, 0.0, dt * 16.0)
     queue_redraw()
+
+func _update_entrance(dt: float) -> void:
+    entrance_elapsed += dt
+    phase_timer -= dt
+    var travel = clampf(entrance_elapsed / 10.5, 0.0, 1.0)
+    travel = travel * travel * (3.0 - 2.0 * travel)
+    players[0]["pos"] = Vector2(lerpf(35.0, 330.0, travel), lerpf(860.0, 545.0, travel))
+    players[0]["move"] = Vector2(1, -0.35) if travel < 1 else Vector2.ZERO
+    if p2_enabled:
+        players[1]["pos"] = Vector2(lerpf(733.0, 438.0, travel), lerpf(860.0, 545.0, travel))
+        players[1]["move"] = Vector2(-1, -0.35) if travel < 1 else Vector2.ZERO
+    if entrance_elapsed >= 7.0 and not entrance_go_played:
+        entrance_go_played = true
+        audio.announce_sequence(["voice_go.wav", "voice_go.wav", "voice_go.wav", "voice_go.wav"])
+    if entrance_elapsed >= 10.2 and not entrance_banner_played:
+        entrance_banner_played = true
+        var choices = [
+            ["GOOD LUCK!", "voice_good_luck.wav"],
+            ["I'D BUY THAT FOR A DOLLAR!", "voice_dollar.wav"],
+            ["BIG PRIZES!", "voice_big_prizes.wav"],
+            ["BIG MONEY!", "voice_big_money.wav"],
+            ["I LOVE IT!", "voice_i_love_it.wav"]]
+        var choice = choices[randi() % choices.size()]
+        entrance_banner = choice[0]
+        audio.announce_sequence([choice[1]])
+    if phase_timer <= 0:
+        phase = "warning"
+        phase_timer = 1.4
+
+func _update_random_prizes(dt: float) -> void:
+    if phase != "combat":
+        return
+    prize_spawn_timer -= dt
+    if prize_spawn_timer <= 0:
+        prize_spawn_timer = randf_range(10.0, 18.0)
+        var prize = "credits" if randf() < .62 else "prize_box"
+        _add_pickup(prize, Vector2(randf_range(120, 648), randf_range(260, 870)))
+        _popup("BONUS DROP!", Vector2(384, 230), Color(1, .82, .12))
 
 func _request_exit() -> void:
     var now = Time.get_ticks_msec() / 1000.0
@@ -762,27 +825,46 @@ func _hurt_player(p: Dictionary, amount: float) -> void:
         audio.announce("player_low_health")
 
 func _update_waves(dt: float) -> void:
+    if phase == "route":
+        _update_route_choice()
+        return
     phase_timer -= dt
     if phase == "warning" and phase_timer <= 0:
         _begin_wave()
     elif phase == "combat" and enemies.is_empty():
-        phase = "clear"
-        phase_timer = 3.0
+        phase = "route"
+        phase_timer = 0.0
         audio.play_sfx("wave_clear")
-        audio.announce("room_clear")
-        _popup("ROOM CLEARED", Vector2(384, 470), Color(0.3, 1, 0.65))
+        audio.announce_sequence(["voice_lets_go.wav"])
+        _popup("ROOM CLEARED - CHOOSE A DOOR", Vector2(384, 470), Color(0.3, 1, 0.65))
         _add_pickup("prize_box", Vector2(384, 560))
-    elif phase == "clear" and phase_timer <= 0:
-        wave_index += 1
-        if wave_index >= waves.size():
-            victory = true
-            audio.play_music("win_game")
-            audio.announce("victory", true)
-            return
-        phase = "warning"
-        phase_timer = 1.4
-        audio.play_sfx("door_warning")
-        audio.announce("wave_start")
+
+func _update_route_choice() -> void:
+    var exits = {
+        "NORTH": Vector2(384, 185), "SOUTH": Vector2(384, 930),
+        "WEST": Vector2(65, 555), "EAST": Vector2(703, 555)}
+    for p in _active_players():
+        for route in exits:
+            if p["pos"].distance_to(exits[route]) < 62:
+                route_history.append(route)
+                wave_index += 1
+                if wave_index >= waves.size():
+                    victory = true
+                    tally_time = 0.0
+                    audio.play_music("win_game")
+                    audio.announce("victory", true)
+                    return
+                if route in ["WEST", "EAST"] and randf() < .42:
+                    _add_pickup("prize_box", Vector2(340, 560))
+                    _add_pickup("credits", Vector2(428, 560))
+                    audio.play_music("junkyard")
+                    _popup("SECRET PRIZE ROUTE!", Vector2(384, 490), Color(1, .72, .12))
+                phase = "warning"
+                phase_timer = 1.4
+                for player in players:
+                    player["pos"] = Vector2(280 + player["id"] * 208, 545)
+                audio.play_sfx("door_open")
+                return
 
 func _begin_wave() -> void:
     var wave: Dictionary = waves[wave_index]
@@ -1011,9 +1093,13 @@ func _update_drops(dt: float) -> void:
                     "health": p["health"] = minf(100.0, p["health"] + 40.0)
                     "armor": p["armor"] = minf(100.0, p["armor"] + 50.0)
                     "extra_life": p["lives"] = mini(9, p["lives"] + 1)
-                    "credits": p["score"] += 5000
+                    "credits":
+                        p["score"] += 5000
+                        p["cash"] += 5000
                     "prize_box":
                         p["score"] += 10000
+                        p["cash"] += 7500
+                        p["gold"] += 1
                         p["weapon"] = weapon_ids[randi() % weapon_ids.size()]
                         audio.announce_sequence(["voice_big_money.wav", "voice_big_prizes.wav", "voice_i_love_it.wav"])
                     _: p["buffs"][id] = 12.0
@@ -1110,9 +1196,30 @@ func _draw() -> void:
             for x in range(12):
                 var index = 10 if y == 0 else 11 if y == 13 else 12 if x == 0 else 13 if x == 11 else 2 if (x + y) % 4 == 0 else 0
                 draw_texture_rect_region(tile, Rect2(x * 64, 128 + y * 64, 64, 64), Rect2((index % 8) * 64, int(index / 8) * 64, 64, 64))
-    var door_state = "warning" if phase == "warning" else "open" if phase == "clear" else "closed"
+    var door_state = "warning" if phase == "warning" else "open" if phase == "route" else "closed"
     for point in [Vector2(384, 150), Vector2(384, 980), Vector2(38, 555), Vector2(730, 555)]:
         _sprite("tilesets/arena/door_" + door_state + ".png", point, int(game_time * 8) % (4 if door_state == "warning" else 1))
+    if phase == "entrance":
+        draw_rect(Rect2(0, 128, 768, 896), Color(.015, .02, .055, .76))
+        for y in range(225, 920, 95):
+            draw_line(Vector2(65, y), Vector2(703, y), Color(.08, .4, .58, .38), 2)
+        draw_line(Vector2(65, 920), Vector2(330, 570), Color(.1, .9, 1, .8), 5)
+        draw_line(Vector2(703, 920), Vector2(438, 570), Color(1, .25, .75, .8), 5)
+        _label("DREADWIRE TV STUDIOS", Vector2(384, 220), 28, Color(1, .78, .18), true)
+        _label("CONTESTANTS TO THE ARENA", Vector2(384, 260), 19, Color(.35, .9, 1), true)
+        if not entrance_banner.is_empty():
+            var banner_y = 360.0 + sin(entrance_elapsed * 3.0) * 7.0
+            draw_rect(Rect2(80, banner_y - 48, 608, 82), Color(.12, .01, .05, .95))
+            draw_rect(Rect2(80, banner_y - 48, 608, 82), Color(1, .12, .25), false, 4)
+            _label("$  " + entrance_banner + "  $", Vector2(384, banner_y + 8), 27, Color(1, .25, .22), true)
+    if phase == "route":
+        var pulse = .65 + sin(game_time * 6.0) * .3
+        var arrow_color = Color(1, .78, .12, pulse)
+        _label("CHOOSE YOUR NEXT ROOM", Vector2(384, 230), 25, arrow_color, true)
+        _label("▲", Vector2(384, 205), 38, arrow_color, true)
+        _label("▼", Vector2(384, 920), 38, arrow_color, true)
+        _label("◀", Vector2(82, 565), 38, arrow_color, true)
+        _label("▶", Vector2(686, 565), 38, arrow_color, true)
     for hazard in hazards:
         var age: float = hazard["time"]
         var state = "warning" if age < 0 else "active" if fmod(age, 4.5) < 1.2 else "cooldown"
@@ -1227,9 +1334,32 @@ func _hud() -> void:
         draw_rect(Rect2(0, 128, 768, 896), Color(.015, .025, .05, .86))
         if demo_paused:
             _draw_pause_menu()
+        elif victory:
+            _draw_prize_tally()
         else:
-            _label("CHAMPIONS!" if victory else "GAME OVER", Vector2(384, 450), 52, Color(1, .76, .22), true)
+            _label("GAME OVER", Vector2(384, 450), 52, Color(1, .76, .22), true)
             _label("START: TITLE    R: RESTART    ESC: EXIT", Vector2(384, 515), 20, Color.WHITE, true)
+
+func _draw_prize_tally() -> void:
+    _label("FINAL PRIZE TALLY", Vector2(384, 205), 38, Color(1, .76, .16), true)
+    var winner = 0 if players[0]["score"] >= players[1]["score"] else 1
+    for i in range(2 if p2_enabled else 1):
+        var p: Dictionary = players[i]
+        var x = 72 + i * 360
+        var reveal = clampf(tally_time / 5.0, 0.0, 1.0)
+        var bars = mini(18, int((p["cash"] / 1000.0 + p["gold"] * 2) * reveal))
+        _label("PLAYER %d" % (i + 1), Vector2(x + 130, 290), 27, Color(.15, .85, 1) if i == 0 else Color(1, .72, .12), true)
+        draw_rect(Rect2(x, 320, 260, 480), Color(.025, .04, .1, .95))
+        for bar in range(bars):
+            var col = bar % 4
+            var row = int(bar / 4)
+            var rect = Rect2(x + 18 + col * 58, 742 - row * 66, 48, 54)
+            draw_rect(rect, Color(1, .65, .08))
+            draw_rect(rect, Color(1, .92, .38), false, 3)
+        _label("$%d + %d GOLD" % [p["cash"], p["gold"]], Vector2(x + 130, 835), 19, Color.WHITE, true)
+        _label("SCORE %08d" % p["score"], Vector2(x + 130, 870), 19, Color.WHITE, true)
+        if i == winner and tally_time > 5.0:
+            _label("★ WINNER ★", Vector2(x + 130, 925), 24, Color(1, .8, .12), true)
 
 func _draw_pause_menu() -> void:
     var panel = Rect2(104, 180, 560, 760)
