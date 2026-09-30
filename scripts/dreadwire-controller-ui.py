@@ -10,11 +10,22 @@ import subprocess
 CONFIG = Path("/opt/retropie/configs/all/controller-assignments.json")
 MANAGER = "/usr/local/bin/cabinet-controller-manager.py"
 FALLBACK = "usb-DragonRise_Inc._Generic_USB_Joystick-joystick"
+MOBILE_STATE = Path("/run/dreadwire/mobile-controllers.json")
+
+
+def active_mobile_labels():
+    try:
+        records = json.loads(MOBILE_STATE.read_text()).get("controllers", {})
+        return {int(slot): str(record.get("label", f"Mobile Player {slot}"))
+                for slot, record in records.items()}
+    except (OSError, ValueError, TypeError):
+        return {}
 
 
 def detected():
     devices = {}
     nodes = set()
+    mobile = active_mobile_labels()
     by_id = Path("/dev/input/by-id")
     for link in sorted(by_id.glob("*-joystick")) if by_id.exists() else []:
         if "event-joystick" in link.name:
@@ -33,6 +44,12 @@ def detected():
         try:
             name = (js / "device/name").read_text().strip()
             if name.startswith("Dreadwire Player"):
+                try:
+                    slot = int(name.rsplit(" ", 1)[1])
+                except (ValueError, IndexError):
+                    continue
+                if slot in mobile:
+                    devices[f"mobile-player-{slot}"] = mobile[slot]
                 continue
             try:
                 unique = (js / "device/uniq").read_text().strip()

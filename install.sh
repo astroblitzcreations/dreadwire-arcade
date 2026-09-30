@@ -10,6 +10,7 @@ install -m 0755 "$ROOT/scripts/dreadwire-party-overlay" /usr/local/bin/dreadwire
 install -m 0755 "$ROOT/scripts/dreadwire-volume-overlay" /usr/local/bin/dreadwire-volume-overlay
 install -m 0755 "$ROOT/scripts/cabinet-shortcuts.py" /usr/local/bin/cabinet-shortcuts.py
 install -m 0755 "$ROOT/scripts/dreadwire-controller-ui.py" /usr/local/bin/dreadwire-controller-ui.py
+install -m 0755 "$ROOT/scripts/cabinet-controller-manager.py" /usr/local/bin/cabinet-controller-manager.py
 install -d -o pi -g pi /home/pi/RetroPie/roms/companion
 install -o pi -g pi -m 0755 "$ROOT/companion/retropie/06-arcade-mode.sh" /home/pi/RetroPie/roms/companion/06-arcade-mode.sh
 install -d /var/lib/dreadwire-companion
