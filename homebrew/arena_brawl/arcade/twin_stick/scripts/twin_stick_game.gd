@@ -45,7 +45,7 @@ var shake: float = 0.0
 var next_enemy_uid: int = 1
 var exit_armed_until: float = 0.0
 const PAUSE_ITEMS = ["RESUME GAME", "RESTART GAME", "RECONFIGURE CONTROLS", "MUSIC", "SOUND EFFECTS", "VOICE", "CONTROLLER HELP", "EXIT TO ARCADE"]
-const CONTROL_ACTIONS = ["MOVE UP", "MOVE DOWN", "MOVE LEFT", "MOVE RIGHT", "FIRE / LOCK AIM", "PAUSE", "SELECT", "START"]
+const CONTROL_ACTIONS = ["MOVE UP", "MOVE DOWN", "MOVE LEFT", "MOVE RIGHT", "FIRE", "LOCK AIM", "PAUSE", "SELECT", "START"]
 var pause_selection := 0
 var control_wizard_open := false
 var control_wizard_step := 0
@@ -58,6 +58,9 @@ var joy_axis_latched: Dictionary = {}
 var music_enabled := true
 var sfx_enabled := true
 var voice_enabled := true
+var music_volume := 80
+var sfx_volume := 85
+var voice_volume := 90
 var controller_help_timer := 0.0
 
 func _ready() -> void:
@@ -109,7 +112,7 @@ func _new_player(index: int, point: Vector2) -> Dictionary:
         "weapon": "pulse_pistol", "fire_timer": 0.0, "aim": Vector2.UP,
         "move": Vector2.ZERO, "dir": "s", "invuln": 2.5,
         "respawn": 0.0, "damage_flash": 0.0, "buffs": {}, "anim_time": 0.0,
-        "fire_held": false, "locked_aim": Vector2.UP}
+        "fire_held": false, "lock_held": false, "locked_aim": Vector2.UP}
 
 func _input(event: InputEvent) -> void:
     if control_wizard_open:
@@ -121,6 +124,8 @@ func _input(event: InputEvent) -> void:
             match event.physical_keycode:
                 KEY_UP, KEY_W: _move_pause_selection(-1)
                 KEY_DOWN, KEY_S: _move_pause_selection(1)
+                KEY_LEFT, KEY_A: _adjust_pause_setting(-10)
+                KEY_RIGHT, KEY_D: _adjust_pause_setting(10)
                 KEY_ENTER, KEY_KP_ENTER, KEY_SPACE: _activate_pause_item()
                 KEY_ESCAPE, KEY_P: _set_pause(false)
             get_viewport().set_input_as_handled()
@@ -169,11 +174,15 @@ func _input(event: InputEvent) -> void:
     elif event is InputEventJoypadButton and event.pressed:
         var mapped = _mapped_button_action(Input.get_joy_name(event.device).to_lower(), event.button_index)
         if demo_paused:
-            if mapped in ["MOVE UP", "MOVE LEFT"]:
+            if mapped == "MOVE UP":
                 _move_pause_selection(-1)
-            elif mapped in ["MOVE DOWN", "MOVE RIGHT"]:
+            elif mapped == "MOVE DOWN":
                 _move_pause_selection(1)
-            elif mapped in ["FIRE / LOCK AIM", "START"] or event.button_index in [JOY_BUTTON_A, JOY_BUTTON_X, JOY_BUTTON_START]:
+            elif mapped == "MOVE LEFT":
+                _adjust_pause_setting(-10)
+            elif mapped == "MOVE RIGHT":
+                _adjust_pause_setting(10)
+            elif mapped in ["FIRE", "START"] or event.button_index in [JOY_BUTTON_A, JOY_BUTTON_X, JOY_BUTTON_START]:
                 _activate_pause_item()
             elif event.button_index == JOY_BUTTON_B:
                 _set_pause(false)
@@ -247,17 +256,32 @@ func _activate_pause_item() -> void:
             restart()
             _set_pause(false)
         2: _start_control_wizard()
-        3:
-            music_enabled = not music_enabled
-            audio.set_music_enabled(music_enabled)
-        4:
-            sfx_enabled = not sfx_enabled
-            audio.set_sfx_enabled(sfx_enabled)
-        5:
-            voice_enabled = not voice_enabled
-            audio.set_voice_enabled(voice_enabled)
+        3: _adjust_pause_setting(10)
+        4: _adjust_pause_setting(10)
+        5: _adjust_pause_setting(10)
         6: controller_help_timer = 6.0
         7: get_tree().quit()
+    queue_redraw()
+
+func _adjust_pause_setting(amount: int) -> void:
+    match pause_selection:
+        3:
+            music_volume = clampi(music_volume + amount, 0, 100)
+            music_enabled = music_volume > 0
+            audio.set_music_enabled(music_enabled)
+            audio.set_music_volume(music_volume)
+        4:
+            sfx_volume = clampi(sfx_volume + amount, 0, 100)
+            sfx_enabled = sfx_volume > 0
+            audio.set_sfx_enabled(sfx_enabled)
+            audio.set_sfx_volume(sfx_volume)
+        5:
+            voice_volume = clampi(voice_volume + amount, 0, 100)
+            voice_enabled = voice_volume > 0
+            audio.set_voice_enabled(voice_enabled)
+            audio.set_voice_volume(voice_volume)
+        _: return
+    _save_controller_mappings()
     queue_redraw()
 
 func _start_control_wizard() -> void:
@@ -337,6 +361,11 @@ func _mapped_move_vector(device_name: String, device: int) -> Vector2:
     if _mapped_action_pressed(device_name, device, "MOVE DOWN"): result.y += 1
     return result.normalized()
 
+func _mapped_keyboard_action_pressed(action: String) -> bool:
+    var mappings: Dictionary = controller_mappings.get("keyboard", {})
+    var parts = String(mappings.get(action, "")).split(",")
+    return parts.size() == 2 and parts[0] == "key" and Input.is_physical_key_pressed(int(parts[1]))
+
 func _handle_menu_axis(event: InputEventJoypadMotion) -> void:
     if not demo_paused:
         return
@@ -354,18 +383,28 @@ func _handle_menu_axis(event: InputEventJoypadMotion) -> void:
         if parts.size() == 3 and parts[0] == "axis" and int(parts[1]) == event.axis and int(parts[2]) == (1 if event.axis_value > 0 else -1):
             mapped = action
             break
-    if mapped in ["MOVE UP", "MOVE LEFT"]:
+    if mapped == "MOVE UP":
         _move_pause_selection(-1)
-    elif mapped in ["MOVE DOWN", "MOVE RIGHT"]:
+    elif mapped == "MOVE DOWN":
         _move_pause_selection(1)
+    elif mapped == "MOVE LEFT":
+        _adjust_pause_setting(-10)
+    elif mapped == "MOVE RIGHT":
+        _adjust_pause_setting(10)
     elif event.axis in [JOY_AXIS_LEFT_X, JOY_AXIS_LEFT_Y]:
-        _move_pause_selection(1 if event.axis_value > 0 else -1)
+        if event.axis == JOY_AXIS_LEFT_Y:
+            _move_pause_selection(1 if event.axis_value > 0 else -1)
+        else:
+            _adjust_pause_setting(10 if event.axis_value > 0 else -10)
 
 func _save_controller_mappings() -> void:
     var config = ConfigFile.new()
     for device_name in controller_mappings:
         for action in controller_mappings[device_name]:
             config.set_value(device_name, action, controller_mappings[device_name][action])
+    config.set_value("audio", "music_volume", music_volume)
+    config.set_value("audio", "sfx_volume", sfx_volume)
+    config.set_value("audio", "voice_volume", voice_volume)
     config.save("user://arena_brawl_controls.cfg")
 
 func _load_controller_mappings() -> void:
@@ -373,9 +412,23 @@ func _load_controller_mappings() -> void:
     if config.load("user://arena_brawl_controls.cfg") != OK:
         return
     for section in config.get_sections():
+        if section == "audio":
+            music_volume = int(config.get_value(section, "music_volume", music_volume))
+            sfx_volume = int(config.get_value(section, "sfx_volume", sfx_volume))
+            voice_volume = int(config.get_value(section, "voice_volume", voice_volume))
+            continue
         controller_mappings[section] = {}
         for key in config.get_section_keys(section):
             controller_mappings[section][key] = config.get_value(section, key)
+    music_enabled = music_volume > 0
+    sfx_enabled = sfx_volume > 0
+    voice_enabled = voice_volume > 0
+    audio.set_music_enabled(music_enabled)
+    audio.set_sfx_enabled(sfx_enabled)
+    audio.set_voice_enabled(voice_enabled)
+    audio.set_music_volume(music_volume)
+    audio.set_sfx_volume(sfx_volume)
+    audio.set_voice_volume(voice_volume)
 
 func _active_players() -> Array:
     var output: Array = []
@@ -432,10 +485,14 @@ func _update_players(dt: float) -> void:
         var move = Input.get_vector(prefix + "left", prefix + "right", prefix + "up", prefix + "down")
         var aim: Vector2 = p["aim"]
         var firing = false
+        var fire_button = false
+        var lock_button = false
         if p["id"] == 0:
             aim = (get_global_mouse_position() - p["pos"] - Vector2(0, -18)).normalized()
-            firing = Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) or Input.is_action_pressed("brawl_p1_fire")
-            if firing and move.length() > 0.1 and not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+            fire_button = Input.is_action_pressed("brawl_p1_fire") or _mapped_keyboard_action_pressed("FIRE")
+            lock_button = Input.is_physical_key_pressed(KEY_SHIFT) or _mapped_keyboard_action_pressed("LOCK AIM")
+            firing = Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) or fire_button
+            if fire_button and move.length() > 0.1:
                 aim = move.normalized()
         else:
             var key_aim = Input.get_vector("brawl_p2_aim_left", "brawl_p2_aim_right", "brawl_p2_aim_up", "brawl_p2_aim_down")
@@ -457,17 +514,23 @@ func _update_players(dt: float) -> void:
             var custom_move = _mapped_move_vector(device_name, device)
             if custom_move.length() > 0.1:
                 move = custom_move
-            var mapped_fire = _mapped_action_pressed(device_name, device, "FIRE / LOCK AIM")
+            var mapped_fire = _mapped_action_pressed(device_name, device, "FIRE")
             var action_fire = mapped_fire or Input.is_joy_button_pressed(device, JOY_BUTTON_A) or Input.is_joy_button_pressed(device, JOY_BUTTON_X)
+            var action_lock = _mapped_action_pressed(device_name, device, "LOCK AIM")
+            fire_button = fire_button or action_fire
+            lock_button = lock_button or action_lock
             firing = firing or action_fire or Input.get_joy_axis(device, JOY_AXIS_TRIGGER_RIGHT) > 0.3
-            # Single-stick arcade controls: begin firing in the current travel
-            # direction, then keep that direction locked while the button is
-            # held so movement and shooting remain independent like Smash TV.
-            if action_fire and not bool(p["fire_held"]):
-                p["locked_aim"] = move.normalized() if move.length() > 0.1 else p["aim"]
-            p["fire_held"] = action_fire
-            if action_fire and right.length() <= 0.1:
-                aim = p["locked_aim"]
+            if action_fire and right.length() <= 0.1 and move.length() > 0.1 and not lock_button:
+                aim = move.normalized()
+        # FIRE and LOCK AIM are intentionally separate. FIRE normally follows
+        # travel direction. Pressing LOCK snapshots that direction; while it is
+        # held, the player can move anywhere without rotating the stream.
+        if fire_button and lock_button and not bool(p["lock_held"]):
+            p["locked_aim"] = aim if aim.length() > 0.1 else p["aim"]
+        if fire_button and lock_button:
+            aim = p["locked_aim"]
+        p["fire_held"] = fire_button
+        p["lock_held"] = lock_button
         p["move"] = move
         p["aim"] = aim if aim.length() > 0.01 else Vector2.UP
         if move.length() > 0.01:
@@ -1004,15 +1067,15 @@ func _draw_pause_menu() -> void:
         draw_rect(row, Color(.08, .48, .72, .5) if selected else Color(.025, .04, .1, .9))
         draw_rect(row, Color(1, .82, .18) if selected else Color(.12, .32, .48), false, 2)
         var label = PAUSE_ITEMS[i]
-        if i == 3: label = "MUSIC: " + ("ON" if music_enabled else "OFF")
-        elif i == 4: label = "SOUND EFFECTS: " + ("ON" if sfx_enabled else "OFF")
-        elif i == 5: label = "ANNOUNCER VOICE: " + ("ON" if voice_enabled else "OFF")
+        if i == 3: label = "MUSIC VOLUME: %d%%" % music_volume
+        elif i == 4: label = "SOUND EFFECTS: %d%%" % sfx_volume
+        elif i == 5: label = "ANNOUNCER VOICE: %d%%" % voice_volume
         _label(label, row.position + Vector2(row.size.x / 2, 33), 20, Color.WHITE, true)
     if controller_help_timer > 0:
         _label("MOVE + HOLD FIRE = LOCK SHOT DIRECTION", Vector2(384, 852), 16, Color(.4, 1, .75), true)
         _label("DUAL STICK: LEFT MOVES • RIGHT AIMS/FIRES", Vector2(384, 880), 16, Color(.4, 1, .75), true)
     else:
-        _label("D-PAD / STICK: MOVE    A: SELECT    B: BACK", Vector2(384, 885), 15, Color(.58, .75, .9), true)
+        _label("UP/DOWN: MOVE   LEFT/RIGHT: VOLUME   A: SELECT", Vector2(384, 885), 14, Color(.58, .75, .9), true)
 
 func _make_crt() -> void:
     crt_layer = CanvasLayer.new()

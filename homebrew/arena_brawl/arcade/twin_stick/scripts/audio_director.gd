@@ -178,6 +178,23 @@ func set_voice_enabled(enabled: bool) -> void:
     if voice_muted:
         voice_player.stop()
 
+func set_music_volume(percent: int) -> void:
+    _set_bus_volume("BrawlMusic", percent)
+
+func set_sfx_volume(percent: int) -> void:
+    _set_bus_volume("BrawlSFX", percent)
+
+func set_voice_volume(percent: int) -> void:
+    _set_bus_volume("BrawlVoice", percent)
+
+func _set_bus_volume(bus_name: String, percent: int) -> void:
+    var index = AudioServer.get_bus_index(bus_name)
+    if index < 0:
+        return
+    var amount = clampi(percent, 0, 100)
+    AudioServer.set_bus_mute(index, amount == 0)
+    AudioServer.set_bus_volume_db(index, linear_to_db(maxf(float(amount) / 100.0, 0.001)))
+
 func stop_all() -> void:
     for player in pool:
         player.stop()
