@@ -12,6 +12,11 @@ install -m 0755 "$ROOT/scripts/cabinet-shortcuts.py" /usr/local/bin/cabinet-shor
 install -m 0755 "$ROOT/scripts/cabinet-controller-manager.py" /usr/local/bin/cabinet-controller-manager.py
 install -m 0755 "$ROOT/scripts/generate-multiplayer-packs.py" /usr/local/bin/generate-multiplayer-packs.py
 /usr/local/bin/generate-multiplayer-packs.py
+install -d /opt/dreadwire/goldmaze /opt/dreadwire/speedbike /home/pi/RetroPie/roms/homebrew
+install -m 0755 "$ROOT/homebrew/goldmaze/root-xclient.sh" /opt/dreadwire/goldmaze/root-xclient.sh
+install -m 0755 "$ROOT/homebrew/speedbike/root-xclient.sh" /opt/dreadwire/speedbike/root-xclient.sh
+install -m 0755 "$ROOT/homebrew/launchers/Trippy Gold Maze.sh" "/home/pi/RetroPie/roms/homebrew/Trippy Gold Maze.sh"
+install -m 0755 "$ROOT/homebrew/launchers/Speedbike.sh" "/home/pi/RetroPie/roms/homebrew/Speedbike.sh"
 install -d -o pi -g pi /home/pi/RetroPie/roms/companion
 install -o pi -g pi -m 0755 "$ROOT/companion/retropie/06-arcade-mode.sh" /home/pi/RetroPie/roms/companion/06-arcade-mode.sh
 install -d /var/lib/dreadwire-companion
