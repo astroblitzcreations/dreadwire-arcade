@@ -18,6 +18,8 @@ for theme in "${themes[@]}"; do
   cp -a "${SOURCE_ROOT}/${theme}/." "${THEME_ROOT}/${theme}/"
   install -m 0644 "${FONT_ROOT}/DejaVuSans.ttf" "${THEME_ROOT}/${theme}/assets/DejaVuSans.ttf"
   install -m 0644 "${FONT_ROOT}/DejaVuSans-Bold.ttf" "${THEME_ROOT}/${theme}/assets/DejaVuSans-Bold.ttf"
+  find "${THEME_ROOT}/${theme}" -type d -exec chmod 0755 {} +
+  find "${THEME_ROOT}/${theme}" -type f -exec chmod 0644 {} +
 done
 
 echo "Dreadwire EmulationStation themes installed:"
