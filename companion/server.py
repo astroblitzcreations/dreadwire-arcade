@@ -48,6 +48,9 @@ PARTY_QUEUE = []
 PARTY_CHAT = []
 GAME_SELECTION = {}
 SCREEN_LOCK = asyncio.Lock()
+SCREEN_LATEST = {"frame": None, "generation": 0, "task": None}
+SCREEN_CONDITION = asyncio.Condition()
+RETROARCH_CAPTURE_CACHE = {"checked": 0.0, "value": False}
 PACKAGE_VERSION = "1.1.4"
 UPDATE_CONFIG = Path("/etc/dreadwire/update.json")
 
@@ -817,16 +820,147 @@ def display_transition_active():
     return active
 
 
+async def publish_screen_frame(frame):
+    async with SCREEN_CONDITION:
+        SCREEN_LATEST["frame"] = frame
+        SCREEN_LATEST["generation"] += 1
+        SCREEN_CONDITION.notify_all()
+
+
+def retroarch_capture_active():
+    now = time.monotonic()
+    if now - RETROARCH_CAPTURE_CACHE["checked"] > .5:
+        RETROARCH_CAPTURE_CACHE["checked"] = now
+        RETROARCH_CAPTURE_CACHE["value"] = any(
+            proc.info.get("name") == "retroarch" for proc in psutil.process_iter(["name"])
+        )
+    return RETROARCH_CAPTURE_CACHE["value"]
+
+
+async def latest_screen_capture():
+    """Capture once and retain only the newest frame for every viewer."""
+    while True:
+        process = None
+        try:
+            game_name = await asyncio.to_thread(current_game)
+            retroarch_mode = await asyncio.to_thread(retroarch_capture_active)
+            x11_mode = game_name in {"Void Run", "Speedbike", "Trippy Gold Maze", "Arena Brawl"}
+            if retroarch_mode:
+                screenshot_dir = Path("/opt/retropie/configs/all/retroarch/screenshots")
+                before = time.time()
+                sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                try:
+                    sock.sendto(b"SCREENSHOT\n", ("127.0.0.1", 55355))
+                finally:
+                    sock.close()
+                captured = None
+                for _ in range(12):
+                    candidates = [path for path in screenshot_dir.glob("*.png") if path.stat().st_mtime >= before - .05]
+                    if candidates:
+                        captured = max(candidates, key=lambda path: path.stat().st_mtime)
+                        break
+                    await asyncio.sleep(.025)
+                if captured:
+                    try:
+                        def encode_retroarch_frame():
+                            with Image.open(captured) as opened:
+                                opened.load()
+                                image = opened.convert("RGB").transpose(Image.Transpose.ROTATE_270)
+                            image.thumbnail((360, 480), Image.Resampling.BILINEAR)
+                            output = BytesIO()
+                            image.save(output, "JPEG", quality=70, optimize=False)
+                            return output.getvalue()
+                        await publish_screen_frame(await asyncio.to_thread(encode_retroarch_frame))
+                    finally:
+                        captured.unlink(missing_ok=True)
+                await asyncio.sleep(.035)
+                continue
+            if not x11_mode and await asyncio.to_thread(display_transition_active):
+                await asyncio.sleep(.08)
+                continue
+            if x11_mode:
+                capture_args = (
+                    "runuser", "-u", "pi", "--", "env", "DISPLAY=:0",
+                    "ffmpeg", "-hide_banner", "-loglevel", "error",
+                    "-f", "x11grab", "-video_size", "768x1024", "-framerate", "18", "-i", ":0",
+                    "-vf", "scale=360:480:flags=fast_bilinear",
+                )
+            else:
+                capture_args = (
+                    "ffmpeg", "-hide_banner", "-loglevel", "error",
+                    "-f", "kmsgrab", "-device", "/dev/dri/card1", "-framerate", "15", "-i", "-",
+                    "-vf", "hwdownload,format=bgra,transpose=clock,scale=360:480:flags=fast_bilinear",
+                )
+            process = await asyncio.create_subprocess_exec(
+                *capture_args, "-threads", "2", "-q:v", "10", "-flush_packets", "1",
+                "-f", "image2pipe", "-vcodec", "mjpeg", "pipe:1",
+                stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL,
+            )
+            next_mode_check = time.monotonic() + .5
+            while True:
+                try:
+                    encoded = await process.stdout.readuntil(b"\xff\xd9")
+                except (asyncio.IncompleteReadError, asyncio.LimitOverrunError):
+                    break
+                start = encoded.find(b"\xff\xd8")
+                if start < 0:
+                    continue
+                await publish_screen_frame(encoded[start:])
+                # Give waiting HTTP clients a scheduling point for every
+                # encoded image, rather than once per 64 KiB pipe batch.
+                await asyncio.sleep(.005)
+                if time.monotonic() >= next_mode_check:
+                    next_mode_check = time.monotonic() + .5
+                    game_now = await asyncio.to_thread(current_game)
+                    changed = (game_now in {"Void Run", "Speedbike", "Trippy Gold Maze", "Arena Brawl"}) != x11_mode
+                    retroarch_now = await asyncio.to_thread(retroarch_capture_active)
+                    transition = not x11_mode and await asyncio.to_thread(display_transition_active)
+                    if changed or retroarch_now or transition:
+                        break
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            await asyncio.sleep(.25)
+        finally:
+            if process and process.returncode is None:
+                process.terminate()
+                try:
+                    await asyncio.wait_for(process.wait(), 2)
+                except asyncio.TimeoutError:
+                    process.kill()
+        await asyncio.sleep(.08)
+
+
+def ensure_screen_capture():
+    task = SCREEN_LATEST.get("task")
+    if task is None or task.done():
+        SCREEN_LATEST["task"] = asyncio.create_task(latest_screen_capture())
+
+
 async def screen_frame(request):
     await require(request)
-    async with SCREEN_LOCK:
-        try:
-            jpeg = await asyncio.to_thread(capture_screen_jpeg)
-        except (OSError, RuntimeError) as error:
-            raise web.HTTPServiceUnavailable(text=str(error))
+    ensure_screen_capture()
+    try:
+        seen = int(request.query.get("generation", "-1"))
+    except ValueError:
+        seen = -1
+    async with SCREEN_CONDITION:
+        if SCREEN_LATEST["frame"] is None or SCREEN_LATEST["generation"] <= seen:
+            try:
+                await asyncio.wait_for(
+                    SCREEN_CONDITION.wait_for(lambda: SCREEN_LATEST["frame"] is not None and SCREEN_LATEST["generation"] > seen),
+                    timeout=2.5,
+                )
+            except asyncio.TimeoutError:
+                pass
+        jpeg = SCREEN_LATEST["frame"]
+        generation = SCREEN_LATEST["generation"]
+    if jpeg is None:
+        raise web.HTTPServiceUnavailable(text="Cabinet display is changing modes")
     return web.Response(body=jpeg, content_type="image/jpeg", headers={
         "Cache-Control": "no-store, no-cache, must-revalidate",
         "Pragma": "no-cache",
+        "X-Screen-Generation": str(generation),
     })
 
 
