@@ -32,6 +32,7 @@ REMOTE_INPUT_ENABLED = os.environ.get("DREADWIRE_REMOTE_INPUT", "1") == "1"
 MIRROR_PHYSICAL_INPUT = os.environ.get("DREADWIRE_MIRROR_PHYSICAL", "0") == "1"
 STATE_DIR = Path("/var/lib/dreadwire-companion")
 BATTERY_STATE = STATE_DIR / "battery.json"
+BATTERY_HISTORY = STATE_DIR / "battery-history.jsonl"
 POWER_WATCHDOG_STATE = Path("/run/dreadwire-power.json")
 USER_DB = STATE_DIR / "users.db"
 SETTINGS_STATE = STATE_DIR / "settings.json"
@@ -453,21 +454,39 @@ def battery():
         state = json.loads(BATTERY_STATE.read_text())
         elapsed = max(0, time.time() - float(state["updated"]))
         same_boot = state.get("boot_id") == text_file("/proc/sys/kernel/random/boot_id")
-        rate = state.get("rate_per_hour")
+        discharge_rate = state.get("discharge_rate_per_hour", state.get("rate_per_hour"))
+        charge_rate = state.get("charge_rate_per_hour")
         mode = state.get("mode", "battery")
         percent = float(state["percent"])
-        if same_boot and rate and mode == "battery":
-            percent = max(0, percent - float(rate) * elapsed / 3600)
-        remaining = percent / float(rate) if rate and mode == "battery" else None
-        samples = int(state.get("sample_count", 0))
+        active_rate = discharge_rate if mode == "battery" else charge_rate
+        if same_boot and active_rate:
+            direction = -1 if mode == "battery" else 1
+            percent = max(0, min(100, percent + direction * float(active_rate) * elapsed / 3600))
+        remaining = percent / float(discharge_rate) if discharge_rate and mode == "battery" else None
+        until_full = (100 - percent) / float(charge_rate) if charge_rate and mode == "charging" else None
+        discharge_samples = int(state.get("discharge_sample_count", state.get("sample_count", 0)))
+        charge_samples = int(state.get("charge_sample_count", 0))
+        active_samples = discharge_samples if mode == "battery" else charge_samples
+        history = []
+        try:
+            history = [json.loads(line) for line in BATTERY_HISTORY.read_text().splitlines()[-12:]]
+        except (OSError, ValueError, TypeError):
+            pass
         return {"available": True, "manual": True, "percent": round(percent, 1),
                 "entered_percent": state["percent"], "updated": state["updated"],
-                "rate_per_hour": round(rate, 2) if rate else None,
+                "rate_per_hour": round(active_rate, 2) if active_rate else None,
+                "discharge_rate_per_hour": round(discharge_rate, 2) if discharge_rate else None,
+                "charge_rate_per_hour": round(charge_rate, 2) if charge_rate else None,
                 "remaining_hours": round(remaining, 2) if remaining is not None else None,
                 "remaining_minutes": round(remaining * 60) if remaining is not None else None,
-                "mode": mode, "monitoring": same_boot and mode == "battery",
-                "sample_count": samples, "trusted": bool(rate) and samples >= 2,
-                "learning": not bool(rate) or samples < 2,
+                "time_to_full_hours": round(until_full, 2) if until_full is not None else None,
+                "time_to_full_minutes": round(until_full * 60) if until_full is not None else None,
+                "mode": mode, "monitoring": same_boot,
+                "sample_count": active_samples,
+                "discharge_sample_count": discharge_samples, "charge_sample_count": charge_samples,
+                "trusted": bool(active_rate) and active_samples >= 2,
+                "learning": not bool(active_rate) or active_samples < 2,
+                "history": history,
                 "name": "INIU BI-B5 (manual calibration)"}
     except (OSError, ValueError, KeyError, TypeError):
         return {"available": False, "manual": True, "reason": "Enter the percentage shown on the INIU BI-B5 display to begin runtime calibration"}
@@ -961,24 +980,46 @@ async def battery_update(request):
     now = time.time(); boot_id = text_file("/proc/sys/kernel/random/boot_id"); old = None
     try: old = json.loads(BATTERY_STATE.read_text())
     except (OSError, ValueError): pass
-    rate = old.get("rate_per_hour") if old else None
-    sample_count = int(old.get("sample_count", 0)) if old else 0
-    if old and old.get("boot_id") == boot_id and old.get("mode", "battery") == "battery" and mode == "battery":
+    discharge_rate = old.get("discharge_rate_per_hour", old.get("rate_per_hour")) if old else None
+    charge_rate = old.get("charge_rate_per_hour") if old else None
+    discharge_samples = int(old.get("discharge_sample_count", old.get("sample_count", 0))) if old else 0
+    charge_samples = int(old.get("charge_sample_count", 0)) if old else 0
+    if old and old.get("boot_id") == boot_id and old.get("mode", "battery") == mode:
         elapsed_hours = (now - float(old.get("updated", now))) / 3600
-        drop = float(old.get("percent", percent)) - percent
-        if elapsed_hours >= 5 / 60 and drop > 0:
-            observed = drop / elapsed_hours
+        change = (float(old.get("percent", percent)) - percent) if mode == "battery" else (percent - float(old.get("percent", percent)))
+        if elapsed_hours >= 5 / 60 and change > 0:
+            observed = change / elapsed_hours
             if 0.2 <= observed <= 100:
-                rate = observed if not rate else float(rate) * .65 + observed * .35
-                sample_count += 1
+                if mode == "battery":
+                    discharge_rate = observed if not discharge_rate else float(discharge_rate) * .65 + observed * .35
+                    discharge_samples += 1
+                else:
+                    charge_rate = observed if not charge_rate else float(charge_rate) * .65 + observed * .35
+                    charge_samples += 1
     STATE_DIR.mkdir(parents=True, exist_ok=True)
+    record = {"percent": percent, "updated": now, "mode": mode,
+              "discharge_rate_per_hour": discharge_rate, "charge_rate_per_hour": charge_rate,
+              "discharge_sample_count": discharge_samples, "charge_sample_count": charge_samples}
+    with BATTERY_HISTORY.open("a") as history_file:
+        history_file.write(json.dumps(record, separators=(",", ":")) + "\n")
+    try:
+        lines = BATTERY_HISTORY.read_text().splitlines()
+        if len(lines) > 500: BATTERY_HISTORY.write_text("\n".join(lines[-500:]) + "\n")
+    except OSError:
+        pass
     temporary = BATTERY_STATE.with_suffix(".tmp")
     temporary.write_text(json.dumps({"percent": percent, "updated": now, "mode": mode,
-                                     "rate_per_hour": rate, "sample_count": sample_count,
+                                     "rate_per_hour": discharge_rate, "sample_count": discharge_samples,
+                                     "discharge_rate_per_hour": discharge_rate,
+                                     "charge_rate_per_hour": charge_rate,
+                                     "discharge_sample_count": discharge_samples,
+                                     "charge_sample_count": charge_samples,
                                      "boot_id": boot_id}, indent=2) + "\n")
     temporary.replace(BATTERY_STATE)
-    return web.json_response({"ok": True, "learning": not bool(rate) or sample_count < 2,
-                              "rate_per_hour": rate, "sample_count": sample_count, "mode": mode})
+    active_rate = discharge_rate if mode == "battery" else charge_rate
+    active_samples = discharge_samples if mode == "battery" else charge_samples
+    return web.json_response({"ok": True, "learning": not bool(active_rate) or active_samples < 2,
+                              "rate_per_hour": active_rate, "sample_count": active_samples, "mode": mode})
 
 
 async def upload(request):

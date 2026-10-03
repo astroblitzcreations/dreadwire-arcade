@@ -6,7 +6,8 @@ let token = localStorage.dwToken || "",
   selected = null,
   remoteGameState = null,
   remoteRestartTimer = null,
-  batteryModeDirty = false;
+  batteryModeDirty = false,
+  batteryClock = null;
 const $ = (s) => document.querySelector(s),
   $$ = (s) => document.querySelectorAll(s);
 const audioTab = document.createElement("button");
@@ -122,6 +123,7 @@ $$("nav button").forEach(
       $$("nav button,.tab").forEach((x) => x.classList.remove("active"));
       b.classList.add("active");
       $("#" + b.dataset.tab).classList.add("active");
+      document.body.dataset.activeTab = b.dataset.tab;
       syncPadMode();
       setControllerHost(b.dataset.tab);
       if (b.dataset.tab === "remote") startRemoteStream();
@@ -722,7 +724,7 @@ function drawStats() {
   $("#stats").innerHTML = Object.entries(defs)
     .map(([key, pages]) => {
       const p = pages[(statPage[key] || 0) % pages.length];
-      return `<button class="stat" data-stat="${key}">${esc(p[0])}<b>${esc(p[1])}</b><small>tap for more</small></button>`;
+      return `<button class="stat stat-${key.toLowerCase()}" data-stat="${key}"><span class="statIcon" aria-hidden="true"></span><span>${esc(p[0])}</span><b>${esc(p[1])}</b><small>tap for more</small><i></i></button>`;
     })
     .join("");
   $$("[data-stat]").forEach(
@@ -732,6 +734,35 @@ function drawStats() {
         drawStats();
       }),
   );
+}
+function formatDuration(totalSeconds) {
+  totalSeconds = Math.max(0, Math.round(totalSeconds || 0));
+  const h = Math.floor(totalSeconds / 3600), m = Math.floor((totalSeconds % 3600) / 60), s = totalSeconds % 60;
+  return h ? `${h}h ${String(m).padStart(2, "0")}m ${String(s).padStart(2, "0")}s` : `${m}m ${String(s).padStart(2, "0")}s`;
+}
+function renderBatteryClock() {
+  if (!batteryClock) return;
+  const elapsed = Math.max(0, (Date.now() - batteryClock.at) / 1000);
+  const left = Math.max(0, batteryClock.seconds - elapsed);
+  $("#batteryCountdown").innerHTML = `<span>${batteryClock.mode === "charging" ? "TIME UNTIL FULL" : "ESTIMATED RUNTIME"}</span><b>${formatDuration(left)}</b><small>live estimate from your saved ${batteryClock.mode === "charging" ? "charging" : "discharge"} profile</small>`;
+}
+setInterval(renderBatteryClock, 1000);
+function drawBattery(b) {
+  const charging = b.mode === "charging";
+  const minutes = charging ? b.time_to_full_minutes : b.remaining_minutes;
+  const profileName = charging ? "CHARGE" : "RUNTIME";
+  const estimate = minutes != null ? ` • about ${formatDuration(minutes * 60)}` : ` • learning ${charging ? "charge" : "drain"} rate`;
+  const protection = charging ? " • shutdown protection paused" : b.trusted ? " • safe shutdown armed" : ` • calibration ${b.sample_count || 0}/2`;
+  $("#battery").textContent = `${b.percent}% estimated${estimate}${protection}`;
+  $("#batteryOrbValue").textContent = `${Math.round(b.percent)}%`;
+  $("#batteryOrbFill").style.height = `${Math.max(0, Math.min(100, b.percent))}%`;
+  $("#batteryOrb").dataset.level = b.percent <= 10 ? "critical" : b.percent <= 25 ? "warning" : charging ? "charging" : "good";
+  $("#batteryProfiles").innerHTML = `<div><span>RUNTIME PROFILE</span><b>${b.discharge_rate_per_hour ? `${b.discharge_rate_per_hour}% / hr` : "LEARNING"}</b><small>${b.discharge_sample_count || 0} valid samples</small></div><div><span>CHARGE PROFILE</span><b>${b.charge_rate_per_hour ? `${b.charge_rate_per_hour}% / hr` : "LEARNING"}</b><small>${b.charge_sample_count || 0} valid samples</small></div>`;
+  const history = (b.history || []).slice(-5).reverse();
+  $("#batteryHistory").innerHTML = history.length ? `<h3>RECENT MANUAL READINGS</h3>${history.map((r) => `<div><time>${new Date(r.updated * 1000).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"})}</time><span>${r.mode === "charging" ? "↗ CHARGING" : "↘ BATTERY"}</span><b>${r.percent}%</b></div>`).join("")}` : "";
+  batteryClock = minutes != null ? {mode:b.mode, seconds:minutes * 60, at:Date.now()} : null;
+  if (batteryClock) renderBatteryClock();
+  else $("#batteryCountdown").innerHTML = `<span>${profileName} ESTIMATE</span><b>LEARNING</b><small>Add another ${charging ? "higher" : "lower"} reading after at least five minutes</small>`;
 }
 async function refresh() {
   try {
@@ -749,16 +780,7 @@ async function refresh() {
     $("#song").textContent =
       `${s.music.title || "No track"} • ${s.music.status || "stopped"} • jukebox ${s.music.volume || 0}% • master ${s.master_volume ?? "—"}% • ${s.music.message || ""}`;
     if (s.battery.available) {
-      const estimate =
-        s.battery.remaining_hours != null
-          ? ` • about ${s.battery.remaining_hours}h remaining`
-          : " • learning drain rate";
-      const protection = s.battery.trusted
-        ? " • safe shutdown armed"
-        : s.battery.mode === "charging"
-          ? " • protection paused while charging"
-          : ` • calibration ${s.battery.sample_count || 0}/2`;
-      $("#battery").textContent = `${s.battery.percent}% estimated${estimate}${protection}`;
+      drawBattery(s.battery);
       if (!batteryModeDirty) $("#batteryMode").value = s.battery.mode || "battery";
     } else $("#battery").textContent = s.battery.reason;
     const protection = s.battery_protection || {};
@@ -786,7 +808,7 @@ $("#setBattery").onclick = async () => {
     batteryModeDirty = false;
     toast(
       r.learning
-        ? `Reading saved — calibration ${r.sample_count || 0}/2`
+        ? `${r.mode === "charging" ? "Charging" : "Battery"} reading saved — calibration ${r.sample_count || 0}/2`
         : r.mode === "charging"
           ? "Charging saved — automatic shutdown paused"
           : "Reading saved — battery protection armed",

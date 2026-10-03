@@ -45,8 +45,8 @@ def main():
         current_boot = BOOT_ID.read_text().strip()
         same_boot = state.get("boot_id") == current_boot
         mode = state.get("mode", "battery")
-        rate = state.get("rate_per_hour")
-        samples = int(state.get("sample_count", 0))
+        rate = state.get("discharge_rate_per_hour", state.get("rate_per_hour"))
+        samples = int(state.get("discharge_sample_count", state.get("sample_count", 0)))
 
         if not state or not same_boot or mode != "battery":
             message = "Charging — automatic shutdown paused" if mode == "charging" else "Enter a fresh battery reading to start protection"

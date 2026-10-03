@@ -8,7 +8,7 @@
     />
     <meta name="theme-color" content="#09051d" />
     <link rel="manifest" href="/static/manifest.webmanifest" />
-    <link rel="stylesheet" href="/static/app.css?v=23" />
+    <link rel="stylesheet" href="/static/app.css?v=24" />
     <link rel="stylesheet" href="/static/controller-layout.css?v=16" />
     <title>Dreadwire Arcade Remote</title>
   </head>
@@ -313,11 +313,16 @@
       </section>
       <section id="system" class="tab">
         <div id="powerWarning" class="powerWarning" hidden></div>
+        <div class="systemHero">
+          <div><span class="eyebrow">LIVE CABINET TELEMETRY</span><h1>System comes alive.</h1><p>Real hardware data, battery learning and arcade health in one view.</p></div>
+          <div class="systemPulse" aria-hidden="true"><i></i><i></i><i></i><b>DW</b></div>
+        </div>
         <div id="stats" class="stats"></div>
-        <div class="grid">
-          <div class="card">
-            <h2>INIU Power Bank</h2>
+        <div class="grid systemGrid">
+          <div class="card batteryCard">
+            <div class="cardTitle"><div><span class="eyebrow">POWER PROFILE</span><h2>INIU Power Bank</h2></div><div id="batteryOrb" class="batteryOrb"><span id="batteryOrbFill"></span><b id="batteryOrbValue">—</b></div></div>
             <p id="battery">Checking…</p>
+            <div id="batteryCountdown" class="batteryCountdown">Waiting for a reading</div>
             <div class="batteryset">
               <select id="batteryMode" aria-label="Power bank status">
                 <option value="battery">ON BATTERY</option>
@@ -331,12 +336,13 @@
                 placeholder="LED display %"
               /><button id="setBattery">SET READING</button>
             </div>
+            <div id="batteryProfiles" class="profileGrid"></div>
+            <div id="batteryHistory" class="batteryHistory"></div>
             <small
-              >Choose whether it is charging, then enter the number shown on
-              the power bank. Two discharge readings at least five minutes
-              apart arm automatic protection. Warnings appear at 15%/30
-              minutes and 10%; the cabinet safely shuts down at an estimated
-              5%.</small
+              >Set the mode and enter the LED percentage whenever it changes.
+              Two rising charging readings learn time-to-full; two falling
+              battery readings learn runtime. Readings must be at least five
+              minutes apart. Both profiles survive restarts.</small
             >
           </div>
           <div class="card">
@@ -394,6 +400,6 @@
       </div>
       <div id="toast"></div>
     </main>
-    <script src="/static/app.js?v=28"></script>
+    <script src="/static/app.js?v=29"></script>
   </body>
 </html>
