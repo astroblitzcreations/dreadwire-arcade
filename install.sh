@@ -13,6 +13,8 @@ install -m 0755 "$ROOT/scripts/cabinet-controller-manager.py" /usr/local/bin/cab
 install -m 0755 "$ROOT/scripts/dreadwire-power-watchdog.py" /usr/local/bin/dreadwire-power-watchdog.py
 install -m 0755 "$ROOT/scripts/generate-multiplayer-packs.py" /usr/local/bin/generate-multiplayer-packs.py
 /usr/local/bin/generate-multiplayer-packs.py
+install -m 0755 "$ROOT/scripts/generate-arcade-collections.py" /usr/local/bin/generate-arcade-collections.py
+/usr/local/bin/generate-arcade-collections.py
 install -d /opt/dreadwire/goldmaze /opt/dreadwire/speedbike /home/pi/RetroPie/roms/homebrew
 install -m 0755 "$ROOT/homebrew/goldmaze/root-xclient.sh" /opt/dreadwire/goldmaze/root-xclient.sh
 install -m 0755 "$ROOT/homebrew/speedbike/root-xclient.sh" /opt/dreadwire/speedbike/root-xclient.sh
@@ -21,6 +23,12 @@ install -m 0755 "$ROOT/homebrew/launchers/Speedbike.sh" "/home/pi/RetroPie/roms/
 install -d -o pi -g pi /home/pi/RetroPie/roms/companion
 install -o pi -g pi -m 0755 "$ROOT/companion/retropie/06-arcade-mode.sh" /home/pi/RetroPie/roms/companion/06-arcade-mode.sh
 install -o pi -g pi -m 0755 "$ROOT/companion/retropie/07-system-dashboard.sh" /home/pi/RetroPie/roms/companion/07-system-dashboard.sh
+install -o pi -g pi -m 0755 "$ROOT/companion/retropie/08-mystery-game.sh" /home/pi/RetroPie/roms/companion/08-mystery-game.sh
+chown -R pi:pi /opt/retropie/configs/all/emulationstation/collections /opt/dreadwire/collections
+AUTOSTART=/opt/retropie/configs/all/autostart.sh
+if ! grep -q 'generate-arcade-collections.py --shuffle-only' "$AUTOSTART"; then
+  sed -i '1i/usr/local/bin/generate-arcade-collections.py --shuffle-only' "$AUTOSTART"
+fi
 install -m 0755 "$ROOT/companion/retropie/cabinet-system-root-xclient.sh" /opt/dreadwire/companion/cabinet-system-root-xclient.sh
 install -m 0755 "$ROOT/companion/retropie/cabinet-system-xclient.sh" /opt/dreadwire/companion/cabinet-system-xclient.sh
 install -d /var/lib/dreadwire-companion
