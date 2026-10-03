@@ -121,8 +121,12 @@ class Jukebox:
         self.process = subprocess.Popen(
             [
                 "/usr/bin/cvlc", "--intf=dummy", "--play-and-exit", "--no-video",
-                "--quiet", "--aout=alsa",
-                "--alsa-audio-device=hdmi:CARD=vc4hdmi0,DEV=0",
+                # Share the cabinet's PipeWire/Pulse sink with EmulationStation
+                # and its menu/launch effects.  Opening HDMI through VLC's
+                # direct ALSA output is exclusive on this Pi: SDL then blocks
+                # forever waiting for its launch sound, so the screen fades to
+                # black before runcommand ever starts the selected ROM.
+                "--quiet", "--aout=pulse",
                 "--audio-resampler=soxr", "--audio-replay-gain-mode=none",
                 f"--gain={self.volume:.2f}", str(self.current),
             ],

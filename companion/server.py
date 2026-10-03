@@ -745,7 +745,10 @@ async def screen_stream(request):
                     screenshot_dir = Path("/opt/retropie/configs/all/retroarch/screenshots")
                     before = time.time()
                     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                    try: sock.sendto(b"SCREENSHOT", ("127.0.0.1", 55355))
+                    # RetroArch's UDP command parser waits for a line ending.
+                    # Without it the emulator keeps running, but never writes a
+                    # screenshot and Remote Play sits on CONNECTING forever.
+                    try: sock.sendto(b"SCREENSHOT\n", ("127.0.0.1", 55355))
                     finally: sock.close()
                     captured = None
                     for _ in range(12):
@@ -856,10 +859,14 @@ async def action(request):
         set_config_line("/opt/retropie/configs/all/retroarch.cfg", "input_player1_joypad_index", index)
         return web.json_response({"ok": True, "message": f"Mobile controller set as Player 1 (index {index})"})
     if name == "launch-enter":
-        # EmulationStation's keyboard profile can accept arrows while dropping
-        # Enter on some SDL/KMS builds.  Send both configured confirm paths;
-        # each is a real held tap rather than a browser-length pulse.
-        PAD.tap_button(e.BTN_SOUTH)
+        # Use exactly one input path for menu confirmation.  Sending BTN_SOUTH
+        # followed by Enter produces two confirms: the first starts the launch
+        # transition and the second can immediately dismiss/cancel RetroPie's
+        # runcommand hand-off, leaving a black screen with menu music playing.
+        # Clear any browser-lost holds first, then use the same dedicated
+        # keyboard device that reliably handles Remote Play navigation.
+        PAD.release()
+        time.sleep(.04)
         PAD.tap_key(e.KEY_ENTER)
         return web.json_response({"ok": True, "message": "Confirm sent to EmulationStation"})
     if name == "launch-back":
