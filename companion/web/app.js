@@ -51,6 +51,36 @@ document.querySelectorAll("nav button[data-tab]").forEach((button) => {
   button.innerHTML = `<span class="navIcon" aria-hidden="true">${navIcons[button.dataset.tab] || "•"}</span><span>${label}</span>`;
 });
 document.body.dataset.activeTab = document.querySelector("nav button.active")?.dataset.tab || "pad";
+const appearancePanel = $("#appearancePanel"),
+  appTheme = $("#appTheme"),
+  navLayout = $("#navLayout"),
+  appRoot = $("#app");
+const appearanceThemes = ["neon", "terminal", "glass", "overdrive"],
+  navigationLayouts = ["top", "left", "dock"];
+function applyAppearance(theme, layout) {
+  if (!appearanceThemes.includes(theme)) theme = "neon";
+  if (!navigationLayouts.includes(layout)) layout = "top";
+  document.body.classList.remove(...appearanceThemes.map((name) => `app-theme-${name}`));
+  appRoot.classList.remove(...navigationLayouts.map((name) => `nav-${name}`));
+  document.body.classList.add(`app-theme-${theme}`);
+  appRoot.classList.add(`nav-${layout}`);
+  appTheme.value = theme;
+  navLayout.value = layout;
+  localStorage.dwAppTheme = theme;
+  localStorage.dwNavLayout = layout;
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", ({neon:"#09051d",terminal:"#030b07",glass:"#07111f",overdrive:"#14001f"})[theme]);
+}
+applyAppearance(localStorage.dwAppTheme || "neon", localStorage.dwNavLayout || "top");
+$("#appearanceToggle").onclick = () => {
+  appearancePanel.hidden = !appearancePanel.hidden;
+  $("#appearanceToggle").setAttribute("aria-expanded", String(!appearancePanel.hidden));
+};
+$("#appearanceClose").onclick = () => {
+  appearancePanel.hidden = true;
+  $("#appearanceToggle").setAttribute("aria-expanded", "false");
+};
+appTheme.onchange = () => applyAppearance(appTheme.value, navLayout.value);
+navLayout.onchange = () => applyAppearance(appTheme.value, navLayout.value);
 function toast(m) {
   const t = $("#toast");
   t.textContent = m;

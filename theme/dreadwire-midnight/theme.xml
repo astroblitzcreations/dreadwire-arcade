@@ -1,0 +1,18 @@
+<theme>
+  <formatVersion>6</formatVersion><resolution>768 1024</resolution>
+  <variables><font>./assets/DejaVuSans.ttf</font><fontBold>./assets/DejaVuSans-Bold.ttf</fontBold><ice>74ddff</ice><violet>b49cff</violet><white>f4f8ff</white><muted>a9bdd1</muted></variables>
+  <view name="system">
+    <image name="background" extra="true"><path>./assets/background.svg</path><size>768 1024</size><pos>0 0</pos><origin>0 0</origin><zIndex>0</zIndex></image>
+    <text name="brand" extra="true"><text>DREADWIRE</text><fontPath>${fontBold}</fontPath><fontSize>54</fontSize><color>${white}</color><pos>50 64</pos><size>668 70</size><alignment>center</alignment><zIndex>4</zIndex></text>
+    <text name="tag" extra="true"><text>MIDNIGHT GALLERY</text><fontPath>${font}</fontPath><fontSize>18</fontSize><color>${ice}</color><pos>50 132</pos><size>668 32</size><alignment>center</alignment><zIndex>4</zIndex></text>
+    <carousel name="systemcarousel"><type>horizontal</type><size>690 430</size><pos>39 250</pos><logoSize>430 230</logoSize><logoScale>1.08</logoScale><maxLogoCount>3</maxLogoCount><logoRotation>0</logoRotation><color>07152480</color><zIndex>6</zIndex></carousel>
+    <text name="logoText"><fontPath>${fontBold}</fontPath><fontSize>40</fontSize><forceUppercase>true</forceUppercase><color>${white}</color><alignment>center</alignment></text>
+    <text name="systemInfo"><fontPath>${font}</fontPath><fontSize>22</fontSize><color>${violet}</color><alignment>center</alignment><size>650 44</size><pos>59 740</pos><zIndex>8</zIndex></text>
+    <helpsystem name="help"><pos>46 954</pos><textColor>${white}</textColor><iconColor>${ice}</iconColor><fontPath>${fontBold}</fontPath><fontSize>20</fontSize></helpsystem>
+  </view>
+  <view name="basic, detailed, video, grid"><image name="background" extra="true"><path>./assets/background.svg</path><size>768 1024</size><pos>0 0</pos><origin>0 0</origin><zIndex>0</zIndex></image><image name="logo"><maxSize>300 76</maxSize><pos>384 72</pos><origin>0.5 0.5</origin><zIndex>6</zIndex></image><text name="logoText"><fontPath>${fontBold}</fontPath><fontSize>36</fontSize><size>690 62</size><pos>39 42</pos><alignment>center</alignment><color>${white}</color><zIndex>6</zIndex></text><helpsystem name="help"><pos>42 968</pos><textColor>${white}</textColor><iconColor>${ice}</iconColor><fontPath>${fontBold}</fontPath><fontSize>18</fontSize></helpsystem></view>
+  <view name="basic, detailed, video"><textlist name="gamelist"><fontPath>${fontBold}</fontPath><fontSize>28</fontSize><size>674 300</size><pos>47 646</pos><alignment>center</alignment><horizontalMargin>16</horizontalMargin><selectorColor>74ddff35</selectorColor><selectedColor>${ice}</selectedColor><primaryColor>${white}</primaryColor><secondaryColor>${muted}</secondaryColor><zIndex>8</zIndex></textlist></view>
+  <view name="detailed"><image name="md_image"><maxSize>650 470</maxSize><pos>384 360</pos><origin>0.5 0.5</origin><zIndex>7</zIndex></image></view>
+  <view name="video"><video name="md_video"><maxSize>650 470</maxSize><pos>384 360</pos><origin>0.5 0.5</origin><delay>1.4</delay><showSnapshotNoVideo>true</showSnapshotNoVideo><zIndex>7</zIndex></video></view>
+  <view name="grid"><imagegrid name="gamegrid"><size>704 820</size><pos>32 122</pos><margin>16 18</margin><scrollDirection>vertical</scrollDirection><animate>true</animate><zIndex>7</zIndex></imagegrid><gridtile name="default"><size>214 270</size><padding>10 10</padding><backgroundColor>0a1b2cbb</backgroundColor></gridtile><gridtile name="selected"><size>242 304</size><padding>5 5</padding><backgroundColor>74ddffee</backgroundColor></gridtile></view>
+</theme>

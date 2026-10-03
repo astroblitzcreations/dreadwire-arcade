@@ -1,0 +1,30 @@
+<theme>
+  <formatVersion>6</formatVersion>
+  <resolution>768 1024</resolution>
+  <variables>
+    <font>./assets/DejaVuSans.ttf</font><fontBold>./assets/DejaVuSans-Bold.ttf</fontBold>
+    <green>55ff9a</green><lime>d8ff52</lime><white>e8fff1</white><muted>78b991</muted>
+  </variables>
+  <view name="system">
+    <image name="background" extra="true"><path>./assets/background.svg</path><size>768 1024</size><pos>0 0</pos><origin>0 0</origin><zIndex>0</zIndex></image>
+    <text name="terminalTitle" extra="true"><text>DREADWIRE // COMMAND DECK</text><fontPath>${fontBold}</fontPath><fontSize>28</fontSize><color>${green}</color><pos>48 54</pos><size>680 50</size><zIndex>5</zIndex></text>
+    <text name="terminalStatus" extra="true"><text>SYSTEMS ONLINE  •  SELECT TARGET</text><fontPath>${font}</fontPath><fontSize>18</fontSize><color>${muted}</color><pos>48 104</pos><size>650 34</size><zIndex>5</zIndex></text>
+    <carousel name="systemcarousel"><type>vertical</type><size>620 650</size><pos>74 180</pos><logoSize>520 116</logoSize><logoScale>1.0</logoScale><maxLogoCount>5</maxLogoCount><logoRotation>0</logoRotation><color>001108cc</color><zIndex>6</zIndex></carousel>
+    <text name="logoText"><fontPath>${fontBold}</fontPath><fontSize>33</fontSize><forceUppercase>true</forceUppercase><color>${white}</color><alignment>center</alignment></text>
+    <text name="systemInfo"><fontPath>${font}</fontPath><fontSize>19</fontSize><color>${lime}</color><alignment>center</alignment><size>650 40</size><pos>59 856</pos><zIndex>8</zIndex></text>
+    <helpsystem name="help"><pos>42 956</pos><textColor>${white}</textColor><iconColor>${green}</iconColor><fontPath>${fontBold}</fontPath><fontSize>20</fontSize></helpsystem>
+  </view>
+  <view name="basic, detailed, video, grid">
+    <image name="background" extra="true"><path>./assets/background.svg</path><size>768 1024</size><pos>0 0</pos><origin>0 0</origin><zIndex>0</zIndex></image>
+    <text name="deck" extra="true"><text>DREADWIRE // GAME INDEX</text><fontPath>${fontBold}</fontPath><fontSize>24</fontSize><color>${green}</color><pos>38 32</pos><size>690 42</size><zIndex>5</zIndex></text>
+    <image name="logo"><maxSize>320 72</maxSize><pos>384 108</pos><origin>0.5 0.5</origin><zIndex>6</zIndex></image>
+    <text name="logoText"><fontPath>${fontBold}</fontPath><fontSize>34</fontSize><forceUppercase>true</forceUppercase><size>690 62</size><pos>39 78</pos><alignment>center</alignment><color>${lime}</color><zIndex>6</zIndex></text>
+    <helpsystem name="help"><pos>40 968</pos><textColor>${white}</textColor><iconColor>${green}</iconColor><fontPath>${fontBold}</fontPath><fontSize>18</fontSize></helpsystem>
+  </view>
+  <view name="basic, detailed, video">
+    <textlist name="gamelist"><fontPath>${fontBold}</fontPath><fontSize>27</fontSize><size>680 420</size><pos>44 518</pos><alignment>left</alignment><horizontalMargin>22</horizontalMargin><selectorColor>55ff9a33</selectorColor><selectedColor>${lime}</selectedColor><primaryColor>${white}</primaryColor><secondaryColor>${muted}</secondaryColor><zIndex>8</zIndex></textlist>
+  </view>
+  <view name="detailed"><image name="md_image"><maxSize>620 330</maxSize><pos>384 324</pos><origin>0.5 0.5</origin><zIndex>7</zIndex></image></view>
+  <view name="video"><video name="md_video"><maxSize>620 330</maxSize><pos>384 324</pos><origin>0.5 0.5</origin><delay>1.2</delay><showSnapshotNoVideo>true</showSnapshotNoVideo><zIndex>7</zIndex></video></view>
+  <view name="grid"><imagegrid name="gamegrid"><size>690 790</size><pos>39 152</pos><margin>12 14</margin><scrollDirection>vertical</scrollDirection><animate>true</animate><zIndex>7</zIndex></imagegrid><gridtile name="default"><size>210 250</size><padding>10 10</padding><backgroundColor>00180ddd</backgroundColor></gridtile><gridtile name="selected"><size>234 280</size><padding>5 5</padding><backgroundColor>55ff9add</backgroundColor></gridtile></view>
+</theme>

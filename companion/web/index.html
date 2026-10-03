@@ -8,7 +8,7 @@
     />
     <meta name="theme-color" content="#09051d" />
     <link rel="manifest" href="/static/manifest.webmanifest" />
-    <link rel="stylesheet" href="/static/app.css?v=27" />
+    <link rel="stylesheet" href="/static/app.css?v=28" />
     <link rel="stylesheet" href="/static/controller-layout.css?v=16" />
     <title>Dreadwire Arcade Remote</title>
   </head>
@@ -53,8 +53,28 @@
     <main id="app" hidden>
       <header>
         <div><b>DREADWIRE</b><span>ARCADE REMOTE</span></div>
-        <div class="sessionTools"><i id="connection">OFFLINE</i><button id="logoutBtn">LOG OUT</button></div>
+        <div class="sessionTools"><i id="connection">OFFLINE</i><button id="appearanceToggle" aria-expanded="false">LOOK &amp; LAYOUT</button><button id="logoutBtn">LOG OUT</button></div>
       </header>
+      <aside id="appearancePanel" class="appearancePanel" hidden>
+        <div><span class="eyebrow">DISPLAY CONTROL</span><h2>Choose your arcade</h2><button id="appearanceClose" aria-label="Close appearance controls">×</button></div>
+        <label>Complete visual theme
+          <select id="appTheme">
+            <option value="neon">Dreadwire Neon</option>
+            <option value="terminal">Retro Command Terminal</option>
+            <option value="glass">Midnight Glass</option>
+            <option value="overdrive">Overdrive Max</option>
+          </select>
+        </label>
+        <div id="themePreview" class="themePreview"><i></i><i></i><i></i><b>LIVE PREVIEW</b></div>
+        <label>Menu movement
+          <select id="navLayout">
+            <option value="top">Horizontal Top Strip</option>
+            <option value="left">Vertical Left Rail</option>
+            <option value="dock">Scrollable Bottom Dock</option>
+          </select>
+        </label>
+        <p class="hint">Saved on this phone or cabinet. Controller layouts stay unchanged.</p>
+      </aside>
       <nav>
         <button data-tab="pad" class="active">CONTROLLER</button
         ><button data-tab="remote">REMOTE PLAY</button
@@ -417,6 +437,6 @@
       </div>
       <div id="toast"></div>
     </main>
-    <script src="/static/app.js?v=32"></script>
+    <script src="/static/app.js?v=33"></script>
   </body>
 </html>
