@@ -17,6 +17,8 @@ python3 "$SOURCE/configure-emulationstation-input.py"
 install -m 0755 "$SOURCE/retropie/update-companion-qr.sh" /usr/local/bin/update-companion-qr.sh
 install -m 0755 "$SOURCE/retropie/dreadwire-mobile-player1.py" /usr/local/bin/dreadwire-mobile-player1.py
 python3 "$SOURCE/retropie/setup-retropie-tab.py"
+install -m 0755 "$SOURCE/retropie/cabinet-system-root-xclient.sh" "$TARGET/cabinet-system-root-xclient.sh"
+install -m 0755 "$SOURCE/retropie/cabinet-system-xclient.sh" "$TARGET/cabinet-system-xclient.sh"
 /usr/local/bin/update-companion-qr.sh
 install -m 0755 "$SOURCE/setup-fallback-hotspot.sh" /usr/local/bin/setup-fallback-hotspot.sh
 /usr/local/bin/setup-fallback-hotspot.sh

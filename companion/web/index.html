@@ -8,7 +8,7 @@
     />
     <meta name="theme-color" content="#09051d" />
     <link rel="manifest" href="/static/manifest.webmanifest" />
-    <link rel="stylesheet" href="/static/app.css?v=26" />
+    <link rel="stylesheet" href="/static/app.css?v=27" />
     <link rel="stylesheet" href="/static/controller-layout.css?v=16" />
     <title>Dreadwire Arcade Remote</title>
   </head>
@@ -309,6 +309,22 @@
             <h3>Recent activity</h3>
             <div id="activity"></div>
           </div>
+          <div class="card powerModeCard">
+            <span class="eyebrow">ENERGY CONTROL</span>
+            <h2>Cabinet Power Mode</h2>
+            <p id="powerModeNow">Checking CPU policy…</p>
+            <label>Power profile
+              <select id="powerMode">
+                <option value="auto_eco">Auto Eco — follows battery mode</option>
+                <option value="balanced">Balanced — normal operation</option>
+                <option value="battery_saver">Battery Saver — 1.0 GHz maximum</option>
+                <option value="charge_boost">Charge Boost — 800 MHz maximum</option>
+                <option value="performance">Performance — full 1.5 GHz</option>
+              </select>
+            </label>
+            <button id="applyPowerMode" class="primary">APPLY POWER MODE</button>
+            <p class="hint">Charge Boost and Battery Saver reduce CPU power draw. Wi-Fi, queues and the remote remain online. Games may run slower until Balanced or Performance is restored.</p>
+          </div>
         </div>
       </section>
       <section id="system" class="tab">
@@ -316,6 +332,7 @@
         <div class="systemHero">
           <div><span class="eyebrow">LIVE CABINET TELEMETRY</span><h1>System comes alive.</h1><p>Real hardware data, battery learning and arcade health in one view.</p></div>
           <div class="systemPulse" aria-hidden="true"><i></i><i></i><i></i><b>DW</b></div>
+          <button id="cabinetExit" class="cabinetOnly">RETURN TO EMULATIONSTATION</button>
         </div>
         <div id="stats" class="stats"></div>
         <div class="grid systemGrid">
@@ -400,6 +417,6 @@
       </div>
       <div id="toast"></div>
     </main>
-    <script src="/static/app.js?v=30"></script>
+    <script src="/static/app.js?v=32"></script>
   </body>
 </html>

@@ -1,4 +1,4 @@
-let token = localStorage.dwToken || "",
+let token = sessionStorage.dwCabinetToken || localStorage.dwToken || "",
   session = null,
   ws = null,
   loggingOut = false,
@@ -91,6 +91,9 @@ async function enter() {
     await loadRemoteLayout(localStorage.dwPadTheme || "arcade");
     refresh();
     checkForUpdates();
+    if (document.body.classList.contains("cabinet-system-only")) {
+      document.querySelector('[data-tab="system"]')?.click();
+    }
   } catch (e) {
     localStorage.removeItem("dwToken");
     token = "";
@@ -159,6 +162,7 @@ $$("nav button").forEach(
         loadUsers();
         loadSettings();
         loadFan();
+        loadPowerMode();
       }
       if (b.dataset.tab === "audio") loadAudio();
       if (b.dataset.tab === "library") loadLibrary();
@@ -739,8 +743,8 @@ function statDefinitions(s) {
       ["FAN STATUS", s.fan?.message || "Starting"],
     ],
     POWER: [
-      ["POWER", s.power_status],
-      ["RAW CHECK", s.throttled],
+      ["POWER", s.power_status || "CHECKING"],
+      ["DETAILS", s.power_detail || "Monitoring cabinet power"],
       ["BATTERY", s.battery.available ? s.battery.percent + "%" : "—"],
     ],
   };
@@ -771,14 +775,14 @@ function renderBatteryClock() {
   if (!batteryClock) return;
   const elapsed = Math.max(0, (Date.now() - batteryClock.at) / 1000);
   const left = Math.max(0, batteryClock.seconds - elapsed);
-  $("#batteryCountdown").innerHTML = `<span>${batteryClock.mode === "charging" ? "TIME UNTIL FULL" : "ESTIMATED RUNTIME"}</span><b>${formatDuration(left)}</b><small>live estimate from your saved ${batteryClock.mode === "charging" ? "charging" : "discharge"} profile</small>`;
+  $("#batteryCountdown").innerHTML = `<span>${batteryClock.mode === "charging" ? "TIME UNTIL FULL" : "ESTIMATED RUNTIME"}</span><b>${formatDuration(left)}</b><small>${batteryClock.trusted ? "live estimate" : "preliminary estimate — one more valid sample required"} from your saved ${batteryClock.mode === "charging" ? "charging" : "discharge"} profile</small>`;
 }
 setInterval(renderBatteryClock, 1000);
 function drawBattery(b) {
   const charging = b.mode === "charging";
   const minutes = charging ? b.time_to_full_minutes : b.remaining_minutes;
   const profileName = charging ? "CHARGE" : "RUNTIME";
-  const estimate = minutes != null ? ` • about ${formatDuration(minutes * 60)}` : ` • learning ${charging ? "charge" : "drain"} rate`;
+  const estimate = minutes != null ? ` • ${b.trusted ? "about" : "preliminary"} ${formatDuration(minutes * 60)}` : ` • learning ${charging ? "charge" : "drain"} rate`;
   const protection = charging ? " • shutdown protection paused" : b.trusted ? " • safe shutdown armed" : ` • calibration ${b.sample_count || 0}/2`;
   $("#battery").textContent = `${b.percent}% estimated${estimate}${protection}`;
   $("#batteryOrbValue").textContent = `${Math.round(b.percent)}%`;
@@ -787,7 +791,7 @@ function drawBattery(b) {
   $("#batteryProfiles").innerHTML = `<div><span>RUNTIME PROFILE</span><b>${b.discharge_rate_per_hour ? `${b.discharge_rate_per_hour}% / hr` : "LEARNING"}</b><small>${b.discharge_sample_count || 0} valid samples</small></div><div><span>CHARGE PROFILE</span><b>${b.charge_rate_per_hour ? `${b.charge_rate_per_hour}% / hr` : "LEARNING"}</b><small>${b.charge_sample_count || 0} valid samples</small></div>`;
   const history = (b.history || []).slice(-5).reverse();
   $("#batteryHistory").innerHTML = history.length ? `<h3>RECENT MANUAL READINGS</h3>${history.map((r) => `<div><time>${new Date(r.updated * 1000).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"})}</time><span>${r.mode === "charging" ? "↗ CHARGING" : "↘ BATTERY"}</span><b>${r.percent}%</b></div>`).join("")}` : "";
-  batteryClock = minutes != null ? {mode:b.mode, seconds:minutes * 60, at:Date.now()} : null;
+  batteryClock = minutes != null ? {mode:b.mode, seconds:minutes * 60, at:Date.now(), trusted:b.trusted} : null;
   if (batteryClock) renderBatteryClock();
   else $("#batteryCountdown").innerHTML = `<span>${profileName} ESTIMATE</span><b>LEARNING</b><small>Add another ${charging ? "higher" : "lower"} reading after at least five minutes</small>`;
 }
@@ -844,6 +848,11 @@ $("#setBattery").onclick = async () => {
   } catch (e) {
     toast(e.message);
   }
+};
+$("#cabinetExit").onclick = async () => {
+  try {
+    await fetch("/api/cabinet-system/exit", { method: "POST" });
+  } catch (e) {}
 };
 $("#category").onchange = () =>
   ($("#romSystem").hidden = $("#category").value !== "roms");
@@ -1008,6 +1017,30 @@ $("#fanAuto").onclick = () => setFan("auto");
 $("#fan50").onclick = () => setFan("manual", 50);
 $("#fan100").onclick = () => setFan("manual", 100);
 $("#fanProfile").onchange = () => setFan("auto");
+async function loadPowerMode() {
+  try {
+    const p = await api("/api/power-mode");
+    $("#powerMode").value = p.selected || "balanced";
+    $("#powerModeNow").textContent = p.available
+      ? `${p.label} active • ${p.max_mhz} MHz maximum • ${p.governor} governor${p.selected === "auto_eco" ? " • switches with battery mode" : ""}`
+      : "CPU power controls are unavailable on this system";
+  } catch (e) {
+    $("#powerModeNow").textContent = e.message;
+  }
+}
+$("#applyPowerMode").onclick = async () => {
+  try {
+    const p = await api("/api/power-mode", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mode: $("#powerMode").value }),
+    });
+    toast(`${p.label} is active`);
+    loadPowerMode();
+  } catch (e) {
+    toast(e.message);
+  }
+};
 let audioState = {};
 async function loadAudio() {
   if (session?.role !== "admin") return toast("Administrator login required");

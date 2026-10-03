@@ -20,6 +20,9 @@ install -m 0755 "$ROOT/homebrew/launchers/Trippy Gold Maze.sh" "/home/pi/RetroPi
 install -m 0755 "$ROOT/homebrew/launchers/Speedbike.sh" "/home/pi/RetroPie/roms/homebrew/Speedbike.sh"
 install -d -o pi -g pi /home/pi/RetroPie/roms/companion
 install -o pi -g pi -m 0755 "$ROOT/companion/retropie/06-arcade-mode.sh" /home/pi/RetroPie/roms/companion/06-arcade-mode.sh
+install -o pi -g pi -m 0755 "$ROOT/companion/retropie/07-system-dashboard.sh" /home/pi/RetroPie/roms/companion/07-system-dashboard.sh
+install -m 0755 "$ROOT/companion/retropie/cabinet-system-root-xclient.sh" /opt/dreadwire/companion/cabinet-system-root-xclient.sh
+install -m 0755 "$ROOT/companion/retropie/cabinet-system-xclient.sh" /opt/dreadwire/companion/cabinet-system-xclient.sh
 install -d /var/lib/dreadwire-companion
 test -s /var/lib/dreadwire-companion/mode.json || printf '%s\n' '{"mode":"classic"}' > /var/lib/dreadwire-companion/mode.json
 install -d /etc/systemd/system/asplashscreen.service.d

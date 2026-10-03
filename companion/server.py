@@ -33,6 +33,7 @@ MIRROR_PHYSICAL_INPUT = os.environ.get("DREADWIRE_MIRROR_PHYSICAL", "0") == "1"
 STATE_DIR = Path("/var/lib/dreadwire-companion")
 BATTERY_STATE = STATE_DIR / "battery.json"
 BATTERY_HISTORY = STATE_DIR / "battery-history.jsonl"
+POWER_MODE_STATE = STATE_DIR / "power-mode.json"
 POWER_WATCHDOG_STATE = Path("/run/dreadwire-power.json")
 USER_DB = STATE_DIR / "users.db"
 SETTINGS_STATE = STATE_DIR / "settings.json"
@@ -83,6 +84,47 @@ def settings():
 def write_settings(data):
     STATE_DIR.mkdir(parents=True,exist_ok=True)
     temp=SETTINGS_STATE.with_suffix(".tmp"); temp.write_text(json.dumps(data,indent=2)+"\n"); temp.replace(SETTINGS_STATE)
+
+
+POWER_MODES = {
+    "balanced": {"label":"Balanced", "governor":"ondemand", "max_khz":1500000},
+    "battery_saver": {"label":"Battery Saver", "governor":"powersave", "max_khz":1000000},
+    "charge_boost": {"label":"Charge Boost", "governor":"powersave", "max_khz":800000},
+    "performance": {"label":"Performance", "governor":"performance", "max_khz":1500000},
+}
+
+
+def power_mode_config():
+    config = {"selected":"auto_eco"}
+    try: config.update(json.loads(POWER_MODE_STATE.read_text()))
+    except (OSError, ValueError, TypeError): pass
+    return config
+
+
+def apply_power_mode(selected):
+    if selected not in {*POWER_MODES, "auto_eco"}: selected = "balanced"
+    active = selected
+    if selected == "auto_eco":
+        try: battery_mode = json.loads(BATTERY_STATE.read_text()).get("mode", "battery")
+        except (OSError, ValueError, TypeError): battery_mode = "battery"
+        active = "charge_boost" if battery_mode == "charging" else "battery_saver"
+    profile = POWER_MODES[active]; errors = []
+    policies = list(Path("/sys/devices/system/cpu/cpufreq").glob("policy*"))
+    for policy in policies:
+        try:
+            (policy / "scaling_max_freq").write_text(str(profile["max_khz"]))
+            (policy / "scaling_governor").write_text(profile["governor"])
+        except OSError as exc: errors.append(str(exc))
+    actual_khz = int(text_file(policies[0] / "scaling_max_freq", "0")) if policies else 0
+    actual_governor = text_file(policies[0] / "scaling_governor", "unavailable") if policies else "unavailable"
+    return {"selected":selected, "active":active, "label":profile["label"],
+            "governor":actual_governor, "max_mhz":round(actual_khz / 1000),
+            "available":bool(policies) and not errors, "errors":errors}
+
+
+async def power_mode_context(app):
+    apply_power_mode(power_mode_config().get("selected", "auto_eco"))
+    yield
 
 
 def nmcli(*args, timeout=25):
@@ -555,6 +597,29 @@ async def audio_control(request):
 async def index(_): return web.FileResponse(WEB / "index.html")
 
 
+def local_cabinet_request(request):
+    return request.remote in {"127.0.0.1", "::1"}
+
+
+async def cabinet_system(request):
+    if not local_cabinet_request(request): raise web.HTTPForbidden(text="Cabinet display only")
+    token = secrets.token_urlsafe(32)
+    TOKENS[token] = {"expires":time.time()+21600, "role":"admin", "user_id":None, "name":"Cabinet Administrator"}
+    page = (WEB / "index.html").read_text()
+    page = page.replace("<body>", '<body class="cabinet-system-only">', 1)
+    page = page.replace("</head>", f'<script>sessionStorage.dwCabinetToken={json.dumps(token)};</script></head>', 1)
+    return web.Response(text=page, content_type="text/html")
+
+
+async def cabinet_system_exit(request):
+    if not local_cabinet_request(request): raise web.HTTPForbidden(text="Cabinet display only")
+    async def close_browser():
+        await asyncio.sleep(.25)
+        subprocess.run(["pkill", "-TERM", "-f", "chromium.*cabinet-system"], check=False)
+    asyncio.create_task(close_browser())
+    return web.json_response({"ok":True})
+
+
 async def login(request):
     data = await request.json()
     username = str(data.get("username", "")).strip()
@@ -668,28 +733,38 @@ async def status(request):
     throttled = run("vcgencmd", "get_throttled").stdout.strip()
     try: throttle_value=int(throttled.split("=")[-1],16)
     except ValueError: throttle_value=0
-    current_power_issue = bool(throttle_value & 0xF)
-    past_power_issue = bool(throttle_value & 0xF0000)
-    if throttle_value & 0x1:
-        power_status = "LOW VOLTAGE"
-    elif throttle_value & 0x4:
-        power_status = "THROTTLED"
+    current_power_issue = bool(throttle_value & 0xE)
+    past_power_issue = bool(throttle_value & 0xE0000)
+    manual_battery = battery()
+    on_managed_battery = manual_battery.get("available") and manual_battery.get("manual")
+    if throttle_value & 0x4:
+        power_status = "PERFORMANCE LIMITED"
+        power_detail = "The Pi is temporarily slowing down to stay stable."
     elif current_power_issue:
-        power_status = "CHECK POWER"
+        power_status = "SYSTEM PROTECTION ACTIVE"
+        power_detail = "The Pi is protecting itself from a temperature or power condition."
+    elif on_managed_battery and manual_battery.get("mode") == "battery":
+        power_status = "RUNNING ON BATTERY"
+        power_detail = "Normal portable operation. Battery protection is monitoring runtime."
+    elif on_managed_battery and manual_battery.get("mode") == "charging":
+        power_status = "CHARGING"
+        power_detail = "The cabinet is plugged in and learning its charging time."
     elif past_power_issue:
-        power_status = "GOOD NOW"
+        power_status = "SYSTEM STABLE"
+        power_detail = "A past condition has cleared; the cabinet is operating normally."
     else:
-        power_status = "GOOD"
+        power_status = "SYSTEM STABLE"
+        power_detail = "Power and temperature are operating normally."
     return web.json_response({
         "hostname": socket.gethostname(), "ip": request.host.split(":")[0],
         "uptime": int(time.time() - psutil.boot_time()), "temperature": temperature(),
         "cpu": psutil.cpu_percent(interval=.08), "load": list(os.getloadavg()),
         "memory": {"used": memory.used, "total": memory.total, "percent": memory.percent},
         "disk": {"used": disk.used, "total": disk.total, "free": disk.free, "percent": disk.percent},
-        "game": current_game(), "music": music, "battery": battery(), "fan": fan,
+        "game": current_game(), "music": music, "battery": manual_battery, "fan": fan,
         "battery_protection": power_watchdog,
-        "throttled": throttled,
         "power_status": power_status,
+        "power_detail": power_detail,
         "power_issue_now": current_power_issue, "power_issue_past": past_power_issue,
         "mobile_gamepad_index": mobile_js_index(),
         "player_slots": [mobile_js_index(player) for player in range(1,5)], "master_volume": master_volume(),
@@ -1016,10 +1091,25 @@ async def battery_update(request):
                                      "charge_sample_count": charge_samples,
                                      "boot_id": boot_id}, indent=2) + "\n")
     temporary.replace(BATTERY_STATE)
+    if power_mode_config().get("selected") == "auto_eco": apply_power_mode("auto_eco")
     active_rate = discharge_rate if mode == "battery" else charge_rate
     active_samples = discharge_samples if mode == "battery" else charge_samples
     return web.json_response({"ok": True, "learning": not bool(active_rate) or active_samples < 2,
                               "rate_per_hour": active_rate, "sample_count": active_samples, "mode": mode})
+
+
+async def power_mode_control(request):
+    session = await require(request, "admin")
+    if request.method == "GET":
+        return web.json_response(apply_power_mode(power_mode_config().get("selected", "auto_eco")))
+    data = await request.json(); selected = str(data.get("mode", "balanced"))
+    if selected not in {*POWER_MODES, "auto_eco"}: raise web.HTTPBadRequest(text="Unknown power mode")
+    STATE_DIR.mkdir(parents=True, exist_ok=True)
+    temp = POWER_MODE_STATE.with_suffix(".tmp")
+    temp.write_text(json.dumps({"selected":selected}, indent=2) + "\n"); temp.replace(POWER_MODE_STATE)
+    result = apply_power_mode(selected)
+    log_event(session["name"], "power-mode", f"{selected}/{result['active']}", session.get("user_id"))
+    return web.json_response(result)
 
 
 async def upload(request):
@@ -1507,12 +1597,14 @@ async def controller(request):
 app = web.Application(client_max_size=4 * 1024**3)
 app.cleanup_ctx.append(physical_controller_context)
 app.cleanup_ctx.append(party_clock_context)
-app.add_routes([web.get("/", index), web.post("/api/login", login), web.post("/api/guest", guest), web.post("/api/logout", logout),
+app.cleanup_ctx.append(power_mode_context)
+app.add_routes([web.get("/", index), web.get("/cabinet-system", cabinet_system), web.post("/api/cabinet-system/exit", cabinet_system_exit), web.post("/api/login", login), web.post("/api/guest", guest), web.post("/api/logout", logout),
                 web.post("/api/register", register), web.get("/api/me", me), web.get("/api/status", status),
                 web.get("/api/layout/{preset}", profile_layout), web.put("/api/layout/{preset}", profile_layout),
                 web.get("/api/admin/users", admin_users), web.post("/api/admin/reset-password", admin_reset),
                 web.get("/api/settings", app_settings), web.put("/api/settings", app_settings),
                 web.get("/api/fan", fan_settings), web.put("/api/fan", fan_settings),
+                web.get("/api/power-mode", power_mode_control), web.put("/api/power-mode", power_mode_control),
                 web.get("/api/wifi", wifi_networks), web.post("/api/wifi/connect", wifi_connect),
                 web.post("/api/wifi/forget", wifi_forget),
                 web.get("/api/update", update_status), web.post("/api/update/install", update_install),
