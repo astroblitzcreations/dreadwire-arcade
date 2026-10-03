@@ -649,6 +649,18 @@ async def status(request):
     throttled = run("vcgencmd", "get_throttled").stdout.strip()
     try: throttle_value=int(throttled.split("=")[-1],16)
     except ValueError: throttle_value=0
+    current_power_issue = bool(throttle_value & 0xF)
+    past_power_issue = bool(throttle_value & 0xF0000)
+    if throttle_value & 0x1:
+        power_status = "LOW VOLTAGE"
+    elif throttle_value & 0x4:
+        power_status = "THROTTLED"
+    elif current_power_issue:
+        power_status = "CHECK POWER"
+    elif past_power_issue:
+        power_status = "GOOD NOW"
+    else:
+        power_status = "GOOD"
     return web.json_response({
         "hostname": socket.gethostname(), "ip": request.host.split(":")[0],
         "uptime": int(time.time() - psutil.boot_time()), "temperature": temperature(),
@@ -657,7 +669,9 @@ async def status(request):
         "disk": {"used": disk.used, "total": disk.total, "free": disk.free, "percent": disk.percent},
         "game": current_game(), "music": music, "battery": battery(), "fan": fan,
         "battery_protection": power_watchdog,
-        "throttled": throttled, "power_status": "GOOD" if throttle_value == 0 else "CHECK POWER",
+        "throttled": throttled,
+        "power_status": power_status,
+        "power_issue_now": current_power_issue, "power_issue_past": past_power_issue,
         "mobile_gamepad_index": mobile_js_index(),
         "player_slots": [mobile_js_index(player) for player in range(1,5)], "master_volume": master_volume(),
         "connected_controllers": len(WS_CLIENTS),

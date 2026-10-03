@@ -5,7 +5,8 @@ let token = localStorage.dwToken || "",
   editing = false,
   selected = null,
   remoteGameState = null,
-  remoteRestartTimer = null;
+  remoteRestartTimer = null,
+  batteryModeDirty = false;
 const $ = (s) => document.querySelector(s),
   $$ = (s) => document.querySelectorAll(s);
 const audioTab = document.createElement("button");
@@ -758,7 +759,7 @@ async function refresh() {
           ? " • protection paused while charging"
           : ` • calibration ${s.battery.sample_count || 0}/2`;
       $("#battery").textContent = `${s.battery.percent}% estimated${estimate}${protection}`;
-      $("#batteryMode").value = s.battery.mode || "battery";
+      if (!batteryModeDirty) $("#batteryMode").value = s.battery.mode || "battery";
     } else $("#battery").textContent = s.battery.reason;
     const protection = s.battery_protection || {};
     const warning = $("#powerWarning");
@@ -769,6 +770,9 @@ async function refresh() {
   } catch (e) {}
   setTimeout(refresh, 3000);
 }
+$("#batteryMode").onchange = () => {
+  batteryModeDirty = true;
+};
 $("#setBattery").onclick = async () => {
   const percent = Number($("#batteryPercent").value);
   if (!Number.isFinite(percent) || percent < 0 || percent > 100)
@@ -779,6 +783,7 @@ $("#setBattery").onclick = async () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ percent, mode: $("#batteryMode").value }),
     });
+    batteryModeDirty = false;
     toast(
       r.learning
         ? `Reading saved — calibration ${r.sample_count || 0}/2`

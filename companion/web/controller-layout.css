@@ -37,3 +37,10 @@ body.pad-active #app{height:100dvh;overflow:hidden}
 #remote:fullscreen #remoteControllerMount .controller,#remote.theater #remoteControllerMount .controller{height:100%;min-height:0}
 #remote:fullscreen .remoteActions,#remote.theater .remoteActions{top:max(7px,env(safe-area-inset-top));right:max(7px,env(safe-area-inset-right))}
 @media(orientation:portrait){#remote:fullscreen .remotePlay,#remote.theater .remotePlay{grid-template-columns:1fr;grid-template-rows:40% 60%}}
+
+/* Battery editor: keep the percentage field usable beside the long mode label. */
+.batteryset{display:grid;grid-template-columns:minmax(220px,1.8fr) minmax(120px,.7fr) auto;gap:8px;align-items:stretch}
+.batteryset select,.batteryset input,.batteryset button{min-width:0;margin:6px 0}
+.batteryset input{width:100%;font-size:18px;font-weight:800;text-align:center}
+.batteryset button{min-width:105px}
+@media(max-width:700px){.batteryset{grid-template-columns:1fr 110px}.batteryset button{grid-column:1/-1}}
