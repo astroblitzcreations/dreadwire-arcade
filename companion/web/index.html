@@ -312,12 +312,17 @@
         </div>
       </section>
       <section id="system" class="tab">
+        <div id="powerWarning" class="powerWarning" hidden></div>
         <div id="stats" class="stats"></div>
         <div class="grid">
           <div class="card">
             <h2>INIU Power Bank</h2>
             <p id="battery">Checking…</p>
             <div class="batteryset">
+              <select id="batteryMode" aria-label="Power bank status">
+                <option value="battery">ON BATTERY</option>
+                <option value="charging">CHARGING / PLUGGED IN</option>
+              </select>
               <input
                 id="batteryPercent"
                 type="number"
@@ -327,9 +332,11 @@
               /><button id="setBattery">SET READING</button>
             </div>
             <small
-              >Enter the number shown on the power bank. Two readings at least
-              five minutes apart teach the app the cabinet's real drain
-              rate.</small
+              >Choose whether it is charging, then enter the number shown on
+              the power bank. Two discharge readings at least five minutes
+              apart arm automatic protection. Warnings appear at 15%/30
+              minutes and 10%; the cabinet safely shuts down at an estimated
+              5%.</small
             >
           </div>
           <div class="card">
@@ -387,6 +394,6 @@
       </div>
       <div id="toast"></div>
     </main>
-    <script src="/static/app.js?v=26"></script>
+    <script src="/static/app.js?v=27"></script>
   </body>
 </html>

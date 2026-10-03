@@ -32,6 +32,7 @@ REMOTE_INPUT_ENABLED = os.environ.get("DREADWIRE_REMOTE_INPUT", "1") == "1"
 MIRROR_PHYSICAL_INPUT = os.environ.get("DREADWIRE_MIRROR_PHYSICAL", "0") == "1"
 STATE_DIR = Path("/var/lib/dreadwire-companion")
 BATTERY_STATE = STATE_DIR / "battery.json"
+POWER_WATCHDOG_STATE = Path("/run/dreadwire-power.json")
 USER_DB = STATE_DIR / "users.db"
 SETTINGS_STATE = STATE_DIR / "settings.json"
 FAN_STATE = Path("/run/dreadwire-argon-fan.json")
@@ -453,15 +454,21 @@ def battery():
         elapsed = max(0, time.time() - float(state["updated"]))
         same_boot = state.get("boot_id") == text_file("/proc/sys/kernel/random/boot_id")
         rate = state.get("rate_per_hour")
+        mode = state.get("mode", "battery")
         percent = float(state["percent"])
-        if same_boot and rate:
+        if same_boot and rate and mode == "battery":
             percent = max(0, percent - float(rate) * elapsed / 3600)
-        remaining = percent / float(rate) if rate else None
+        remaining = percent / float(rate) if rate and mode == "battery" else None
+        samples = int(state.get("sample_count", 0))
         return {"available": True, "manual": True, "percent": round(percent, 1),
                 "entered_percent": state["percent"], "updated": state["updated"],
                 "rate_per_hour": round(rate, 2) if rate else None,
                 "remaining_hours": round(remaining, 2) if remaining is not None else None,
-                "learning": not bool(rate), "name": "INIU BI-B5 (manual calibration)"}
+                "remaining_minutes": round(remaining * 60) if remaining is not None else None,
+                "mode": mode, "monitoring": same_boot and mode == "battery",
+                "sample_count": samples, "trusted": bool(rate) and samples >= 2,
+                "learning": not bool(rate) or samples < 2,
+                "name": "INIU BI-B5 (manual calibration)"}
     except (OSError, ValueError, KeyError, TypeError):
         return {"available": False, "manual": True, "reason": "Enter the percentage shown on the INIU BI-B5 display to begin runtime calibration"}
 
@@ -636,6 +643,9 @@ async def status(request):
     fan = {}
     try: fan = json.loads(text_file(FAN_STATE, "{}"))
     except ValueError: pass
+    power_watchdog = {}
+    try: power_watchdog = json.loads(text_file(POWER_WATCHDOG_STATE, "{}"))
+    except ValueError: pass
     throttled = run("vcgencmd", "get_throttled").stdout.strip()
     try: throttle_value=int(throttled.split("=")[-1],16)
     except ValueError: throttle_value=0
@@ -646,6 +656,7 @@ async def status(request):
         "memory": {"used": memory.used, "total": memory.total, "percent": memory.percent},
         "disk": {"used": disk.used, "total": disk.total, "free": disk.free, "percent": disk.percent},
         "game": current_game(), "music": music, "battery": battery(), "fan": fan,
+        "battery_protection": power_watchdog,
         "throttled": throttled, "power_status": "GOOD" if throttle_value == 0 else "CHECK POWER",
         "mobile_gamepad_index": mobile_js_index(),
         "player_slots": [mobile_js_index(player) for player in range(1,5)], "master_volume": master_volume(),
@@ -931,23 +942,29 @@ async def battery_update(request):
     await require(request); data = await request.json()
     try: percent = max(0.0, min(100.0, float(data["percent"])))
     except (KeyError, ValueError, TypeError): raise web.HTTPBadRequest(text="Percentage must be 0–100")
+    mode = str(data.get("mode", "battery")).strip().lower()
+    if mode not in {"battery", "charging"}: raise web.HTTPBadRequest(text="Choose On battery or Charging")
     now = time.time(); boot_id = text_file("/proc/sys/kernel/random/boot_id"); old = None
     try: old = json.loads(BATTERY_STATE.read_text())
     except (OSError, ValueError): pass
     rate = old.get("rate_per_hour") if old else None
-    if old and old.get("boot_id") == boot_id:
+    sample_count = int(old.get("sample_count", 0)) if old else 0
+    if old and old.get("boot_id") == boot_id and old.get("mode", "battery") == "battery" and mode == "battery":
         elapsed_hours = (now - float(old.get("updated", now))) / 3600
         drop = float(old.get("percent", percent)) - percent
         if elapsed_hours >= 5 / 60 and drop > 0:
             observed = drop / elapsed_hours
             if 0.2 <= observed <= 100:
                 rate = observed if not rate else float(rate) * .65 + observed * .35
+                sample_count += 1
     STATE_DIR.mkdir(parents=True, exist_ok=True)
     temporary = BATTERY_STATE.with_suffix(".tmp")
-    temporary.write_text(json.dumps({"percent": percent, "updated": now,
-                                     "rate_per_hour": rate, "boot_id": boot_id}, indent=2) + "\n")
+    temporary.write_text(json.dumps({"percent": percent, "updated": now, "mode": mode,
+                                     "rate_per_hour": rate, "sample_count": sample_count,
+                                     "boot_id": boot_id}, indent=2) + "\n")
     temporary.replace(BATTERY_STATE)
-    return web.json_response({"ok": True, "learning": not bool(rate), "rate_per_hour": rate})
+    return web.json_response({"ok": True, "learning": not bool(rate) or sample_count < 2,
+                              "rate_per_hour": rate, "sample_count": sample_count, "mode": mode})
 
 
 async def upload(request):

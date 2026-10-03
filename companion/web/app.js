@@ -752,8 +752,20 @@ async function refresh() {
         s.battery.remaining_hours != null
           ? ` • about ${s.battery.remaining_hours}h remaining`
           : " • learning drain rate";
-      $("#battery").textContent = `${s.battery.percent}% estimated${estimate}`;
+      const protection = s.battery.trusted
+        ? " • safe shutdown armed"
+        : s.battery.mode === "charging"
+          ? " • protection paused while charging"
+          : ` • calibration ${s.battery.sample_count || 0}/2`;
+      $("#battery").textContent = `${s.battery.percent}% estimated${estimate}${protection}`;
+      $("#batteryMode").value = s.battery.mode || "battery";
     } else $("#battery").textContent = s.battery.reason;
+    const protection = s.battery_protection || {};
+    const warning = $("#powerWarning");
+    const showWarning = ["warning", "critical", "shutdown"].includes(protection.level);
+    warning.hidden = !showWarning;
+    warning.className = `powerWarning ${protection.level || ""}`;
+    warning.textContent = showWarning ? protection.message : "";
   } catch (e) {}
   setTimeout(refresh, 3000);
 }
@@ -765,12 +777,14 @@ $("#setBattery").onclick = async () => {
     const r = await api("/api/battery", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ percent }),
+      body: JSON.stringify({ percent, mode: $("#batteryMode").value }),
     });
     toast(
       r.learning
-        ? "Reading saved — learning drain rate"
-        : "Reading saved — estimate updated",
+        ? `Reading saved — calibration ${r.sample_count || 0}/2`
+        : r.mode === "charging"
+          ? "Charging saved — automatic shutdown paused"
+          : "Reading saved — battery protection armed",
     );
     refresh();
   } catch (e) {
