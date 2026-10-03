@@ -56,8 +56,30 @@ def main():
             continue
 
         if not rate or float(rate) <= 0:
-            publish(active=True, trusted=False, level="learning", percent=float(state["percent"]),
-                    message="Learning discharge rate — automatic shutdown is not armed yet")
+            percent = float(state["percent"])
+            if percent <= 5:
+                level = "shutdown"
+                message = "Battery reading is 5% — safely shutting down now"
+            elif percent <= 10:
+                level = "critical"
+                message = f"Critical battery: {percent:.0f}% — runtime calibration is still learning"
+            elif percent <= 15:
+                level = "warning"
+                message = f"Low battery: {percent:.0f}% — runtime calibration is still learning"
+            else:
+                level = "learning"
+                message = "Learning discharge rate — ETA shutdown is not armed yet"
+            publish(active=True, trusted=False, level=level, percent=percent,
+                    sample_count=samples, message=message)
+            if level != last_notice and level in {"warning", "critical", "shutdown"}:
+                subprocess.run(["logger", "-t", "dreadwire-power", message], check=False)
+                subprocess.run(["wall", message], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+                last_notice = level
+            if level == "shutdown":
+                subprocess.run(["sync"], check=False)
+                time.sleep(2)
+                subprocess.run(["systemctl", "poweroff"], check=False)
+                return
             time.sleep(POLL_SECONDS)
             continue
 
