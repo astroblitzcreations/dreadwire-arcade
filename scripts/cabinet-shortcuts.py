@@ -12,8 +12,10 @@ import time
 DEVICE = "/dev/input/by-id/usb-DragonRise_Inc._Generic_USB_Joystick-event-joystick"
 EV_KEY = 1
 START = 295  # joystick button 7
+SELECT = 293  # joystick button 5
 LEFT_SIDE = 297  # joystick button 9 / BTN_BASE4
 ARM_SECONDS = 3.0
+GAME_EXIT_SECONDS = 3.0
 PARTY_QR_SECONDS = 2.0
 REBOOT_SECONDS = 8.0
 ARM_TIMEOUT = 10.0
@@ -58,7 +60,10 @@ def temperature_overlay():
 
 
 def perform(action):
-    if action == "start":
+    if action == "game_exit":
+        log("start + select held: exiting current game")
+        run("pkill", "-TERM", "-x", "retroarch")
+    elif action == "start":
         run("pkill", "-KILL", "-x", "retroarch")
     elif action == "left":
         log("resetting current game")
@@ -148,8 +153,10 @@ def close_party_overlay():
 
 def monitor(fd):
     global volume_mode
-    pressed = {START: False, LEFT_SIDE: False}
+    pressed = {START: False, SELECT: False, LEFT_SIDE: False}
     chord_since = None
+    game_exit_since = None
+    game_exit_fired = False
     primed = False
     rebooted = False
     armed_until = 0.0
@@ -179,6 +186,18 @@ def monitor(fd):
                     pending_since = now
 
         now = time.monotonic()
+        game_exit_combo = pressed[START] and pressed[SELECT]
+        if game_exit_combo:
+            if game_exit_since is None:
+                game_exit_since = now
+                game_exit_fired = False
+            elif now - game_exit_since >= GAME_EXIT_SECONDS and not game_exit_fired:
+                game_exit_fired = True
+                perform("game_exit")
+        else:
+            game_exit_since = None
+            game_exit_fired = False
+
         both = pressed[START] and pressed[LEFT_SIDE]
 
         if armed_until <= now:

@@ -33,12 +33,28 @@ def detected():
     result = {}
     mobile = active_mobile_labels()
     by_id = Path("/dev/input/by-id")
+    # RetroArch's udev driver enumerates wired pads by stable USB path, which
+    # can differ from Linux's /dev/input/jsN numbering.  On this cabinet js0
+    # is DragonRise, but RetroArch port 0 is the Xbox pad.  Rank the matching
+    # event nodes exactly as RetroArch does instead of copying the js number.
+    retro_indices = {}
+    by_path = Path("/dev/input/by-path")
+    for index, event_link in enumerate(sorted(by_path.glob("*-event-joystick")) if by_path.exists() else []):
+        try:
+            retro_indices[event_link.resolve().name] = index
+        except OSError:
+            continue
     for link in sorted(by_id.glob("*-joystick")) if by_id.exists() else []:
         if "event-joystick" in link.name:
             continue
         try:
             js_name = link.resolve().name
-            index = int(js_name.removeprefix("js"))
+            js_index = int(js_name.removeprefix("js"))
+            event_link = by_id / link.name.replace("-joystick", "-event-joystick")
+            try:
+                index = retro_indices.get(event_link.resolve().name, js_index)
+            except OSError:
+                index = js_index
             name = (Path("/sys/class/input") / js_name / "device/name").read_text().strip()
             result[link.name] = {"name": name, "index": index, "node": js_name}
         except (OSError, ValueError):

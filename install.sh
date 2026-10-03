@@ -10,6 +10,8 @@ install -m 0755 "$ROOT/scripts/dreadwire-party-overlay" /usr/local/bin/dreadwire
 install -m 0755 "$ROOT/scripts/dreadwire-volume-overlay" /usr/local/bin/dreadwire-volume-overlay
 install -m 0755 "$ROOT/scripts/cabinet-shortcuts.py" /usr/local/bin/cabinet-shortcuts.py
 install -m 0755 "$ROOT/scripts/cabinet-controller-manager.py" /usr/local/bin/cabinet-controller-manager.py
+install -m 0644 "$ROOT/config-files/DragonRise Inc. Generic USB Joystick.cfg" "/opt/retropie/configs/all/retroarch/autoconfig/DragonRise Inc. Generic USB Joystick.cfg"
+install -m 0644 "$ROOT/config-files/DragonRise Inc.   Generic   USB  Joystick  .cfg" "/opt/retropie/configs/all/retroarch/autoconfig/DragonRise Inc.   Generic   USB  Joystick  .cfg"
 install -m 0755 "$ROOT/scripts/dreadwire-power-watchdog.py" /usr/local/bin/dreadwire-power-watchdog.py
 install -m 0755 "$ROOT/scripts/generate-multiplayer-packs.py" /usr/local/bin/generate-multiplayer-packs.py
 /usr/local/bin/generate-multiplayer-packs.py
