@@ -24,6 +24,33 @@ audioSection.innerHTML =
 document
   .querySelector("main")
   .insertBefore(audioSection, document.querySelector("#admin"));
+const pagePresentation = {
+  pad: ["CONTROLLER DECK", "Map it. Move it. Make it yours.", "gamepad"],
+  remote: ["LIVE REMOTE PLAY", "The cabinet screen and controls, wherever you are.", "screen"],
+  library: ["ARCADE LIBRARY", "Browse the collection in a living pixel shelf.", "stack"],
+  party: ["PARTY CONTROL", "Queue up, chat and play together.", "players"],
+  media: ["DATA PACKETS", "Send games, art, music and video to the cabinet.", "upload"],
+  wifi: ["SIGNAL COMMAND", "Scan, connect and keep the arcade online.", "wifi"],
+  audio: ["NEON MIXER", "Shape every layer of the arcade soundscape.", "equalizer"],
+  admin: ["ADMIN CORE", "Protected controls for the people running the cabinet.", "shield"],
+};
+const navIcons = {
+  pad: "◆", remote: "▣", library: "▤", party: "♟", media: "⇧",
+  wifi: "◉", audio: "▥", admin: "⬡", system: "⚙",
+};
+Object.entries(pagePresentation).forEach(([id, info]) => {
+  const section = document.getElementById(id);
+  if (!section || section.querySelector(":scope > .pageHero")) return;
+  const hero = document.createElement("div");
+  hero.className = `pageHero pageHero-${info[2]}`;
+  hero.innerHTML = `<div><span class="eyebrow">DREADWIRE // ${info[0]}</span><h1>${info[0]}</h1><p>${info[1]}</p></div><div class="pageMotion motion-${info[2]}" aria-hidden="true">${Array.from({length:8},(_,i)=>`<i style="--n:${i}"></i>`).join("")}<b>${navIcons[id]}</b></div>`;
+  section.prepend(hero);
+});
+document.querySelectorAll("nav button[data-tab]").forEach((button) => {
+  const label = button.textContent.trim();
+  button.innerHTML = `<span class="navIcon" aria-hidden="true">${navIcons[button.dataset.tab] || "•"}</span><span>${label}</span>`;
+});
+document.body.dataset.activeTab = document.querySelector("nav button.active")?.dataset.tab || "pad";
 function toast(m) {
   const t = $("#toast");
   t.textContent = m;
