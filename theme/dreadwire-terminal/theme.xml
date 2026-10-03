@@ -6,16 +6,16 @@
     <green>55ff9a</green><lime>d8ff52</lime><white>e8fff1</white><muted>78b991</muted>
   </variables>
   <view name="system">
-    <image name="background" extra="true"><path>./assets/background.svg</path><size>768 1024</size><pos>0 0</pos><origin>0 0</origin><zIndex>0</zIndex></image>
-    <text name="terminalTitle" extra="true"><text>DREADWIRE // COMMAND DECK</text><fontPath>${fontBold}</fontPath><fontSize>28</fontSize><color>${green}</color><pos>48 54</pos><size>680 50</size><zIndex>5</zIndex></text>
-    <text name="terminalStatus" extra="true"><text>SYSTEMS ONLINE  •  SELECT TARGET</text><fontPath>${font}</fontPath><fontSize>18</fontSize><color>${muted}</color><pos>48 104</pos><size>650 34</size><zIndex>5</zIndex></text>
-    <carousel name="systemcarousel"><type>vertical</type><size>620 650</size><pos>74 180</pos><logoSize>520 116</logoSize><logoScale>1.0</logoScale><maxLogoCount>5</maxLogoCount><logoRotation>0</logoRotation><color>001108cc</color><zIndex>6</zIndex></carousel>
-    <text name="logoText"><fontPath>${fontBold}</fontPath><fontSize>33</fontSize><forceUppercase>true</forceUppercase><color>${white}</color><alignment>center</alignment></text>
-    <text name="systemInfo"><fontPath>${font}</fontPath><fontSize>19</fontSize><color>${lime}</color><alignment>center</alignment><size>650 40</size><pos>59 856</pos><zIndex>8</zIndex></text>
+    <image name="background" extra="true"><path>./assets/background-v2.jpg</path><size>768 1024</size><pos>0 0</pos><origin>0 0</origin><zIndex>0</zIndex></image>
+    <text name="terminalTitle" extra="true"><text>DREADWIRE // VERTICAL ARCADE</text><fontPath>${fontBold}</fontPath><fontSize>25</fontSize><color>${green}</color><pos>48 48</pos><size>672 46</size><alignment>center</alignment><zIndex>5</zIndex></text>
+    <text name="terminalStatus" extra="true"><text>MOVE UP + DOWN  •  A TO PLAY</text><fontPath>${font}</fontPath><fontSize>16</fontSize><color>${muted}</color><pos>48 94</pos><size>672 32</size><alignment>center</alignment><zIndex>5</zIndex></text>
+    <carousel name="systemcarousel"><type>vertical</type><size>560 430</size><pos>104 278</pos><logoSize>440 96</logoSize><logoScale>1.15</logoScale><maxLogoCount>3</maxLogoCount><logoRotation>0</logoRotation><color>010912d9</color><zIndex>6</zIndex></carousel>
+    <text name="logoText"><fontPath>${fontBold}</fontPath><fontSize>30</fontSize><forceUppercase>true</forceUppercase><color>${white}</color><alignment>center</alignment></text>
+    <text name="systemInfo"><fontPath>${font}</fontPath><fontSize>18</fontSize><color>${lime}</color><alignment>center</alignment><size>620 40</size><pos>74 788</pos><zIndex>8</zIndex></text>
     <helpsystem name="help"><pos>42 956</pos><textColor>${white}</textColor><iconColor>${green}</iconColor><fontPath>${fontBold}</fontPath><fontSize>20</fontSize></helpsystem>
   </view>
   <view name="basic, detailed, video, grid">
-    <image name="background" extra="true"><path>./assets/background.svg</path><size>768 1024</size><pos>0 0</pos><origin>0 0</origin><zIndex>0</zIndex></image>
+    <image name="background" extra="true"><path>./assets/background-v2.jpg</path><size>768 1024</size><pos>0 0</pos><origin>0 0</origin><zIndex>0</zIndex></image>
     <text name="deck" extra="true"><text>DREADWIRE // GAME INDEX</text><fontPath>${fontBold}</fontPath><fontSize>24</fontSize><color>${green}</color><pos>38 32</pos><size>690 42</size><zIndex>5</zIndex></text>
     <image name="logo"><maxSize>320 72</maxSize><pos>384 108</pos><origin>0.5 0.5</origin><zIndex>6</zIndex></image>
     <text name="logoText"><fontPath>${fontBold}</fontPath><fontSize>34</fontSize><forceUppercase>true</forceUppercase><size>690 62</size><pos>39 78</pos><alignment>center</alignment><color>${lime}</color><zIndex>6</zIndex></text>
