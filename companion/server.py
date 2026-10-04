@@ -255,7 +255,9 @@ class MobilePad:
             e.ABS_HAT0Y: AbsInfo(0, -1, 1, 0, 0, 0),
         }
         direction_keys = [e.KEY_LEFT, e.KEY_RIGHT, e.KEY_UP, e.KEY_DOWN,
-                          e.KEY_ENTER, e.KEY_ESC, e.KEY_SPACE, e.KEY_S]
+                          e.KEY_ENTER, e.KEY_ESC, e.KEY_SPACE, e.KEY_S,
+                          e.KEY_X, e.KEY_Z, e.KEY_A, e.KEY_Q, e.KEY_W,
+                          e.KEY_RIGHTSHIFT]
         self.ui = UInput({e.EV_KEY: list(self.BUTTONS.values()), e.EV_ABS: axes},
                          name=f"Dreadwire Player {player}", vendor=0x4457,
                          product=player, version=1)
@@ -268,6 +270,7 @@ class MobilePad:
         self.pressed = set()
         self.pressed_at = {}
         self.direction_pressed = set()
+        self.keyboard_pressed = set()
 
     def tap_key(self, code):
         self.keyboard.write(e.EV_KEY, code, 1)
@@ -322,7 +325,8 @@ class MobilePad:
             # EmulationStation always consumes its keyboard profile, even when
             # another physical controller owns Player 1. Keep frontend actions
             # reliable while the virtual joypad remains available to games.
-            if current_game() is None:
+            game = current_game()
+            if game is None:
                 menu_key = {
                     "a": e.KEY_ENTER, "start": e.KEY_ENTER,
                     "b": e.KEY_ESC, "x": e.KEY_SPACE, "y": e.KEY_S,
@@ -334,6 +338,21 @@ class MobilePad:
                     if not value:
                         time.sleep(.12)
                     self.keyboard.write(e.EV_KEY, menu_key, value)
+                    self.keyboard.syn()
+            elif self.player == 1:
+                # RetroArch can keep the cabinet joystick assigned to P1 while
+                # also accepting its standard P1 keyboard bindings. Directions
+                # already use this path; mirror the remaining phone controls so
+                # Remote Play works without stealing the physical controller.
+                game_key = {
+                    "a": e.KEY_X, "b": e.KEY_Z,
+                    "x": e.KEY_S, "y": e.KEY_A,
+                    "select": e.KEY_RIGHTSHIFT, "start": e.KEY_ENTER,
+                    "l1": e.KEY_Q, "r1": e.KEY_W,
+                }.get(message["code"])
+                if game_key is not None:
+                    (self.keyboard_pressed.add if value else self.keyboard_pressed.discard)(game_key)
+                    self.keyboard.write(e.EV_KEY, game_key, value)
                     self.keyboard.syn()
         elif kind == "dpad":
             # Emit both a conventional D-pad hat and left-stick axes.  Some
@@ -361,9 +380,12 @@ class MobilePad:
         self.pressed_at.clear()
         for code in tuple(self.direction_pressed):
             self.keyboard.write(e.EV_KEY, code, 0)
+        for code in tuple(self.keyboard_pressed):
+            self.keyboard.write(e.EV_KEY, code, 0)
         for axis in (e.ABS_X, e.ABS_Y, e.ABS_RX, e.ABS_RY, e.ABS_HAT0X, e.ABS_HAT0Y):
             self.ui.write(e.EV_ABS, axis, 0)
-        self.pressed.clear(); self.direction_pressed.clear(); self.ui.syn(); self.keyboard.syn()
+        self.pressed.clear(); self.direction_pressed.clear(); self.keyboard_pressed.clear()
+        self.ui.syn(); self.keyboard.syn()
 
 
 class DisabledPad:
