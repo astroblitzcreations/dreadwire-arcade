@@ -8,7 +8,7 @@
     />
     <meta name="theme-color" content="#09051d" />
     <link rel="manifest" href="/static/manifest.webmanifest" />
-    <link rel="stylesheet" href="/static/app.css?v=28" />
+    <link rel="stylesheet" href="/static/app.css?v=29" />
     <link rel="stylesheet" href="/static/controller-layout.css?v=16" />
     <title>Dreadwire Arcade Remote</title>
   </head>
@@ -143,6 +143,15 @@
           Rotate to landscape for a full-width gamepad. Unlock to move controls;
           use SIZE to resize each selected control.
         </p>
+        <div class="card keyboardSetup">
+          <div class="keyboardSetupHead">
+            <div><h2>Keyboard Remote</h2><p class="hint">Use this computer's keyboard through the same Player input path as the on-screen controller. Cabinet controller mappings are not changed.</p></div>
+            <label class="keyboardToggle"><input id="keyboardEnabled" type="checkbox" /> ENABLE KEYBOARD</label>
+          </div>
+          <div id="keyboardBindings" class="keyboardBindings"></div>
+          <div class="actionrow"><button id="resetKeyboardBindings">RESET KEYBOARD DEFAULTS</button></div>
+          <p class="hint">Select a binding, then press the new key. Defaults: W/A/S/D move, Space is A/jump, Enter is B/attack.</p>
+        </div>
       </section>
       <section id="remote" class="tab">
         <div class="remoteActions">
@@ -437,6 +446,6 @@
       </div>
       <div id="toast"></div>
     </main>
-    <script src="/static/app.js?v=34"></script>
+    <script src="/static/app.js?v=35"></script>
   </body>
 </html>

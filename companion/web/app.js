@@ -248,6 +248,114 @@ $("#logoutBtn").onclick = async () => {
 function send(o) {
   if (ws?.readyState === 1) ws.send(JSON.stringify(o));
 }
+const keyboardDefaults = {
+  up: "KeyW", down: "KeyS", left: "KeyA", right: "KeyD",
+  a: "Space", b: "Enter", x: "KeyJ", y: "KeyK",
+  start: "KeyP", select: "ShiftRight", l1: "KeyQ", r1: "KeyE",
+};
+const keyboardLabels = {
+  up: "UP", down: "DOWN", left: "LEFT", right: "RIGHT",
+  a: "A / JUMP", b: "B / ATTACK", x: "X", y: "Y",
+  start: "START", select: "SELECT", l1: "L1", r1: "R1",
+};
+let keyboardBindings;
+try {
+  keyboardBindings = { ...keyboardDefaults, ...JSON.parse(localStorage.dwKeyboardBindings || "{}") };
+} catch (_) {
+  keyboardBindings = { ...keyboardDefaults };
+}
+let keyboardCapture = null;
+const keyboardHeld = new Set(), keyboardDirections = new Set();
+const keyboardEnabled = $("#keyboardEnabled"), keyboardBindingsPanel = $("#keyboardBindings");
+keyboardEnabled.checked = localStorage.dwKeyboardEnabled !== "false";
+keyboardEnabled.onchange = () => {
+  localStorage.dwKeyboardEnabled = String(keyboardEnabled.checked);
+  releaseKeyboardControls();
+  toast(keyboardEnabled.checked ? "Keyboard Remote enabled" : "Keyboard Remote disabled");
+};
+function friendlyKey(code) {
+  return ({ Space: "SPACE", Enter: "ENTER", ShiftRight: "R SHIFT", ShiftLeft: "L SHIFT",
+    ArrowUp: "↑", ArrowDown: "↓", ArrowLeft: "←", ArrowRight: "→" })[code]
+    || code.replace(/^Key/, "").replace(/^Digit/, "");
+}
+function renderKeyboardBindings() {
+  keyboardBindingsPanel.innerHTML = Object.keys(keyboardDefaults).map((control) =>
+    `<button class="keyboardBind" data-key-control="${control}"><span>${keyboardLabels[control]}</span><kbd>${friendlyKey(keyboardBindings[control])}</kbd></button>`
+  ).join("");
+  keyboardBindingsPanel.querySelectorAll("[data-key-control]").forEach((button) => {
+    button.onclick = () => {
+      keyboardCapture = button.dataset.keyControl;
+      keyboardBindingsPanel.querySelectorAll(".keyboardBind").forEach((item) => item.classList.remove("listening"));
+      button.classList.add("listening");
+      button.querySelector("kbd").textContent = "PRESS KEY";
+    };
+  });
+}
+function releaseKeyboardControls() {
+  keyboardHeld.forEach((control) => {
+    if (!["up", "down", "left", "right"].includes(control))
+      send({ type: "button", code: control, pressed: false });
+    document.querySelector(`[data-button="${control}"]`)?.classList.remove("active");
+  });
+  keyboardHeld.clear();
+  keyboardDirections.clear();
+  dsend();
+}
+function keyboardControlFor(code) {
+  return Object.keys(keyboardBindings).find((control) => keyboardBindings[control] === code);
+}
+function keyboardInputAllowed(event) {
+  if (!keyboardEnabled.checked || !["pad", "remote"].includes(document.body.dataset.activeTab)) return false;
+  const tag = event.target?.tagName;
+  return !["INPUT", "TEXTAREA", "SELECT"].includes(tag) && !event.target?.isContentEditable;
+}
+document.addEventListener("keydown", (event) => {
+  if (keyboardCapture) {
+    event.preventDefault();
+    keyboardBindings[keyboardCapture] = event.code;
+    localStorage.dwKeyboardBindings = JSON.stringify(keyboardBindings);
+    keyboardCapture = null;
+    renderKeyboardBindings();
+    return;
+  }
+  if (!keyboardInputAllowed(event)) return;
+  const control = keyboardControlFor(event.code);
+  if (!control) return;
+  event.preventDefault();
+  if (keyboardHeld.has(control)) return;
+  keyboardHeld.add(control);
+  if (["up", "down", "left", "right"].includes(control)) {
+    if (!lastStatus?.game) action("nav-" + control);
+    else { keyboardDirections.add(control); dsend(); }
+    return;
+  }
+  document.querySelector(`[data-button="${control}"]`)?.classList.add("active");
+  if (!lastStatus?.game && ["a", "start", "b"].includes(control)) return;
+  send({ type: "button", code: control, pressed: true });
+});
+document.addEventListener("keyup", (event) => {
+  const control = keyboardControlFor(event.code);
+  if (!control || !keyboardHeld.has(control)) return;
+  event.preventDefault();
+  keyboardHeld.delete(control);
+  if (["up", "down", "left", "right"].includes(control)) {
+    keyboardDirections.delete(control); dsend(); return;
+  }
+  document.querySelector(`[data-button="${control}"]`)?.classList.remove("active");
+  if (!lastStatus?.game && ["a", "start", "b"].includes(control)) {
+    action(control === "b" ? "launch-back" : "launch-enter");
+    return;
+  }
+  send({ type: "button", code: control, pressed: false });
+});
+$("#resetKeyboardBindings").onclick = () => {
+  releaseKeyboardControls();
+  keyboardBindings = { ...keyboardDefaults };
+  localStorage.dwKeyboardBindings = JSON.stringify(keyboardBindings);
+  renderKeyboardBindings();
+  toast("Keyboard defaults restored");
+};
+renderKeyboardBindings();
 $$("[data-button]").forEach((b) => {
   const code = b.dataset.button;
   let downAt = 0;
@@ -338,8 +446,10 @@ document.addEventListener("visibilitychange", () => {
 function dsend() {
   send({
     type: "dpad",
-    x: (dstate.right ? 1 : 0) - (dstate.left ? 1 : 0),
-    y: (dstate.down ? 1 : 0) - (dstate.up ? 1 : 0),
+    x: (dstate.right || keyboardDirections.has("right") ? 1 : 0) -
+      (dstate.left || keyboardDirections.has("left") ? 1 : 0),
+    y: (dstate.down || keyboardDirections.has("down") ? 1 : 0) -
+      (dstate.up || keyboardDirections.has("up") ? 1 : 0),
   });
 }
 $$("[data-dir]").forEach((b) => {
