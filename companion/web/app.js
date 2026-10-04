@@ -508,29 +508,73 @@ function setControllerHost(tab) {
 const remoteQuality = $("#remoteQuality"), remoteAudio = $("#remoteAudio"),
   remoteAudioToggle = $("#remoteAudioToggle");
 remoteQuality.value = localStorage.dwRemoteQuality || "smooth";
+let remoteAudioSocket = null, remoteAudioContext = null, remoteAudioNextTime = 0;
 function stopRemoteAudio() {
-  remoteAudio.pause();
-  remoteAudio.removeAttribute("src");
-  remoteAudio.load();
+  const socket = remoteAudioSocket;
+  const context = remoteAudioContext;
+  remoteAudioSocket = null;
+  remoteAudioContext = null;
+  remoteAudioNextTime = 0;
+  if (socket) {
+    socket.onopen = socket.onmessage = socket.onerror = socket.onclose = null;
+    socket.close();
+  }
+  if (context) context.close().catch(() => {});
   remoteAudioToggle.textContent = "🔇 SOUND OFF";
   remoteAudioToggle.classList.remove("active");
 }
 async function startRemoteAudio() {
-  remoteAudio.src = `/api/remote-audio.webm?token=${encodeURIComponent(token)}&ts=${Date.now()}`;
+  stopRemoteAudio();
   try {
-    await remoteAudio.play();
-    remoteAudioToggle.textContent = "🔊 SOUND ON";
-    remoteAudioToggle.classList.add("active");
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    const context = new AudioContextClass({ latencyHint: "interactive", sampleRate: 48000 });
+    await context.resume();
+    remoteAudioContext = context;
+    const scheme = location.protocol === "https:" ? "wss" : "ws";
+    const socket = new WebSocket(`${scheme}://${location.host}/ws/audio?token=${encodeURIComponent(token)}`);
+    socket.binaryType = "arraybuffer";
+    remoteAudioSocket = socket;
+    socket.onopen = () => {
+      if (remoteAudioSocket !== socket) return;
+      remoteAudioNextTime = context.currentTime + 0.04;
+      remoteAudioToggle.textContent = "🔊 SOUND ON";
+      remoteAudioToggle.classList.add("active");
+    };
+    socket.onmessage = event => {
+      if (remoteAudioSocket !== socket || !(event.data instanceof ArrayBuffer)) return;
+      const samples = new Int16Array(event.data);
+      const frames = samples.length >> 1;
+      if (!frames) return;
+      const buffer = context.createBuffer(2, frames, 48000);
+      const left = buffer.getChannelData(0), right = buffer.getChannelData(1);
+      for (let frame = 0, sample = 0; frame < frames; frame++, sample += 2) {
+        left[frame] = samples[sample] / 32768;
+        right[frame] = samples[sample + 1] / 32768;
+      }
+      const now = context.currentTime;
+      // Maintain a tiny jitter cushion, but throw away queued stale sound.
+      if (remoteAudioNextTime < now + 0.025 || remoteAudioNextTime > now + 0.25)
+        remoteAudioNextTime = now + 0.04;
+      const source = context.createBufferSource();
+      source.buffer = buffer;
+      source.connect(context.destination);
+      source.start(remoteAudioNextTime);
+      remoteAudioNextTime += frames / 48000;
+    };
+    socket.onclose = () => {
+      if (remoteAudioSocket !== socket) return;
+      stopRemoteAudio();
+      toast("Remote audio disconnected");
+    };
+    socket.onerror = () => {
+      if (remoteAudioSocket === socket) toast("Remote audio could not connect");
+    };
   } catch (_) {
     stopRemoteAudio();
-    toast("Tap SOUND ON again if the browser blocked audio");
+    toast("Tap SOUND ON again if the browser blocked sound");
   }
 }
-remoteAudioToggle.onclick = () => remoteAudio.paused ? startRemoteAudio() : stopRemoteAudio();
-remoteAudio.onerror = () => {
-  if (!remoteAudio.paused) toast("Remote audio disconnected");
-  stopRemoteAudio();
-};
+remoteAudioToggle.onclick = () => remoteAudioSocket ? stopRemoteAudio() : startRemoteAudio();
 remoteQuality.onchange = () => {
   localStorage.dwRemoteQuality = remoteQuality.value;
   if ($("#remote").classList.contains("active")) startRemoteStream();

@@ -1000,6 +1000,41 @@ async def remote_audio_stream(request):
     return response
 
 
+async def remote_audio_socket(request):
+    """Send 20 ms stereo PCM blocks for low-latency Web Audio playback."""
+    await require(request)
+    ws = web.WebSocketResponse(max_msg_size=65536)
+    await ws.prepare(request)
+    if AUDIO_STREAM_LOCK.locked():
+        await ws.send_json({"error": "Remote audio is already being viewed"})
+        await ws.close()
+        return ws
+    async with AUDIO_STREAM_LOCK:
+        source = await asyncio.to_thread(active_audio_monitor)
+        process = await asyncio.create_subprocess_exec(
+            "runuser", "-u", "pi", "--", "env", "XDG_RUNTIME_DIR=/run/user/1000",
+            "ffmpeg", "-hide_banner", "-loglevel", "error", "-f", "pulse", "-i", source,
+            "-ac", "2", "-ar", "48000", "-c:a", "pcm_s16le", "-f", "s16le", "pipe:1",
+            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL,
+        )
+        try:
+            # 48 kHz * 2 channels * 2 bytes * 20 ms = 3840 bytes.
+            while not ws.closed:
+                block = await process.stdout.readexactly(3840)
+                await ws.send_bytes(block)
+        except (asyncio.IncompleteReadError, ConnectionResetError, BrokenPipeError,
+                RuntimeError, asyncio.CancelledError):
+            pass
+        finally:
+            if process.returncode is None:
+                process.terminate()
+                try:
+                    await asyncio.wait_for(process.wait(), 2)
+                except asyncio.TimeoutError:
+                    process.kill()
+    return ws
+
+
 async def action(request):
     session=await require(request); data = await request.json(); name = data.get("action")
     commands = {
@@ -1660,5 +1695,6 @@ app.add_routes([web.get("/", index), web.get("/cabinet-system", cabinet_system),
                 web.delete("/api/media/{category}/{filename}", media_delete),
                 web.post("/api/action", action), web.post("/api/upload/{category}", upload),
                 web.post("/api/battery", battery_update),
-                web.get("/ws/controller", controller), web.static("/static", WEB)])
+                web.get("/ws/controller", controller), web.get("/ws/audio", remote_audio_socket),
+                web.static("/static", WEB)])
 web.run_app(app, host="0.0.0.0", port=8765, access_log=None)
