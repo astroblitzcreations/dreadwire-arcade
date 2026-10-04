@@ -390,8 +390,6 @@ function setControllerHost(tab) {
 function stopRemoteStream() {
   clearTimeout(remoteRestartTimer);
   remoteRestartTimer = null;
-  remoteStreamRunning = false;
-  remoteStreamSession += 1;
   $("#screenFeed").removeAttribute("src");
   $("#streamState").textContent = "PAUSED";
 }
@@ -401,44 +399,17 @@ function scheduleRemoteResync(delay = 400) {
     if ($("#remote").classList.contains("active")) startRemoteStream();
   }, delay);
 }
-let remoteStreamRunning = false;
-let remoteFrameGeneration = -1;
-let remoteStreamSession = 0;
-async function runRemoteFrames(session) {
-  const feed = $("#screenFeed");
-  let failures = 0;
-  while (remoteStreamRunning && session === remoteStreamSession && $("#remote").classList.contains("active")) {
-    try {
-      const response = await fetch(`/api/screen.jpg?token=${encodeURIComponent(token)}&generation=${remoteFrameGeneration}&ts=${Date.now()}`, { cache: "no-store" });
-      if (!response.ok) throw new Error(`screen ${response.status}`);
-      const blob = await response.blob();
-      if (!remoteStreamRunning || session !== remoteStreamSession) break;
-      const url = URL.createObjectURL(blob);
-      await new Promise((resolve, reject) => {
-        feed.onload = resolve;
-        feed.onerror = reject;
-        feed.src = url;
-      });
-      URL.revokeObjectURL(url);
-      remoteFrameGeneration = Number(response.headers.get("X-Screen-Generation")) || remoteFrameGeneration + 1;
-      failures = 0;
-      $("#streamState").textContent = "LIVE";
-    } catch (error) {
-      if (!remoteStreamRunning || session !== remoteStreamSession) break;
-      failures += 1;
-      $("#streamState").textContent = failures > 2 ? "RECONNECTING" : "CONNECTING";
-      await new Promise(resolve => setTimeout(resolve, Math.min(1200, 150 * failures)));
-    }
-  }
-}
 function startRemoteStream() {
   stopRemoteStream();
+  const feed = $("#screenFeed");
   $("#streamState").textContent = "CONNECTING";
   remoteRestartTimer = setTimeout(() => {
-    remoteStreamRunning = true;
-    remoteFrameGeneration = -1;
-    remoteStreamSession += 1;
-    runRemoteFrames(remoteStreamSession);
+    feed.onload = () => ($("#streamState").textContent = "LIVE");
+    feed.onerror = () => {
+      $("#streamState").textContent = "RECONNECTING";
+      scheduleRemoteResync(900);
+    };
+    feed.src = `/api/screen.mjpeg?token=${encodeURIComponent(token)}&ts=${Date.now()}`;
   }, 350);
 }
 const remote = $("#remote"),
