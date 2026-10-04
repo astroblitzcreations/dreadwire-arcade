@@ -48,6 +48,7 @@ PARTY_QUEUE = []
 PARTY_CHAT = []
 GAME_SELECTION = {}
 SCREEN_LOCK = asyncio.Lock()
+AUDIO_STREAM_LOCK = asyncio.Lock()
 PACKAGE_VERSION = "1.1.4"
 UPDATE_CONFIG = Path("/etc/dreadwire/update.json")
 
@@ -855,6 +856,14 @@ async def screen_frame(request):
 async def screen_stream(request):
     """Stream the active DRM/KMS plane, including EmulationStation and games."""
     await require(request)
+    profiles = {
+        "smooth": (320, 426, 20, 12),
+        "balanced": (360, 480, 15, 9),
+        "sharp": (432, 576, 12, 8),
+    }
+    width, height, capture_fps, jpeg_quality = profiles.get(
+        request.query.get("profile", "balanced"), profiles["balanced"]
+    )
     response = web.StreamResponse(status=200, headers={
         "Content-Type": "multipart/x-mixed-replace; boundary=ffmpeg",
         "Cache-Control": "no-store, no-cache, must-revalidate",
@@ -891,19 +900,19 @@ async def screen_stream(request):
                     capture_args = (
                         "runuser", "-u", "pi", "--", "env", "DISPLAY=:0",
                         "ffmpeg", "-hide_banner", "-loglevel", "error",
-                        "-f", "x11grab", "-video_size", "768x1024", "-framerate", "15", "-i", ":0",
-                        "-vf", "scale=360:480:flags=fast_bilinear",
+                        "-f", "x11grab", "-video_size", "768x1024", "-framerate", str(capture_fps), "-i", ":0",
+                        "-vf", f"scale={width}:{height}:flags=fast_bilinear",
                     )
                 else:
                     pixel_format = "bgr0" if retroarch_mode else "bgra"
                     capture_args = (
                         "ffmpeg", "-hide_banner", "-loglevel", "error",
-                        "-f", "kmsgrab", "-device", "/dev/dri/card1", "-framerate", "15", "-i", "-",
-                        "-vf", f"hwdownload,format={pixel_format},transpose=clock,scale=360:480:flags=fast_bilinear",
+                        "-f", "kmsgrab", "-device", "/dev/dri/card1", "-framerate", str(capture_fps), "-i", "-",
+                        "-vf", f"hwdownload,format={pixel_format},transpose=clock,scale={width}:{height}:flags=fast_bilinear",
                     )
                 process = await asyncio.create_subprocess_exec(
                     *capture_args,
-                    "-threads", "2", "-q:v", "9", "-flush_packets", "1", "-f", "image2pipe", "-vcodec", "mjpeg", "pipe:1",
+                    "-threads", "2", "-q:v", str(jpeg_quality), "-flush_packets", "1", "-f", "image2pipe", "-vcodec", "mjpeg", "pipe:1",
                     stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL,
                 )
                 try:
@@ -937,6 +946,57 @@ async def screen_stream(request):
                 await asyncio.sleep(.2)
         except (ConnectionResetError, BrokenPipeError, asyncio.CancelledError):
             pass
+    return response
+
+
+def active_audio_monitor():
+    result = run("runuser", "-u", "pi", "--", "env", "XDG_RUNTIME_DIR=/run/user/1000",
+                 "pactl", "list", "short", "sinks").stdout
+    sinks = [line.split("\t") for line in result.splitlines() if "\t" in line]
+    active = next((fields[1] for fields in sinks if len(fields) > 4 and fields[4] == "RUNNING"), None)
+    if active:
+        return active + ".monitor"
+    default = run("runuser", "-u", "pi", "--", "env", "XDG_RUNTIME_DIR=/run/user/1000",
+                  "pactl", "get-default-sink").stdout.strip()
+    return (default or "alsa_output.platform-fef00700.hdmi.hdmi-stereo") + ".monitor"
+
+
+async def remote_audio_stream(request):
+    """Optional low-bandwidth cabinet audio; kept separate from control/video."""
+    await require(request)
+    if AUDIO_STREAM_LOCK.locked():
+        raise web.HTTPConflict(text="Remote audio is already being viewed")
+    response = web.StreamResponse(status=200, headers={
+        "Content-Type": "audio/webm; codecs=opus",
+        "Cache-Control": "no-store, no-cache, must-revalidate",
+        "X-Accel-Buffering": "no",
+    })
+    await response.prepare(request)
+    async with AUDIO_STREAM_LOCK:
+        source = await asyncio.to_thread(active_audio_monitor)
+        process = await asyncio.create_subprocess_exec(
+            "runuser", "-u", "pi", "--", "env", "XDG_RUNTIME_DIR=/run/user/1000",
+            "ffmpeg", "-hide_banner", "-loglevel", "error", "-f", "pulse", "-i", source,
+            "-ac", "2", "-ar", "48000", "-c:a", "libopus", "-b:a", "64k",
+            "-application", "lowdelay", "-frame_duration", "20",
+            "-cluster_time_limit", "250", "-cluster_size_limit", "0", "-f", "webm", "pipe:1",
+            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL,
+        )
+        try:
+            while request.transport is not None and not request.transport.is_closing():
+                chunk = await process.stdout.read(8192)
+                if not chunk:
+                    break
+                await response.write(chunk)
+        except (ConnectionResetError, BrokenPipeError, asyncio.CancelledError):
+            pass
+        finally:
+            if process.returncode is None:
+                process.terminate()
+                try:
+                    await asyncio.wait_for(process.wait(), 2)
+                except asyncio.TimeoutError:
+                    process.kill()
     return response
 
 
@@ -1595,6 +1655,7 @@ app.add_routes([web.get("/", index), web.get("/cabinet-system", cabinet_system),
                 web.get("/ws/party", party_socket), web.get("/overlay-qr", party_overlay), web.get("/api/party/qr.png", party_qr),
                 web.get("/api/audio", audio_control), web.put("/api/audio", audio_control),
                 web.get("/api/screen.jpg", screen_frame), web.get("/api/screen.mjpeg", screen_stream),
+                web.get("/api/remote-audio.webm", remote_audio_stream),
                 web.get("/api/media", media_list), web.get("/api/media/{category}/{filename}", media_file),
                 web.delete("/api/media/{category}/{filename}", media_delete),
                 web.post("/api/action", action), web.post("/api/upload/{category}", upload),

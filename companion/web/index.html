@@ -155,6 +155,11 @@
       </section>
       <section id="remote" class="tab">
         <div class="remoteActions">
+          <select id="remoteQuality" aria-label="Remote video quality">
+            <option value="smooth">SMOOTH • HIGH FPS</option>
+            <option value="balanced">BALANCED</option>
+            <option value="sharp">SHARP • HIGH DETAIL</option>
+          </select><button id="remoteAudioToggle">🔇 SOUND OFF</button>
           <button data-action="launch-enter">↵ ENTER / OPTIONS</button
           ><button data-action="launch-back">↩ BACK</button
           ><button class="adminOnly danger" data-action="close-game">
@@ -179,6 +184,7 @@
             >
           </div>
           <div id="remoteControllerMount"></div>
+          <audio id="remoteAudio" playsinline preload="none"></audio>
         </div>
       </section>
       <section id="library" class="tab">
@@ -446,6 +452,6 @@
       </div>
       <div id="toast"></div>
     </main>
-    <script src="/static/app.js?v=35"></script>
+    <script src="/static/app.js?v=36"></script>
   </body>
 </html>

@@ -505,11 +505,42 @@ function setControllerHost(tab) {
   else if (stage.parentNode !== stageHome)
     stageHome.insertBefore(stage, stageNext);
 }
-function stopRemoteStream() {
+const remoteQuality = $("#remoteQuality"), remoteAudio = $("#remoteAudio"),
+  remoteAudioToggle = $("#remoteAudioToggle");
+remoteQuality.value = localStorage.dwRemoteQuality || "smooth";
+function stopRemoteAudio() {
+  remoteAudio.pause();
+  remoteAudio.removeAttribute("src");
+  remoteAudio.load();
+  remoteAudioToggle.textContent = "🔇 SOUND OFF";
+  remoteAudioToggle.classList.remove("active");
+}
+async function startRemoteAudio() {
+  remoteAudio.src = `/api/remote-audio.webm?token=${encodeURIComponent(token)}&ts=${Date.now()}`;
+  try {
+    await remoteAudio.play();
+    remoteAudioToggle.textContent = "🔊 SOUND ON";
+    remoteAudioToggle.classList.add("active");
+  } catch (_) {
+    stopRemoteAudio();
+    toast("Tap SOUND ON again if the browser blocked audio");
+  }
+}
+remoteAudioToggle.onclick = () => remoteAudio.paused ? startRemoteAudio() : stopRemoteAudio();
+remoteAudio.onerror = () => {
+  if (!remoteAudio.paused) toast("Remote audio disconnected");
+  stopRemoteAudio();
+};
+remoteQuality.onchange = () => {
+  localStorage.dwRemoteQuality = remoteQuality.value;
+  if ($("#remote").classList.contains("active")) startRemoteStream();
+};
+function stopRemoteStream(stopAudio = true) {
   clearTimeout(remoteRestartTimer);
   remoteRestartTimer = null;
   $("#screenFeed").removeAttribute("src");
   $("#streamState").textContent = "PAUSED";
+  if (stopAudio) stopRemoteAudio();
 }
 function scheduleRemoteResync(delay = 400) {
   clearTimeout(remoteRestartTimer);
@@ -518,7 +549,7 @@ function scheduleRemoteResync(delay = 400) {
   }, delay);
 }
 function startRemoteStream() {
-  stopRemoteStream();
+  stopRemoteStream(false);
   const feed = $("#screenFeed");
   $("#streamState").textContent = "CONNECTING";
   remoteRestartTimer = setTimeout(() => {
@@ -527,7 +558,7 @@ function startRemoteStream() {
       $("#streamState").textContent = "RECONNECTING";
       scheduleRemoteResync(900);
     };
-    feed.src = `/api/screen.mjpeg?token=${encodeURIComponent(token)}&ts=${Date.now()}`;
+    feed.src = `/api/screen.mjpeg?token=${encodeURIComponent(token)}&profile=${encodeURIComponent(remoteQuality.value)}&ts=${Date.now()}`;
   }, 350);
 }
 const remote = $("#remote"),
