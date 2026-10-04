@@ -856,54 +856,11 @@ async def screen_stream(request):
                 game_name = current_game()
                 retroarch_mode = any(proc.info.get("name") == "retroarch" for proc in psutil.process_iter(["name"]))
                 x11_mode = game_name in {"Void Run", "Speedbike", "Trippy Gold Maze", "Arena Brawl"}
-                # The legacy /dev/fb0 exists on current Raspberry Pi OS but is a
-                # zero-filled compatibility buffer, not the active KMS plane.
-                # Release kmsgrab during runcommand/xinit's ownership handoff,
-                # then reopen it against the new menu/game plane.
-                if retroarch_mode:
-                    screenshot_dir = Path("/opt/retropie/configs/all/retroarch/screenshots")
-                    before = time.time()
-                    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                    # RetroArch's UDP command parser waits for a line ending.
-                    # Without it the emulator keeps running, but never writes a
-                    # screenshot and Remote Play sits on CONNECTING forever.
-                    try: sock.sendto(b"SCREENSHOT\n", ("127.0.0.1", 55355))
-                    finally: sock.close()
-                    captured = None
-                    for _ in range(12):
-                        candidates = [path for path in screenshot_dir.glob("*.png") if path.stat().st_mtime >= before - .05]
-                        if candidates:
-                            captured = max(candidates, key=lambda path: path.stat().st_mtime)
-                            break
-                        await asyncio.sleep(.025)
-                    if captured:
-                        try:
-                            image = None
-                            for _ in range(12):
-                                try:
-                                    def read_finished_png():
-                                        with Image.open(captured) as opened:
-                                            opened.load()
-                                            return opened.copy()
-                                    image = await asyncio.to_thread(read_finished_png)
-                                    break
-                                except (OSError, ValueError):
-                                    await asyncio.sleep(.025)
-                            if image is None:
-                                await asyncio.sleep(.05)
-                                continue
-                            image = image.convert("RGB").transpose(Image.Transpose.ROTATE_270)
-                            image.thumbnail((360, 480), Image.Resampling.BILINEAR)
-                            output = BytesIO(); image.save(output, "JPEG", quality=72, optimize=False)
-                            frame = output.getvalue()
-                            header = (b"--ffmpeg\r\nContent-Type: image/jpeg\r\nContent-Length: "
-                                      + str(len(frame)).encode() + b"\r\n\r\n")
-                            await response.write(header + frame + b"\r\n")
-                        finally:
-                            captured.unlink(missing_ok=True)
-                    await asyncio.sleep(.06)
-                    continue
-                if not x11_mode and display_transition_active():
+                # Both EmulationStation and RetroArch expose their active DRM
+                # plane directly. RetroArch uses XR24/bgr0 while the menu uses
+                # AR24/bgra. Capturing that plane avoids RetroArch's SCREENSHOT
+                # command entirely (no PNG disk writes and no cabinet popup).
+                if not retroarch_mode and not x11_mode and display_transition_active():
                     await asyncio.sleep(.12)
                     continue
                 if x11_mode:
@@ -916,10 +873,11 @@ async def screen_stream(request):
                         "-vf", "scale=360:480:flags=fast_bilinear",
                     )
                 else:
+                    pixel_format = "bgr0" if retroarch_mode else "bgra"
                     capture_args = (
                         "ffmpeg", "-hide_banner", "-loglevel", "error",
-                        "-f", "kmsgrab", "-device", "/dev/dri/card1", "-framerate", "12", "-i", "-",
-                        "-vf", "hwdownload,format=bgra,transpose=clock,scale=360:480:flags=fast_bilinear",
+                        "-f", "kmsgrab", "-device", "/dev/dri/card1", "-framerate", "15", "-i", "-",
+                        "-vf", f"hwdownload,format={pixel_format},transpose=clock,scale=360:480:flags=fast_bilinear",
                     )
                 process = await asyncio.create_subprocess_exec(
                     *capture_args,
@@ -946,9 +904,9 @@ async def screen_stream(request):
                             # Restart capture as soon as a launch begins or the
                             # active renderer changes so its pixel format stays valid.
                             changed = (current_game() in {"Void Run", "Speedbike", "Trippy Gold Maze", "Arena Brawl"}) != x11_mode
-                            if changed or (not x11_mode and display_transition_active()): break
+                            if changed or (not retroarch_mode and not x11_mode and display_transition_active()): break
                         changed = (current_game() in {"Void Run", "Speedbike", "Trippy Gold Maze", "Arena Brawl"}) != x11_mode
-                        if changed or (not x11_mode and display_transition_active()): break
+                        if changed or (not retroarch_mode and not x11_mode and display_transition_active()): break
                 finally:
                     if process.returncode is None:
                         process.terminate()
