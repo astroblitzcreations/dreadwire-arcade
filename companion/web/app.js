@@ -123,6 +123,13 @@ async function enter() {
     checkForUpdates();
     if (document.body.classList.contains("cabinet-system-only")) {
       document.querySelector('[data-tab="system"]')?.click();
+    } else {
+      const remembered = localStorage.dwActiveTab || "pad";
+      const rememberedButton = document.querySelector(`nav button[data-tab="${remembered}"]`);
+      const usableButton = rememberedButton && !rememberedButton.hidden
+        ? rememberedButton
+        : document.querySelector('nav button[data-tab="pad"]');
+      usableButton?.click();
     }
   } catch (e) {
     localStorage.removeItem("dwToken");
@@ -184,6 +191,7 @@ $$("nav button").forEach(
       b.classList.add("active");
       $("#" + b.dataset.tab).classList.add("active");
       document.body.dataset.activeTab = b.dataset.tab;
+      localStorage.dwActiveTab = b.dataset.tab;
       syncPadMode();
       setControllerHost(b.dataset.tab);
       if (b.dataset.tab === "remote") startRemoteStream();
