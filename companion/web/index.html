@@ -159,7 +159,11 @@
             <option value="smooth">SMOOTH • HIGH FPS</option>
             <option value="balanced">BALANCED</option>
             <option value="sharp">SHARP • HIGH DETAIL</option>
-          </select><button id="remoteAudioToggle">🔇 SOUND OFF</button>
+          </select><button id="remoteAudioToggle">🔊 SOUND AUTO</button>
+          <label class="remoteSync" title="Delay sound to match the live picture">A/V SYNC
+            <input id="remoteAudioDelay" type="range" min="0" max="3000" step="100" value="800" />
+            <span id="remoteAudioDelayValue">0.8s</span>
+          </label>
           <button data-action="launch-enter">↵ ENTER / OPTIONS</button
           ><button data-action="launch-back">↩ BACK</button
           ><button class="adminOnly danger" data-action="close-game">
@@ -452,6 +456,6 @@
       </div>
       <div id="toast"></div>
     </main>
-    <script src="/static/app.js?v=37"></script>
+    <script src="/static/app.js?v=38"></script>
   </body>
 </html>

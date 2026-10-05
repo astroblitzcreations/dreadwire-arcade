@@ -506,10 +506,15 @@ function setControllerHost(tab) {
     stageHome.insertBefore(stage, stageNext);
 }
 const remoteQuality = $("#remoteQuality"), remoteAudio = $("#remoteAudio"),
-  remoteAudioToggle = $("#remoteAudioToggle");
+  remoteAudioToggle = $("#remoteAudioToggle"),
+  remoteAudioDelay = $("#remoteAudioDelay"),
+  remoteAudioDelayValue = $("#remoteAudioDelayValue");
 remoteQuality.value = localStorage.dwRemoteQuality || "smooth";
+remoteAudioDelay.value = localStorage.dwRemoteAudioDelay || "800";
+remoteAudioDelayValue.textContent = `${(Number(remoteAudioDelay.value) / 1000).toFixed(1)}s`;
 let remoteAudioSocket = null, remoteAudioContext = null, remoteAudioNextTime = 0;
-function stopRemoteAudio() {
+let remoteAudioWanted = localStorage.dwRemoteAudioWanted !== "false";
+function stopRemoteAudio(disable = false) {
   const socket = remoteAudioSocket;
   const context = remoteAudioContext;
   remoteAudioSocket = null;
@@ -520,11 +525,17 @@ function stopRemoteAudio() {
     socket.close();
   }
   if (context) context.close().catch(() => {});
-  remoteAudioToggle.textContent = "🔇 SOUND OFF";
+  if (disable) {
+    remoteAudioWanted = false;
+    localStorage.dwRemoteAudioWanted = "false";
+  }
+  remoteAudioToggle.textContent = remoteAudioWanted ? "🔊 SOUND AUTO" : "🔇 SOUND OFF";
   remoteAudioToggle.classList.remove("active");
 }
 async function startRemoteAudio() {
-  stopRemoteAudio();
+  stopRemoteAudio(false);
+  remoteAudioWanted = true;
+  localStorage.dwRemoteAudioWanted = "true";
   try {
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     const context = new AudioContextClass({ latencyHint: "interactive", sampleRate: 48000 });
@@ -536,7 +547,7 @@ async function startRemoteAudio() {
     remoteAudioSocket = socket;
     socket.onopen = () => {
       if (remoteAudioSocket !== socket) return;
-      remoteAudioNextTime = context.currentTime + 0.04;
+      remoteAudioNextTime = context.currentTime + Number(remoteAudioDelay.value) / 1000;
       remoteAudioToggle.textContent = "🔊 SOUND ON";
       remoteAudioToggle.classList.add("active");
     };
@@ -552,9 +563,11 @@ async function startRemoteAudio() {
         right[frame] = samples[sample + 1] / 32768;
       }
       const now = context.currentTime;
-      // Maintain a tiny jitter cushion, but throw away queued stale sound.
-      if (remoteAudioNextTime < now + 0.025 || remoteAudioNextTime > now + 0.25)
-        remoteAudioNextTime = now + 0.04;
+      // Delay sound to match the MJPEG picture and discard stale queued sound.
+      const syncDelay = Number(remoteAudioDelay.value) / 1000;
+      if (remoteAudioNextTime < now + syncDelay - 0.08 ||
+          remoteAudioNextTime > now + syncDelay + 0.5)
+        remoteAudioNextTime = now + syncDelay;
       const source = context.createBufferSource();
       source.buffer = buffer;
       source.connect(context.destination);
@@ -563,7 +576,7 @@ async function startRemoteAudio() {
     };
     socket.onclose = () => {
       if (remoteAudioSocket !== socket) return;
-      stopRemoteAudio();
+      stopRemoteAudio(false);
       toast("Remote audio disconnected");
     };
     socket.onerror = () => {
@@ -574,7 +587,12 @@ async function startRemoteAudio() {
     toast("Tap SOUND ON again if the browser blocked sound");
   }
 }
-remoteAudioToggle.onclick = () => remoteAudioSocket ? stopRemoteAudio() : startRemoteAudio();
+remoteAudioToggle.onclick = () => remoteAudioSocket ? stopRemoteAudio(true) : startRemoteAudio();
+remoteAudioDelay.oninput = () => {
+  localStorage.dwRemoteAudioDelay = remoteAudioDelay.value;
+  remoteAudioDelayValue.textContent = `${(Number(remoteAudioDelay.value) / 1000).toFixed(1)}s`;
+  if (remoteAudioContext) remoteAudioNextTime = remoteAudioContext.currentTime + Number(remoteAudioDelay.value) / 1000;
+};
 remoteQuality.onchange = () => {
   localStorage.dwRemoteQuality = remoteQuality.value;
   if ($("#remote").classList.contains("active")) startRemoteStream();
@@ -604,7 +622,16 @@ function startRemoteStream() {
     };
     feed.src = `/api/screen.mjpeg?token=${encodeURIComponent(token)}&profile=${encodeURIComponent(remoteQuality.value)}&ts=${Date.now()}`;
   }, 350);
+  if (remoteAudioWanted && !remoteAudioSocket) startRemoteAudio();
 }
+// Browsers require one user gesture before sound may begin. If Remote Play was
+// restored on reload, start its default-on audio on the first gesture.
+function startWantedRemoteAudio() {
+  if (remoteAudioWanted && document.body.dataset.activeTab === "remote" && !remoteAudioSocket)
+    startRemoteAudio();
+}
+document.addEventListener("pointerdown", startWantedRemoteAudio, { once: true });
+document.addEventListener("keydown", startWantedRemoteAudio, { once: true });
 const remote = $("#remote"),
   fullscreenButton = $("#remoteFullscreen");
 function remoteFullscreenState() {
