@@ -9,7 +9,7 @@
     <meta name="theme-color" content="#09051d" />
     <link rel="manifest" href="/static/manifest.webmanifest" />
     <link rel="stylesheet" href="/static/app.css?v=29" />
-    <link rel="stylesheet" href="/static/controller-layout.css?v=16" />
+    <link rel="stylesheet" href="/static/controller-layout.css?v=17" />
     <title>Dreadwire Arcade Remote</title>
   </head>
   <body>
@@ -154,6 +154,13 @@
         </div>
       </section>
       <section id="remote" class="tab">
+        <button id="remoteMenuToggle" class="remoteMenuToggle">☰ REMOTE MENU</button>
+        <div class="remoteLayoutTools">
+          <button id="remoteEditLayout">✥ MOVE CONTROLS</button>
+          <button id="remoteSizeDown">− SIZE</button>
+          <button id="remoteSizeUp">+ SIZE</button>
+          <button id="remoteResetLayout">↺ RESET</button>
+        </div>
         <div class="remoteActions">
           <select id="remoteQuality" aria-label="Remote video quality">
             <option value="smooth">SMOOTH • HIGH FPS</option>
@@ -456,6 +463,6 @@
       </div>
       <div id="toast"></div>
     </main>
-    <script src="/static/app.js?v=38"></script>
+    <script src="/static/app.js?v=39"></script>
   </body>
 </html>

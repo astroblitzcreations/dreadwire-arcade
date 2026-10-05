@@ -860,7 +860,14 @@ $("#editLayout").onclick = () => {
     ? "Tap a control to select it, drag to move, and use SIZE to resize. Lock when done."
     : "Rotate to landscape for a full-width gamepad. Unlock to customize.";
   if (!editing) saveLayout();
+  document.body.classList.toggle("layout-editing", editing);
+  $("#remoteEditLayout").textContent = editing ? "✓ LOCK CONTROLS" : "✥ MOVE CONTROLS";
 };
+$("#remoteEditLayout").onclick = () => $("#editLayout").click();
+$("#remoteSizeDown").onclick = () => resizeSelected(-0.1);
+$("#remoteSizeUp").onclick = () => resizeSelected(0.1);
+$("#remoteResetLayout").onclick = () => $("#resetLayout").click();
+$("#remoteMenuToggle").onclick = () => remote.classList.toggle("menu-open");
 $("#resetLayout").onclick = () => {
   localStorage.removeItem(layoutKey());
   applyLayout(null);
