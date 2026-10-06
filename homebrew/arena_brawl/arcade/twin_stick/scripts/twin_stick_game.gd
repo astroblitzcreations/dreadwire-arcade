@@ -97,6 +97,8 @@ var erosion_order: Array[Vector2i] = []
 var erosion_timer := 0.0
 var erosion_index := 0
 var erosion_active := false
+var floor_tile_states: Dictionary = {}
+var floor_tile_changed_at: Dictionary = {}
 const FLOORS_PER_ROOM := 5
 const CORRIDOR_LENGTH := 1350.0
 var prize_spawn_timer := 12.0
@@ -167,6 +169,8 @@ func restart() -> void:
     erosion_timer = 0.0
     erosion_index = 0
     erosion_active = false
+    floor_tile_states.clear()
+    floor_tile_changed_at.clear()
     prize_spawn_timer = randf_range(10.0, 16.0)
     tally_time = 0.0
     high_score_music_started = false
@@ -193,6 +197,7 @@ func _new_player(index: int, point: Vector2) -> Dictionary:
         "fire_held": false, "lock_held": false, "locked_aim": Vector2.UP,
         "secondary_held": false, "bombs": 1, "drone_level": 0,
         "shield_share_cooldown": 0.0, "death_move": "", "death_progress": 0.0,
+        "floor_cell": Vector2i(-99, -99),
         "continue_timer": 0.0, "continues": 3}
 
 func _input(event: InputEvent) -> void:
@@ -907,6 +912,8 @@ func _update_players(dt: float) -> void:
             p["dir"] = _direction(p["aim"])
         var speed = 230.0 * (1.4 if p["buffs"].has("speed_boost") else 1.0)
         p["pos"] = _clamp_room(p["pos"] + move * speed * dt)
+        if phase == "combat":
+            _update_floor_paint(p)
         if firing and p["fire_timer"] <= 0:
             _fire_player(p)
     _share_reflect_shields()
@@ -1116,6 +1123,19 @@ func _prepare_floor_erosion() -> void:
 func _floor_cell_at(point: Vector2) -> Vector2i:
     return Vector2i(clampi(int(point.x / 64.0), 0, 11), clampi(int((point.y - 128.0) / 64.0), 0, 13))
 
+func _update_floor_paint(player: Dictionary) -> void:
+    var cell = _floor_cell_at(player["pos"])
+    if cell == player["floor_cell"]:
+        return
+    player["floor_cell"] = cell
+    if cell.x <= 0 or cell.x >= 11 or cell.y <= 0 or cell.y >= 13 or erosion_cells.has(cell):
+        return
+    var player_color = int(player["id"]) + 1
+    # Like Q*bert, every new landing flips the square. P1 paints cyan, P2
+    # paints magenta, and either player stepping on a lit tile turns it back.
+    floor_tile_states[cell] = 0 if int(floor_tile_states.get(cell, 0)) != 0 else player_color
+    floor_tile_changed_at[cell] = game_time
+
 func _safe_floor_position(player_id: int) -> Vector2:
     var preferred = Vector2i(4 + player_id * 3, 7)
     if not erosion_cells.has(preferred):
@@ -1218,8 +1238,11 @@ func _update_floor_transition(dt: float) -> void:
                 return
             if not pending_route.is_empty(): floor_in_room = 1
             else: floor_in_room += 1
+            floor_tile_states.clear()
+            floor_tile_changed_at.clear()
             for player in players:
                 player["pos"] = Vector2(280 + player["id"] * 208, 365)
+                player["floor_cell"] = Vector2i(-99, -99)
                 player["invuln"] = maxf(player["invuln"], 1.5)
             phase = "floor_build"
             phase_timer = 2.8
@@ -1671,7 +1694,10 @@ func _draw_arena_floor() -> void:
                 var restored = int(floor_transition * erosion_index)
                 erosion_missing = erosion_rank < erosion_index - restored
             if rank >= removed and not erosion_missing:
-                draw_texture_rect_region(tile, Rect2(x * 64, 128 + y * 64, 64, 64), source)
+                var tile_rect = Rect2(x * 64, 128 + y * 64, 64, 64)
+                draw_texture_rect_region(tile, tile_rect, source)
+                if x > 0 and x < 11 and y > 0 and y < 13:
+                    _draw_matrix_floor_tile(cell, tile_rect)
             elif phase == "floor_drop" and rank >= removed - 13:
                 var age = clampf((float(removed - rank)) / 13.0, 0.0, 1.0)
                 var center = Vector2(x * 64 + 32, 160 + y * 64 + age * age * 360)
@@ -1691,6 +1717,50 @@ func _draw_arena_floor() -> void:
         _label("FLOOR COLLAPSE — KEEP MOVING!", Vector2(384, 202), 19, Color(1, .2, .38), true)
     elif phase == "floor_restore":
         _label("STAGE REBUILDING", Vector2(384, 202), 19, Color(.35, 1, .72), true)
+
+func _draw_matrix_floor_tile(cell: Vector2i, rect: Rect2) -> void:
+    var room_palette = int(wave_index / FLOORS_PER_ROOM) % 4
+    var base_colors = [Color(.08, .88, 1), Color(.2, 1, .48), Color(1, .54, .08), Color(.5, .38, 1)]
+    var accent_colors = [Color(1, .1, .72), Color(.12, .7, 1), Color(1, .12, .35), Color(.1, 1, .85)]
+    var base: Color = base_colors[room_palette]
+    var accent: Color = accent_colors[room_palette]
+    var state = int(floor_tile_states.get(cell, 0))
+    var paint = base if state == 0 else Color(.05, .9, 1) if state == 1 else Color(1, .14, .76)
+    var phase_wave = sin(game_time * 2.8 + cell.x * .63 + cell.y * .41) * .5 + .5
+    var age = game_time - float(floor_tile_changed_at.get(cell, -99.0))
+    var impact = clampf(1.0 - age / .75, 0.0, 1.0)
+    var inset = rect.grow(-4)
+    draw_rect(inset, Color(paint.r, paint.g, paint.b, (.055 if state == 0 else .16) + phase_wave * .035))
+    # Multiple translucent outlines imitate the emissive bloom from the DWC
+    # matrix floor while remaining inexpensive on the cabinet's renderer.
+    draw_rect(inset.grow(3), Color(paint.r, paint.g, paint.b, .035 + impact * .12), false, 6)
+    draw_rect(inset, Color(paint.r, paint.g, paint.b, .22 + impact * .62), false, 2)
+    var center = rect.get_center()
+    var pattern = posmod(cell.x * 3 + cell.y * 5 + wave_index, 6)
+    var dim = Color(accent.r, accent.g, accent.b, .15 + phase_wave * .12)
+    if pattern == 0:
+        draw_line(inset.position + Vector2(7, 7), inset.end - Vector2(7, 7), dim, 2)
+        draw_circle(center, 4 + phase_wave * 2, Color(paint.r, paint.g, paint.b, .48))
+    elif pattern == 1:
+        var diamond = PackedVector2Array([center + Vector2(0, -15), center + Vector2(15, 0), center + Vector2(0, 15), center + Vector2(-15, 0), center + Vector2(0, -15)])
+        draw_polyline(diamond, dim, 2)
+    elif pattern == 2:
+        draw_line(center + Vector2(-18, 0), center + Vector2(18, 0), dim, 2)
+        draw_line(center + Vector2(0, -18), center + Vector2(0, 18), dim, 2)
+    elif pattern == 3:
+        draw_arc(center, 11 + phase_wave * 4, game_time, game_time + PI * 1.55, 18, dim, 2)
+        draw_circle(center, 3, Color(paint.r, paint.g, paint.b, .55))
+    elif pattern == 4:
+        for bar in range(3):
+            var bar_height = 8.0 + fmod(game_time * 18.0 + bar * 9.0 + cell.y * 3.0, 22.0)
+            draw_rect(Rect2(center.x - 15 + bar * 11, center.y + 14 - bar_height, 5, bar_height), dim)
+    else:
+        var sweep_x = inset.position.x + fmod(game_time * 22.0 + cell.y * 7.0, inset.size.x)
+        draw_line(Vector2(sweep_x, inset.position.y + 5), Vector2(sweep_x, inset.end.y - 5), Color(paint.r, paint.g, paint.b, .45), 2)
+        draw_line(inset.position + Vector2(5, 15), inset.position + Vector2(22, 15), dim, 2)
+        draw_line(inset.end - Vector2(22, 15), inset.end - Vector2(5, 15), dim, 2)
+    if impact > 0:
+        draw_rect(inset.grow(impact * 8.0), Color(paint.r, paint.g, paint.b, impact * .65), false, 3 + impact * 4)
 
 func _draw_corridor_stage() -> void:
     draw_rect(Rect2(0, 128, 768, 896), Color(.018, .025, .05))
