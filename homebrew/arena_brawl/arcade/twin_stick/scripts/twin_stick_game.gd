@@ -99,6 +99,7 @@ var erosion_index := 0
 var erosion_active := false
 var floor_tile_states: Dictionary = {}
 var floor_tile_changed_at: Dictionary = {}
+var floor_trail_bombs: Array = []
 const FLOORS_PER_ROOM := 5
 const CORRIDOR_LENGTH := 1350.0
 var prize_spawn_timer := 12.0
@@ -171,6 +172,7 @@ func restart() -> void:
     erosion_active = false
     floor_tile_states.clear()
     floor_tile_changed_at.clear()
+    floor_trail_bombs.clear()
     prize_spawn_timer = randf_range(10.0, 16.0)
     tally_time = 0.0
     high_score_music_started = false
@@ -197,7 +199,7 @@ func _new_player(index: int, point: Vector2) -> Dictionary:
         "fire_held": false, "lock_held": false, "locked_aim": Vector2.UP,
         "secondary_held": false, "bombs": 1, "drone_level": 0,
         "shield_share_cooldown": 0.0, "death_move": "", "death_progress": 0.0,
-        "floor_cell": Vector2i(-99, -99),
+        "floor_cell": Vector2i(-99, -99), "floor_trail": [], "trail_cooldown": 0.0,
         "continue_timer": 0.0, "continues": 3}
 
 func _input(event: InputEvent) -> void:
@@ -363,7 +365,11 @@ func _cycle_weapon(player: Dictionary) -> void:
     audio.play_sfx("weapon_pickup")
 
 func _process(delta: float) -> void:
-    var dt = minf(delta, 0.04)
+    # Preserve real-time game speed during a temporary frame-rate dip. The old
+    # 40 ms clamp made the entire simulation run in slow motion below 25 FPS,
+    # even though menus remained responsive. Keep only a generous safety cap
+    # to prevent one long stall from producing an oversized simulation jump.
+    var dt = minf(delta, 0.1)
     controller_help_timer = maxf(0.0, controller_help_timer - dt)
     if control_wizard_open and control_wizard_hold_button >= 0:
         control_wizard_hold_time += dt
@@ -382,6 +388,7 @@ func _process(delta: float) -> void:
                 _update_enemies(dt)
         _update_shots(dt)
         _update_player_bombs(dt)
+        _update_floor_trail_bombs(dt)
         _update_drops(dt)
         _update_hazards(dt)
         _update_random_prizes(dt)
@@ -804,6 +811,7 @@ func _update_players(dt: float) -> void:
         p["invuln"] = maxf(0, p["invuln"] - dt)
         p["damage_flash"] = maxf(0, p["damage_flash"] - dt)
         p["shield_share_cooldown"] = maxf(0, p["shield_share_cooldown"] - dt)
+        p["trail_cooldown"] = maxf(0, p["trail_cooldown"] - dt)
         p["fire_timer"] = maxf(0, p["fire_timer"] - dt)
         p["anim_time"] += dt
         if p["respawn"] > 0:
@@ -1139,6 +1147,71 @@ func _update_floor_paint(player: Dictionary) -> void:
     # paints magenta, and either player stepping on a lit tile turns it back.
     floor_tile_states[cell] = 0 if int(floor_tile_states.get(cell, 0)) != 0 else player_color
     floor_tile_changed_at[cell] = game_time
+    _extend_floor_trail(player, cell)
+
+func _extend_floor_trail(player: Dictionary, cell: Vector2i) -> void:
+    if float(player["trail_cooldown"]) > 0.0:
+        return
+    var trail: Array = player["floor_trail"]
+    if trail.is_empty():
+        trail.append(cell)
+        return
+    # Only join neighboring squares so crossing the arena cannot create a
+    # hidden diagonal shortcut through the bomb outline.
+    var previous: Vector2i = trail[-1]
+    if abs(cell.x - previous.x) + abs(cell.y - previous.y) != 1:
+        trail.clear()
+        trail.append(cell)
+        return
+    var earlier = trail.find(cell)
+    if earlier >= 0:
+        var loop: Array = trail.slice(earlier)
+        if loop.size() >= 4 and loop.size() <= 14:
+            loop.append(cell)
+            _arm_floor_trail_bomb(player, loop)
+            trail.clear()
+        else:
+            trail.clear()
+            trail.append(cell)
+        return
+    trail.append(cell)
+    if trail.size() > 14:
+        trail.pop_front()
+
+func _arm_floor_trail_bomb(player: Dictionary, cells: Array) -> void:
+    var points := PackedVector2Array()
+    var center := Vector2.ZERO
+    for cell in cells:
+        var point = Vector2(cell.x * 64 + 32, 128 + cell.y * 64 + 32)
+        points.append(point)
+        center += point
+    center /= float(cells.size())
+    floor_trail_bombs.append({"owner": int(player["id"]), "points": points,
+        "center": center, "time": 0.0, "fuse": 3.0})
+    _popup("FLOOR BOMB CONNECTED!", center + Vector2(0, -55), Color(.2, 1, .95) if int(player["id"]) == 0 else Color(1, .2, .78))
+    audio.play_sfx("electric_floor")
+
+func _update_floor_trail_bombs(dt: float) -> void:
+    for bomb in floor_trail_bombs:
+        bomb["time"] += dt
+        if float(bomb["time"]) < float(bomb["fuse"]):
+            continue
+        var owner = int(bomb["owner"])
+        var center: Vector2 = bomb["center"]
+        for enemy in enemies:
+            var distance = enemy["pos"].distance_to(center)
+            if distance < 205.0:
+                _hurt_enemy(enemy, lerpf(260.0, 95.0, distance / 205.0), owner)
+        for player in _active_players():
+            if player["pos"].distance_to(center) < 135.0:
+                _hurt_player(player, 32.0, "floor_bomb")
+        _effect("explosion_large", center, 1.2)
+        audio.play_sfx("explosion_large")
+        shake = 10.0
+        if owner >= 0 and owner < players.size():
+            players[owner]["trail_cooldown"] = 3.0
+            players[owner]["floor_trail"].clear()
+    floor_trail_bombs = floor_trail_bombs.filter(func(bomb): return float(bomb["time"]) < float(bomb["fuse"]))
 
 func _safe_floor_position(player_id: int) -> Vector2:
     var preferred = Vector2i(4 + player_id * 3, 7)
@@ -1721,6 +1794,33 @@ func _draw_arena_floor() -> void:
         _label("FLOOR COLLAPSE — KEEP MOVING!", Vector2(384, 202), 19, Color(1, .2, .38), true)
     elif phase == "floor_restore":
         _label("STAGE REBUILDING", Vector2(384, 202), 19, Color(.35, 1, .72), true)
+    _draw_floor_trails()
+
+func _draw_floor_trails() -> void:
+    for player in _active_players():
+        var trail: Array = player["floor_trail"]
+        if trail.size() < 2:
+            continue
+        var points := PackedVector2Array()
+        for cell in trail:
+            points.append(Vector2(cell.x * 64 + 32, 128 + cell.y * 64 + 32))
+        var color = Color(.1, .95, 1) if int(player["id"]) == 0 else Color(1, .15, .76)
+        # Traveling sparks make it obvious which floor squares have connected.
+        draw_polyline(points, Color(color.r, color.g, color.b, .28), 9, true)
+        draw_polyline(points, color, 3, true)
+        var segment = posmod(int(game_time * 8.0), points.size() - 1)
+        var spark = points[segment].lerp(points[segment + 1], fmod(game_time * 8.0, 1.0))
+        draw_circle(spark, 7, Color(1, 1, 1, .92))
+    for bomb in floor_trail_bombs:
+        var points: PackedVector2Array = bomb["points"]
+        var owner = int(bomb["owner"])
+        var color = Color(.1, .95, 1) if owner == 0 else Color(1, .15, .76)
+        var remaining = maxf(0.0, float(bomb["fuse"]) - float(bomb["time"]))
+        var flashes = int(float(bomb["time"]) * 6.0)
+        var alpha = .72 if flashes % 2 == 0 else .2
+        draw_colored_polygon(points, Color(color.r, color.g, color.b, alpha * .24))
+        draw_polyline(points, Color(color.r, color.g, color.b, alpha), 8, true)
+        _label("%.1f" % remaining, bomb["center"] + Vector2(0, 8), 22, Color.WHITE, true)
 
 func _draw_matrix_floor_tile(cell: Vector2i, rect: Rect2) -> void:
     var room_palette = int(wave_index / FLOORS_PER_ROOM) % 4

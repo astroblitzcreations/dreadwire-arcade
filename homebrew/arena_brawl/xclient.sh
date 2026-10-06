@@ -5,6 +5,9 @@ set -euo pipefail
 # Remove only orphaned cabinet-jukebox players; never touch game audio or an
 # unrelated user media player.
 pkill -TERM -f '/home/pi/Music/dreadwire-arcade/' >/dev/null 2>&1 || true
+# EmulationStation's animated theme otherwise continues rendering underneath
+# this separate X session and steals CPU/GPU time from the game.
+pkill -STOP -f '^/opt/retropie/supplementary/emulationstation/emulationstation ' >/dev/null 2>&1 || true
 # Menu music uses direct ALSA while Godot is routed through PipeWire. A prior
 # system mute must not leave the game stream silent after the jukebox exits.
 pactl set-sink-mute @DEFAULT_SINK@ 0 >/dev/null 2>&1 || true
@@ -16,6 +19,7 @@ xset s noblank
 xset -dpms
 
 cleanup() {
+  pkill -CONT -f '^/opt/retropie/supplementary/emulationstation/emulationstation ' >/dev/null 2>&1 || true
   /usr/local/bin/dreadwire-musicctl.py gameresume >/dev/null 2>&1 || true
 }
 trap cleanup EXIT
