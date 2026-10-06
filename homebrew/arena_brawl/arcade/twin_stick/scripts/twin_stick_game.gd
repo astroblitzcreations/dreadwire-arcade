@@ -45,7 +45,7 @@ var texture_seed: int = 0
 var shake: float = 0.0
 var next_enemy_uid: int = 1
 var exit_armed_until: float = 0.0
-const PAUSE_ITEMS = ["RESUME GAME", "RESTART GAME", "RECONFIGURE PLAYER 1", "RECONFIGURE PLAYER 2", "PLAYER 1 CONTROLLER", "PLAYER 2 CONTROLLER", "MUSIC", "SOUND EFFECTS", "VOICE", "CONTROLLER HELP", "EXIT TO ARCADE"]
+const PAUSE_ITEMS = ["RESUME GAME", "RESTART GAME", "MAIN MENU / PLAYER SELECT", "RECONFIGURE PLAYER 1", "RECONFIGURE PLAYER 2", "PLAYER 1 CONTROLLER", "PLAYER 2 CONTROLLER", "MUSIC", "SOUND EFFECTS", "VOICE", "CONTROLLER HELP", "EXIT TO ARCADE"]
 const CONTROL_ACTIONS = ["MOVE UP", "MOVE DOWN", "MOVE LEFT", "MOVE RIGHT", "FIRE", "SECONDARY / BOMB", "FIRE UP", "FIRE DOWN", "FIRE LEFT", "FIRE RIGHT", "LOCK AIM", "PAUSE", "SELECT", "START"]
 var pause_selection := 0
 var control_wizard_open := false
@@ -462,32 +462,36 @@ func _activate_pause_item() -> void:
         1:
             restart()
             _set_pause(false)
-        2: _start_control_wizard(0)
-        3: _start_control_wizard(1)
-        4: _cycle_player_controller(0, 1)
-        5: _cycle_player_controller(1, 1)
-        6: _adjust_pause_setting(10)
+        2:
+            if is_instance_valid(audio):
+                audio.stop_all()
+            get_tree().change_scene_to_file(BASE + "scenes/TitleScreen.tscn")
+        3: _start_control_wizard(0)
+        4: _start_control_wizard(1)
+        5: _cycle_player_controller(0, 1)
+        6: _cycle_player_controller(1, 1)
         7: _adjust_pause_setting(10)
         8: _adjust_pause_setting(10)
-        9: controller_help_timer = 6.0
-        10: get_tree().quit()
+        9: _adjust_pause_setting(10)
+        10: controller_help_timer = 6.0
+        11: get_tree().quit()
     queue_redraw()
 
 func _adjust_pause_setting(amount: int) -> void:
     match pause_selection:
-        4: _cycle_player_controller(0, amount)
-        5: _cycle_player_controller(1, amount)
-        6:
+        5: _cycle_player_controller(0, amount)
+        6: _cycle_player_controller(1, amount)
+        7:
             music_volume = clampi(music_volume + amount, 0, 100)
             music_enabled = music_volume > 0
             audio.set_music_enabled(music_enabled)
             audio.set_music_volume(music_volume)
-        7:
+        8:
             sfx_volume = clampi(sfx_volume + amount, 0, 100)
             sfx_enabled = sfx_volume > 0
             audio.set_sfx_enabled(sfx_enabled)
             audio.set_sfx_volume(sfx_volume)
-        8:
+        9:
             voice_volume = clampi(voice_volume + amount, 0, 100)
             voice_enabled = voice_volume > 0
             audio.set_voice_enabled(voice_enabled)
@@ -1726,41 +1730,33 @@ func _draw_matrix_floor_tile(cell: Vector2i, rect: Rect2) -> void:
     var accent: Color = accent_colors[room_palette]
     var state = int(floor_tile_states.get(cell, 0))
     var paint = base if state == 0 else Color(.05, .9, 1) if state == 1 else Color(1, .14, .76)
-    var phase_wave = sin(game_time * 2.8 + cell.x * .63 + cell.y * .41) * .5 + .5
     var age = game_time - float(floor_tile_changed_at.get(cell, -99.0))
     var impact = clampf(1.0 - age / .75, 0.0, 1.0)
     var inset = rect.grow(-4)
-    draw_rect(inset, Color(paint.r, paint.g, paint.b, (.055 if state == 0 else .16) + phase_wave * .035))
-    # Multiple translucent outlines imitate the emissive bloom from the DWC
-    # matrix floor while remaining inexpensive on the cabinet's renderer.
-    draw_rect(inset.grow(3), Color(paint.r, paint.g, paint.b, .035 + impact * .12), false, 6)
-    draw_rect(inset, Color(paint.r, paint.g, paint.b, .22 + impact * .62), false, 2)
+    # Keep the base pass to two cheap rectangles per tile. The previous version
+    # used several wide translucent outlines and animated primitives on every
+    # square, which saturated the Pi's GLES draw thread.
+    draw_rect(inset, Color(paint.r, paint.g, paint.b, .045 if state == 0 else .15))
+    draw_rect(inset, Color(paint.r, paint.g, paint.b, .14 if state == 0 else .72), false, 2)
     var center = rect.get_center()
     var pattern = posmod(cell.x * 3 + cell.y * 5 + wave_index, 6)
-    var dim = Color(accent.r, accent.g, accent.b, .15 + phase_wave * .12)
-    if pattern == 0:
+    var dim = Color(accent.r, accent.g, accent.b, .19)
+    # Only one third of untouched cells carries detailed matrix glyphs. Painted
+    # cells always show one, preserving the DWC look at a fraction of the draw
+    # calls and making the Q*bert state much easier to read.
+    if state == 0 and posmod(cell.x + cell.y * 2 + wave_index, 3) != 0:
+        return
+    if pattern in [0, 3]:
         draw_line(inset.position + Vector2(7, 7), inset.end - Vector2(7, 7), dim, 2)
-        draw_circle(center, 4 + phase_wave * 2, Color(paint.r, paint.g, paint.b, .48))
-    elif pattern == 1:
+        draw_circle(center, 4, Color(paint.r, paint.g, paint.b, .48))
+    elif pattern in [1, 4]:
         var diamond = PackedVector2Array([center + Vector2(0, -15), center + Vector2(15, 0), center + Vector2(0, 15), center + Vector2(-15, 0), center + Vector2(0, -15)])
         draw_polyline(diamond, dim, 2)
-    elif pattern == 2:
+    else:
         draw_line(center + Vector2(-18, 0), center + Vector2(18, 0), dim, 2)
         draw_line(center + Vector2(0, -18), center + Vector2(0, 18), dim, 2)
-    elif pattern == 3:
-        draw_arc(center, 11 + phase_wave * 4, game_time, game_time + PI * 1.55, 18, dim, 2)
-        draw_circle(center, 3, Color(paint.r, paint.g, paint.b, .55))
-    elif pattern == 4:
-        for bar in range(3):
-            var bar_height = 8.0 + fmod(game_time * 18.0 + bar * 9.0 + cell.y * 3.0, 22.0)
-            draw_rect(Rect2(center.x - 15 + bar * 11, center.y + 14 - bar_height, 5, bar_height), dim)
-    else:
-        var sweep_x = inset.position.x + fmod(game_time * 22.0 + cell.y * 7.0, inset.size.x)
-        draw_line(Vector2(sweep_x, inset.position.y + 5), Vector2(sweep_x, inset.end.y - 5), Color(paint.r, paint.g, paint.b, .45), 2)
-        draw_line(inset.position + Vector2(5, 15), inset.position + Vector2(22, 15), dim, 2)
-        draw_line(inset.end - Vector2(22, 15), inset.end - Vector2(5, 15), dim, 2)
     if impact > 0:
-        draw_rect(inset.grow(impact * 8.0), Color(paint.r, paint.g, paint.b, impact * .65), false, 3 + impact * 4)
+        draw_rect(inset.grow(impact * 6.0), Color(paint.r, paint.g, paint.b, impact * .7), false, 3)
 
 func _draw_corridor_stage() -> void:
     draw_rect(Rect2(0, 128, 768, 896), Color(.018, .025, .05))
@@ -2109,11 +2105,11 @@ func _draw_pause_menu() -> void:
         draw_rect(row, Color(.08, .48, .72, .5) if selected else Color(.025, .04, .1, .9))
         draw_rect(row, Color(1, .82, .18) if selected else Color(.12, .32, .48), false, 2)
         var label = PAUSE_ITEMS[i]
-        if i == 4: label = "P1: " + (player_controllers[0] if not player_controllers[0].is_empty() else "UNASSIGNED")
-        elif i == 5: label = "P2: " + (player_controllers[1] if not player_controllers[1].is_empty() else "UNASSIGNED")
-        elif i == 6: label = "MUSIC VOLUME: %d%%" % music_volume
-        elif i == 7: label = "SOUND EFFECTS: %d%%" % sfx_volume
-        elif i == 8: label = "ANNOUNCER VOICE: %d%%" % voice_volume
+        if i == 5: label = "P1: " + (player_controllers[0] if not player_controllers[0].is_empty() else "UNASSIGNED")
+        elif i == 6: label = "P2: " + (player_controllers[1] if not player_controllers[1].is_empty() else "UNASSIGNED")
+        elif i == 7: label = "MUSIC VOLUME: %d%%" % music_volume
+        elif i == 8: label = "SOUND EFFECTS: %d%%" % sfx_volume
+        elif i == 9: label = "ANNOUNCER VOICE: %d%%" % voice_volume
         if label.length() > 36: label = label.substr(0, 33) + "..."
         _label(label, row.position + Vector2(row.size.x / 2, 29), 19, Color.WHITE, true)
     if controller_help_timer > 0:

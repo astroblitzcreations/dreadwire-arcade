@@ -247,7 +247,7 @@ class Jukebox:
                         "/opt/retropie/supplementary/runcommand/runcommand.sh|"
                         "/opt/retropie/emulators/|"
                         "/opt/dreadwire/void-run/void-run.arm64|"
-                        "/opt/dreadwire/arena-brawl/arena-brawl.arm64|"
+                        "/opt/dreadwire/arena-brawl/arena-brawl[^ ]*|"
                         "/opt/dreadwire/speedbike/speedbike.arm64|"
                         "/opt/dreadwire/goldmaze/goldmaze.arm64",
                     ],

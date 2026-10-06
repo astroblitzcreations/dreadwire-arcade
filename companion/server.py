@@ -565,7 +565,7 @@ def _detect_current_game():
             return Path(roms[-1]).stem if roms else "RetroArch game"
         if "void-run.arm64" in cmd: return "Void Run"
         if "speedbike.arm64" in cmd: return "Speedbike"
-        if "arena-brawl.arm64" in cmd: return "Arena Brawl"
+        if "/opt/dreadwire/arena-brawl/" in cmd or "arena-brawl.arm64" in cmd or "arena-brawl.next.arm64" in cmd: return "Arena Brawl"
         if "goldmaze.arm64" in cmd: return "Trippy Gold Maze"
     return None
 
