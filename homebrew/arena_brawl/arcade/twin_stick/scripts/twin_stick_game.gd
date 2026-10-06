@@ -202,6 +202,7 @@ func _new_player(index: int, point: Vector2) -> Dictionary:
         "secondary_held": false, "bombs": 1, "drone_level": 0,
         "shield_share_cooldown": 0.0, "death_move": "", "death_progress": 0.0,
         "floor_cell": Vector2i(-99, -99), "floor_trail": [], "trail_cooldown": 0.0,
+        "trail_last_step": 0.0, "lightning_level": 0,
         "floor_falling": false,
         "continue_timer": 0.0, "continues": 3}
 
@@ -401,6 +402,7 @@ func _process(delta: float) -> void:
             high_score_music_started = true
             audio.play_music("high_score")
     _update_visuals(dt if not demo_paused else 0.0)
+    _fade_floor_marks()
     shake = move_toward(shake, 0.0, dt * 16.0)
     queue_redraw()
 
@@ -438,7 +440,8 @@ func _update_random_prizes(dt: float) -> void:
     prize_spawn_timer -= dt
     if prize_spawn_timer <= 0:
         prize_spawn_timer = randf_range(10.0, 18.0)
-        var prize = "credits" if randf() < .62 else "prize_box"
+        var roll = randf()
+        var prize = "lightning_bolt" if roll < .18 else "credits" if roll < .68 else "prize_box"
         _add_pickup(prize, Vector2(randf_range(120, 648), randf_range(260, 870)))
         _popup("BONUS DROP!", Vector2(384, 230), Color(1, .82, .12))
 
@@ -925,7 +928,8 @@ func _update_players(dt: float) -> void:
             p["dir"] = _direction(move)
         elif firing:
             p["dir"] = _direction(p["aim"])
-        var speed = 230.0 * (1.4 if p["buffs"].has("speed_boost") else 1.0)
+        var lightning_speed = 1.0 + float(p["lightning_level"]) * .10
+        var speed = 230.0 * lightning_speed * (1.4 if p["buffs"].has("speed_boost") else 1.0)
         p["pos"] = _clamp_room(p["pos"] + move * speed * dt)
         if phase == "combat":
             _update_floor_paint(p)
@@ -1116,6 +1120,8 @@ func _finish_floor_clear() -> void:
         _add_pickup("bomb", Vector2(randf_range(170, 598), randf_range(410, 720)))
     if randf() < .28:
         _add_pickup("reflect_shield", Vector2(randf_range(170, 598), randf_range(410, 720)))
+    if randf() < .32:
+        _add_pickup("lightning_bolt", Vector2(randf_range(170, 598), randf_range(410, 720)))
     if floor_in_room < FLOORS_PER_ROOM:
         _start_floor_drop("")
     else:
@@ -1163,10 +1169,24 @@ func _update_floor_paint(player: Dictionary) -> void:
     floor_tile_changed_at[cell] = game_time
     _extend_floor_trail(player, cell)
 
+func _fade_floor_marks() -> void:
+    var expired: Array = []
+    for cell in floor_tile_changed_at:
+        if game_time - float(floor_tile_changed_at[cell]) > 1.8:
+            expired.append(cell)
+    for cell in expired:
+        floor_tile_changed_at.erase(cell)
+        floor_tile_states.erase(cell)
+    for player in players:
+        var trail_life = 3.2 + float(player["lightning_level"]) * .35
+        if not player["floor_trail"].is_empty() and game_time - float(player["trail_last_step"]) > trail_life:
+            player["floor_trail"].clear()
+
 func _extend_floor_trail(player: Dictionary, cell: Vector2i) -> void:
     if float(player["trail_cooldown"]) > 0.0:
         return
     var trail: Array = player["floor_trail"]
+    player["trail_last_step"] = game_time
     if trail.is_empty():
         trail.append(cell)
         return
@@ -1180,7 +1200,8 @@ func _extend_floor_trail(player: Dictionary, cell: Vector2i) -> void:
     var earlier = trail.find(cell)
     if earlier >= 0:
         var loop: Array = trail.slice(earlier)
-        if loop.size() >= 4 and loop.size() <= 14:
+        var max_loop = 8 + int(player["lightning_level"]) * 3
+        if loop.size() >= 4 and loop.size() <= max_loop:
             loop.append(cell)
             _arm_floor_trail_bomb(player, loop)
             trail.clear()
@@ -1189,7 +1210,8 @@ func _extend_floor_trail(player: Dictionary, cell: Vector2i) -> void:
             trail.append(cell)
         return
     trail.append(cell)
-    if trail.size() > 14:
+    var max_trail = 8 + int(player["lightning_level"]) * 3
+    if trail.size() > max_trail:
         trail.pop_front()
 
 func _arm_floor_trail_bomb(player: Dictionary, cells: Array) -> void:
@@ -1200,8 +1222,9 @@ func _arm_floor_trail_bomb(player: Dictionary, cells: Array) -> void:
         points.append(point)
         center += point
     center /= float(cells.size())
+    var blast_radius = 165.0 + minf(150.0, float(cells.size() - 4) * 16.0)
     floor_trail_bombs.append({"owner": int(player["id"]), "points": points,
-        "center": center, "time": 0.0, "fuse": 3.0})
+        "center": center, "time": 0.0, "fuse": 3.0, "radius": blast_radius})
     _popup("FLOOR BOMB CONNECTED!", center + Vector2(0, -55), Color(.2, 1, .95) if int(player["id"]) == 0 else Color(1, .2, .78))
     audio.play_sfx("electric_floor")
 
@@ -1212,12 +1235,13 @@ func _update_floor_trail_bombs(dt: float) -> void:
             continue
         var owner = int(bomb["owner"])
         var center: Vector2 = bomb["center"]
+        var radius = float(bomb["radius"])
         for enemy in enemies:
             var distance = enemy["pos"].distance_to(center)
-            if distance < 205.0:
-                _hurt_enemy(enemy, lerpf(260.0, 95.0, distance / 205.0), owner)
+            if distance < radius:
+                _hurt_enemy(enemy, lerpf(285.0, 95.0, distance / radius), owner)
         for player in _active_players():
-            if player["pos"].distance_to(center) < 135.0:
+            if player["pos"].distance_to(center) < radius * .62:
                 _hurt_player(player, 32.0, "floor_bomb")
         _effect("explosion_large", center, 1.2)
         audio.play_sfx("explosion_large")
@@ -1289,27 +1313,15 @@ func _start_floor_drop(route: String) -> void:
 func _make_floor_order() -> void:
     floor_order.clear()
     floor_rank.clear()
-    # Interlocking four-cell clusters produce a fast, readable Tetris cascade.
+    # A readable top-to-bottom data wipe gives players a clear direction to
+    # escape. Each row breaks in an alternating zig-zag rather than a noisy
+    # random pattern that was difficult to understand while moving.
     var clusters: Array = []
-    for by in range(1, 13, 2):
-        var row: Array[Vector2i] = []
-        for bx in range(1, 11, 2):
-            var shape = posmod(bx / 2 + by / 2 + wave_index, 4)
-            var cells: Array[Vector2i] = []
-            if shape == 0: cells = [Vector2i(bx, by), Vector2i(bx + 1, by), Vector2i(bx, by + 1), Vector2i(bx + 1, by + 1)]
-            elif shape == 1: cells = [Vector2i(bx, by), Vector2i(bx, by + 1), Vector2i(bx + 1, by + 1), Vector2i(bx + 1, by + 2)]
-            elif shape == 2: cells = [Vector2i(bx, by), Vector2i(bx + 1, by), Vector2i(bx + 1, by + 1), Vector2i(bx + 1, by + 2)]
-            else: cells = [Vector2i(bx, by), Vector2i(bx + 1, by), Vector2i(bx + 2, by), Vector2i(bx + 1, by + 1)]
-            for cell in cells:
-                if cell.x > 0 and cell.x < 11 and cell.y > 0 and cell.y < 13 and not row.has(cell):
-                    row.append(cell)
-        if int(by / 2) % 2 == 1:
-            row.reverse()
-        clusters.append_array(row)
     for y in range(1, 13):
-        for x in range(1, 11):
-            var cell = Vector2i(x, y)
-            if not clusters.has(cell): clusters.append(cell)
+        var row: Array[Vector2i] = []
+        for x in range(1, 11): row.append(Vector2i(x, y))
+        if (y + wave_index) % 2 == 0: row.reverse()
+        clusters.append_array(row)
     floor_order.assign(clusters)
     for i in range(floor_order.size()): floor_rank[floor_order[i]] = i
 
@@ -1318,16 +1330,13 @@ func _update_floor_transition(dt: float) -> void:
     if phase == "floor_drop":
         floor_transition = 1.0 - clampf(phase_timer / 6.5, 0.0, 1.0)
         var removed = int(floor_transition * floor_order.size())
+        var danger_y = 185.0 + floor_transition * 700.0
         for player in _active_players():
-            var cell = _floor_cell_at(player["pos"])
-            var tile_rank = int(floor_rank.get(cell, floor_order.size()))
-            # Run downward to stay ahead of the cascade. The final bottom
-            # strip always gives way, so every surviving player eventually
-            # drops into the next floor.
-            if tile_rank < removed or floor_transition > .91:
-                player["floor_falling"] = true
-            if bool(player["floor_falling"]):
-                player["pos"].y += dt * (115.0 + floor_transition * 235.0)
+            # The wipe never locks input. If it catches somebody, its energy
+            # front carries them forward while they can still steer sideways
+            # and keep running toward the extraction strip.
+            if player["pos"].y < danger_y + 42.0:
+                player["pos"].y = minf(925.0, danger_y + 42.0)
         if phase_timer <= 0:
             wave_index += 1
             if wave_index >= waves.size():
@@ -1415,7 +1424,7 @@ func _begin_wave() -> void:
     hazards.clear()
     var doors = [Vector2(384, 180), Vector2(384, 940), Vector2(58, 555), Vector2(710, 555)]
     var pool: Array = wave["enemy_pool"]
-    var count = maxi(1, roundi(int(wave["count"]) * enemy_count_scale))
+    var count = maxi(10 + mini(wave_index, 6), roundi(int(wave["count"]) * enemy_count_scale))
     if not str(wave["boss"]).is_empty():
         count = maxi(4, count / 3)
         _spawn_enemy(wave["boss"], Vector2(384, 260), true)
@@ -1655,6 +1664,9 @@ func _update_drops(dt: float) -> void:
                     "extra_life": p["lives"] = mini(9, p["lives"] + 1)
                     "bomb": p["bombs"] = mini(9, int(p["bombs"]) + 1)
                     "reflect_shield": p["buffs"]["reflect_shield"] = 10.0
+                    "lightning_bolt":
+                        p["lightning_level"] = mini(5, int(p["lightning_level"]) + 1)
+                        _popup("LIGHTNING LV.%d — SPEED + BOMB SIZE" % p["lightning_level"], p["pos"] + Vector2(0, -52), Color(.35, .9, 1))
                     "credits":
                         p["score"] += 5000
                         p["cash"] += 5000
@@ -1809,6 +1821,15 @@ func _draw_arena_floor() -> void:
     if phase in ["floor_drop", "floor_build"]:
         var pct = int((floor_transition if phase == "floor_drop" else 1.0 - floor_transition) * 100.0)
         _label("TETRIS FLOOR SHIFT %03d%%" % pct, Vector2(384, 200), 18, Color(1, .7, .18), true)
+    if phase == "floor_drop":
+        var danger_y = 185.0 + floor_transition * 700.0
+        var pulse = .65 + sin(game_time * 14.0) * .3
+        draw_rect(Rect2(55, danger_y - 18, 658, 36), Color(1, .05, .35, .08 + pulse * .1))
+        draw_line(Vector2(55, danger_y), Vector2(713, danger_y), Color(1, .1, .48, pulse), 7)
+        draw_line(Vector2(55, danger_y + 7), Vector2(713, danger_y + 7), Color(.15, .9, 1, pulse), 2)
+        draw_rect(Rect2(55, 875, 658, 70), Color(.1, 1, .55, .08 + pulse * .08))
+        draw_rect(Rect2(55, 875, 658, 70), Color(.2, 1, .62, pulse), false, 3)
+        _label("RUN TO EXTRACTION", Vector2(384, 920), 18, Color(.55, 1, .76), true)
     if erosion_active and phase == "combat":
         for lookahead in range(4):
             var next_index = erosion_index + lookahead
@@ -2025,6 +2046,12 @@ func _draw_game_entities() -> void:
                 draw_arc(drop["pos"], 18 + sin(game_time * 6) * 3, 0, TAU, 32, Color(1, .18, .76), 5)
                 draw_arc(drop["pos"], 11, 0, TAU, 24, Color(.5, .85, 1), 2)
                 _label("REFLECT SHIELD", drop["pos"] + Vector2(0, -32), 12, Color(1, .28, .82), true)
+            elif drop["id"] == "lightning_bolt":
+                var pulse = .75 + sin(game_time * 11.0) * .25
+                var bolt = PackedVector2Array([drop["pos"] + Vector2(5, -24), drop["pos"] + Vector2(-12, 2), drop["pos"] + Vector2(-2, 2), drop["pos"] + Vector2(-8, 25), drop["pos"] + Vector2(16, -7), drop["pos"] + Vector2(5, -7)])
+                draw_colored_polygon(bolt, Color(1, .92, .18, pulse))
+                draw_polyline(bolt, Color(.35, .92, 1, pulse), 4, true)
+                _label("LIGHTNING UPGRADE", drop["pos"] + Vector2(0, -34), 12, Color(.45, .95, 1), true)
             else:
                 _sprite("sprites/pickups/" + drop["id"] + ".png", drop["pos"], int(game_time * 10) % 8)
                 _label(String(drop["id"]).replace("_", " ").to_upper(), drop["pos"] + Vector2(0, -32), 11, Color(1, .8, .3), true)
