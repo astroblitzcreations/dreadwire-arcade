@@ -256,6 +256,7 @@ func _start_music() -> void:
     if stream is AudioStreamOggVorbis:
         stream.loop = true
     music.stream = stream
-    music.volume_db = -14
+    # Match gameplay loudness; the cabinet-wide mixer controls final output.
+    music.volume_db = -3
     add_child(music)
     music.play()

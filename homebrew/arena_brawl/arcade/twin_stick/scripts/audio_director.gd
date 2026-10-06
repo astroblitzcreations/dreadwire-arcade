@@ -28,9 +28,9 @@ func _ready() -> void:
             var index = AudioServer.bus_count - 1
             AudioServer.set_bus_name(index, bus_name)
             AudioServer.set_bus_send(index, "Master")
-    # Leave generous digital headroom on the Pi. Godot's native limiter can
-    # crash the ALSA path on this ARM/Mesa build, while bus headroom is stable.
-    AudioServer.set_bus_volume_db(AudioServer.get_bus_index("BrawlSFX"), -6.0)
+    # The cabinet mixer already owns the overall output level. Keep the game
+    # buses at unity so Arena Brawl's 100% matches the other arcade software.
+    AudioServer.set_bus_volume_db(AudioServer.get_bus_index("BrawlSFX"), 0.0)
     for entry in _json("sfx_manifest").get("sounds", []):
         sound_map[entry["id"]] = entry
     for entry in _json("announcer_lines").get("lines", []):
@@ -87,11 +87,13 @@ func _ready() -> void:
         pool.append(player)
     music_player = AudioStreamPlayer.new()
     music_player.bus = "BrawlMusic"
-    music_player.volume_db = -12.0
+    # Source tracks are mastered quietly; this leaves a little headroom while
+    # removing the old double attenuation (player gain plus bus gain).
+    music_player.volume_db = -3.0
     add_child(music_player)
     voice_player = AudioStreamPlayer.new()
     voice_player.bus = "BrawlVoice"
-    voice_player.volume_db = 1.5
+    voice_player.volume_db = 3.0
     add_child(voice_player)
 
 func _json(id: String) -> Dictionary:
@@ -233,8 +235,7 @@ func _set_bus_volume(bus_name: String, percent: int) -> void:
         return
     var amount = clampi(percent, 0, 100)
     AudioServer.set_bus_mute(index, amount == 0)
-    var headroom = -6.0 if bus_name == "BrawlSFX" else -3.0 if bus_name == "BrawlMusic" else 0.0
-    AudioServer.set_bus_volume_db(index, linear_to_db(maxf(float(amount) / 100.0, 0.001)) + headroom)
+    AudioServer.set_bus_volume_db(index, linear_to_db(maxf(float(amount) / 100.0, 0.001)))
 
 func stop_all() -> void:
     for player in pool:
