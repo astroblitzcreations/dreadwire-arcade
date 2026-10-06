@@ -90,6 +90,13 @@ var map_hidden_found: Dictionary = {}
 var corridor_direction := 1
 var corridor_progress := 0.0
 var corridor_spawn_mark := 0
+var wave_spawned := false
+var combat_elapsed := 0.0
+var erosion_cells: Dictionary = {}
+var erosion_order: Array[Vector2i] = []
+var erosion_timer := 0.0
+var erosion_index := 0
+var erosion_active := false
 const FLOORS_PER_ROOM := 5
 const CORRIDOR_LENGTH := 1350.0
 var prize_spawn_timer := 12.0
@@ -153,6 +160,13 @@ func restart() -> void:
     map_hidden_found.clear()
     corridor_progress = 0.0
     corridor_spawn_mark = 0
+    wave_spawned = false
+    combat_elapsed = 0.0
+    erosion_cells.clear()
+    erosion_order.clear()
+    erosion_timer = 0.0
+    erosion_index = 0
+    erosion_active = false
     prize_spawn_timer = randf_range(10.0, 16.0)
     tally_time = 0.0
     high_score_music_started = false
@@ -178,7 +192,8 @@ func _new_player(index: int, point: Vector2) -> Dictionary:
         "respawn": 0.0, "damage_flash": 0.0, "buffs": {}, "anim_time": 0.0,
         "fire_held": false, "lock_held": false, "locked_aim": Vector2.UP,
         "secondary_held": false, "bombs": 1, "drone_level": 0,
-        "shield_share_cooldown": 0.0, "continue_timer": 0.0, "continues": 3}
+        "shield_share_cooldown": 0.0, "death_move": "", "death_progress": 0.0,
+        "continue_timer": 0.0, "continues": 3}
 
 func _input(event: InputEvent) -> void:
     if control_wizard_open:
@@ -782,6 +797,8 @@ func _update_players(dt: float) -> void:
         p["shield_share_cooldown"] = maxf(0, p["shield_share_cooldown"] - dt)
         p["fire_timer"] = maxf(0, p["fire_timer"] - dt)
         p["anim_time"] += dt
+        if p["respawn"] > 0:
+            p["death_progress"] += dt
         for key in p["buffs"].keys():
             p["buffs"][key] -= dt
             if p["buffs"][key] <= 0:
@@ -791,7 +808,9 @@ func _update_players(dt: float) -> void:
             if p["respawn"] <= 0:
                 p["health"] = 100.0
                 p["invuln"] = 3.0
-                p["pos"] = Vector2(280 + p["id"] * 208, 545)
+                p["death_move"] = ""
+                p["death_progress"] = 0.0
+                p["pos"] = _safe_floor_position(int(p["id"])) if erosion_active else Vector2(280 + p["id"] * 208, 545)
                 audio.play_sfx("player_respawn")
                 audio.announce_sequence(["voice_contestant_1.wav" if p["id"] == 0 else "voice_contestant_2.wav", "voice_go.wav"])
                 _effect("enemy_spawn", p["pos"], 1.0)
@@ -942,8 +961,8 @@ func _fire_player(p: Dictionary) -> void:
             audio.play_sfx(w["sound"], randf_range(0.96, 1.04))
     _effect("muzzle_plasma" if w["projectile"] == "plasma" else "muzzle_pulse", origin + p["aim"] * 34, 0.20, angle)
 
-func _hurt_player(p: Dictionary, amount: float) -> void:
-    if god_mode or p["invuln"] > 0 or p["buffs"].has("invulnerability") or p["respawn"] > 0:
+func _hurt_player(p: Dictionary, amount: float, finisher_source: String = "") -> void:
+    if god_mode or p["respawn"] > 0 or (finisher_source != "floor" and (p["invuln"] > 0 or p["buffs"].has("invulnerability"))):
         return
     var absorbed = minf(p["armor"], amount * 0.7)
     p["armor"] -= absorbed
@@ -954,7 +973,11 @@ func _hurt_player(p: Dictionary, amount: float) -> void:
     _effect("blood_damage", p["pos"], 0.45)
     if p["health"] <= 0:
         p["lives"] -= 1
-        p["respawn"] = 2.0
+        p["respawn"] = 2.8
+        var death_moves = ["CRUSHED", "SHRINK + STOMP", "VAPORIZED", "LAUNCHED", "FROZEN SHATTER", "FLATTENED", "ELECTROCUTED"]
+        p["death_move"] = "FLOOR SWALLOWED" if finisher_source == "floor" else death_moves[randi() % death_moves.size()]
+        p["death_progress"] = 0.0
+        _popup(p["death_move"], p["pos"] + Vector2(0, -62), Color(1, .2, .32))
         _effect("explosion_medium", p["pos"], 0.8)
         audio.play_sfx("player_death")
         audio.announce("player_death")
@@ -1015,6 +1038,19 @@ func _update_waves(dt: float) -> void:
     if phase == "floor_drop" or phase == "floor_build":
         _update_floor_transition(dt)
         return
+    if phase == "clear_hold":
+        phase_timer -= dt
+        if phase_timer <= 0:
+            _finish_floor_clear()
+        return
+    if phase == "floor_restore":
+        phase_timer -= dt
+        floor_transition = 1.0 - clampf(phase_timer / 3.0, 0.0, 1.0)
+        if phase_timer <= 0:
+            erosion_cells.clear()
+            erosion_active = false
+            _start_floor_drop("")
+        return
     if phase == "turn":
         phase_timer -= dt
         floor_transition = 1.0 - clampf(phase_timer / 0.85, 0.0, 1.0)
@@ -1027,20 +1063,86 @@ func _update_waves(dt: float) -> void:
     phase_timer -= dt
     if phase == "warning" and phase_timer <= 0:
         _begin_wave()
-    elif phase == "combat" and enemies.is_empty():
-        audio.play_sfx("wave_clear")
-        if randf() < .60:
-            _add_pickup("bomb", Vector2(randf_range(170, 598), randf_range(410, 720)))
-        if randf() < .28:
-            _add_pickup("reflect_shield", Vector2(randf_range(170, 598), randf_range(410, 720)))
-        if floor_in_room < FLOORS_PER_ROOM:
-            _start_floor_drop("")
-        else:
-            phase = "route"
-            phase_timer = 0.0
-            audio.announce_sequence(["voice_lets_go.wav"])
-            _popup("FIVE FLOORS CLEARED - CHOOSE A DOOR", Vector2(384, 470), Color(0.3, 1, 0.65))
-            _add_pickup("prize_box", Vector2(384, 560))
+    elif phase == "combat":
+        combat_elapsed += dt
+        if erosion_active:
+            _update_floor_erosion(dt)
+        if wave_spawned and combat_elapsed >= 8.0 and enemies.is_empty():
+            phase = "floor_restore" if erosion_active else "clear_hold"
+            phase_timer = 3.0 if erosion_active else 1.8
+            floor_transition = 0.0
+            audio.play_sfx("wave_clear")
+            _popup("ALL ENEMIES CLEARED", Vector2(384, 430), Color(.35, 1, .55))
+
+func _finish_floor_clear() -> void:
+    if phase != "clear_hold":
+        return
+    wave_spawned = false
+    audio.play_sfx("wave_clear")
+    if randf() < .60:
+        _add_pickup("bomb", Vector2(randf_range(170, 598), randf_range(410, 720)))
+    if randf() < .28:
+        _add_pickup("reflect_shield", Vector2(randf_range(170, 598), randf_range(410, 720)))
+    if floor_in_room < FLOORS_PER_ROOM:
+        _start_floor_drop("")
+    else:
+        phase = "route"
+        phase_timer = 0.0
+        audio.announce_sequence(["voice_lets_go.wav"])
+        _popup("FIVE FLOORS CLEARED - CHOOSE A DOOR", Vector2(384, 470), Color(0.3, 1, 0.65))
+        _add_pickup("prize_box", Vector2(384, 560))
+
+func _prepare_floor_erosion() -> void:
+    erosion_cells.clear()
+    erosion_order.clear()
+    # An irregular inward sweep gives players readable danger at the edge while
+    # still breaking into Tetris-like bites instead of a plain shrinking box.
+    var cells: Array[Vector2i] = []
+    for y in range(1, 13):
+        for x in range(1, 11):
+            cells.append(Vector2i(x, y))
+    cells.sort_custom(func(a, b):
+        var edge_a = mini(mini(a.x - 1, 10 - a.x), mini(a.y - 1, 12 - a.y))
+        var edge_b = mini(mini(b.x - 1, 10 - b.x), mini(b.y - 1, 12 - b.y))
+        if edge_a == edge_b:
+            return posmod(a.x * 7 + a.y * 11 + wave_index * 3, 17) < posmod(b.x * 7 + b.y * 11 + wave_index * 3, 17)
+        return edge_a < edge_b)
+    erosion_order.assign(cells)
+    erosion_timer = 3.5
+    erosion_index = 0
+    erosion_active = true
+    _popup("STAGE 15: RUN! THE FLOOR IS HUNGRY", Vector2(384, 430), Color(1, .18, .4))
+
+func _floor_cell_at(point: Vector2) -> Vector2i:
+    return Vector2i(clampi(int(point.x / 64.0), 0, 11), clampi(int((point.y - 128.0) / 64.0), 0, 13))
+
+func _safe_floor_position(player_id: int) -> Vector2:
+    var preferred = Vector2i(4 + player_id * 3, 7)
+    if not erosion_cells.has(preferred):
+        return Vector2(preferred.x * 64 + 32, 128 + preferred.y * 64 + 32)
+    for reverse_index in range(erosion_order.size() - 1, -1, -1):
+        var cell = erosion_order[reverse_index]
+        if not erosion_cells.has(cell):
+            return Vector2(cell.x * 64 + 32, 128 + cell.y * 64 + 32)
+    return Vector2(384, 545)
+
+func _update_floor_erosion(dt: float) -> void:
+    erosion_timer -= dt
+    if erosion_timer > 0:
+        return
+    erosion_timer += .24
+    if erosion_index < erosion_order.size():
+        var cell = erosion_order[erosion_index]
+        erosion_cells[cell] = true
+        erosion_index += 1
+        if erosion_index % 5 == 0:
+            audio.play_sfx("electric_floor")
+    for player in _active_players():
+        if erosion_cells.has(_floor_cell_at(player["pos"])):
+            _hurt_player(player, 9999.0, "floor")
+    for enemy in enemies:
+        if enemy["hp"] > 0 and erosion_cells.has(_floor_cell_at(enemy["pos"])):
+            _hurt_enemy(enemy, enemy["hp"] + 1.0, -1)
 
 func _update_route_choice() -> void:
     var exits = {
@@ -1067,7 +1169,7 @@ func _start_floor_drop(route: String) -> void:
     _make_floor_order()
     phase = "floor_drop"
     floor_transition = 0.0
-    phase_timer = 1.35
+    phase_timer = 3.4
     shots.clear()
     hazards.clear()
     audio.play_sfx("electric_floor")
@@ -1103,9 +1205,9 @@ func _make_floor_order() -> void:
 func _update_floor_transition(dt: float) -> void:
     phase_timer -= dt
     if phase == "floor_drop":
-        floor_transition = 1.0 - clampf(phase_timer / 1.35, 0.0, 1.0)
-        if floor_transition > .55:
-            for player in _active_players(): player["pos"].y += dt * (260.0 + floor_transition * 520.0)
+        floor_transition = 1.0 - clampf(phase_timer / 3.4, 0.0, 1.0)
+        if floor_transition > .68:
+            for player in _active_players(): player["pos"].y += dt * (85.0 + floor_transition * 190.0)
         if phase_timer <= 0:
             wave_index += 1
             if wave_index >= waves.size():
@@ -1120,14 +1222,14 @@ func _update_floor_transition(dt: float) -> void:
                 player["pos"] = Vector2(280 + player["id"] * 208, 365)
                 player["invuln"] = maxf(player["invuln"], 1.5)
             phase = "floor_build"
-            phase_timer = 1.15
+            phase_timer = 2.8
             floor_transition = 0.0
     else:
-        floor_transition = 1.0 - clampf(phase_timer / 1.15, 0.0, 1.0)
+        floor_transition = 1.0 - clampf(phase_timer / 2.8, 0.0, 1.0)
         for player in _active_players(): player["pos"].y = lerpf(365.0, 545.0, floor_transition)
         if phase_timer <= 0:
             phase = "warning"
-            phase_timer = 1.15
+            phase_timer = 2.0
             pending_route = ""
             audio.play_sfx("door_open")
 
@@ -1181,6 +1283,10 @@ func _move_map(route: String) -> void:
 func _begin_wave() -> void:
     var wave: Dictionary = waves[wave_index]
     phase = "combat"
+    wave_spawned = false
+    combat_elapsed = 0.0
+    erosion_active = false
+    erosion_cells.clear()
     hazards.clear()
     var doors = [Vector2(384, 180), Vector2(384, 940), Vector2(58, 555), Vector2(710, 555)]
     var pool: Array = wave["enemy_pool"]
@@ -1201,6 +1307,9 @@ func _begin_wave() -> void:
         _spawn_enemy(pool[randi() % pool.size()], point, false)
     for j in range(int(wave["hazard_count"])):
         _spawn_hazard(["electric_floor", "flame_vent", "rotating_laser", "crusher"][j % 4], Vector2(225 + (j % 2) * 318, 390 + int(j / 2) * 300))
+    wave_spawned = true
+    if wave_index == 14:
+        _prepare_floor_erosion()
     audio.play_sfx("door_open")
 
 func _spawn_enemy(id: String, point: Vector2, is_boss: bool) -> void:
@@ -1255,7 +1364,7 @@ func _update_enemies(dt: float) -> void:
         enemy["vel"] = direction * speed
         enemy["pos"] = _clamp_room(enemy["pos"] + enemy["vel"] * dt, enemy["radius"])
         if distance < enemy["radius"] + 20:
-            _hurt_player(target, 22.0 if enemy["boss"] else float(enemy_defs[enemy["id"]]["contact_damage"]))
+            _hurt_player(target, 22.0 if enemy["boss"] else float(enemy_defs[enemy["id"]]["contact_damage"]), String(enemy["id"]))
         enemy["timer"] -= dt
         if enemy["timer"] > 0:
             continue
@@ -1556,7 +1665,12 @@ func _draw_arena_floor() -> void:
             var rank = int(floor_rank.get(cell, floor_order.size()))
             var index = 10 if y == 0 else 11 if y == 13 else 12 if x == 0 else 13 if x == 11 else 2 if (x + y) % 4 == 0 else 0
             var source = Rect2((index % 8) * 64, int(index / 8) * 64, 64, 64)
-            if rank >= removed:
+            var erosion_missing = erosion_cells.has(cell)
+            if phase == "floor_restore" and erosion_missing:
+                var erosion_rank = erosion_order.find(cell)
+                var restored = int(floor_transition * erosion_index)
+                erosion_missing = erosion_rank < erosion_index - restored
+            if rank >= removed and not erosion_missing:
                 draw_texture_rect_region(tile, Rect2(x * 64, 128 + y * 64, 64, 64), source)
             elif phase == "floor_drop" and rank >= removed - 13:
                 var age = clampf((float(removed - rank)) / 13.0, 0.0, 1.0)
@@ -1567,6 +1681,16 @@ func _draw_arena_floor() -> void:
     if phase in ["floor_drop", "floor_build"]:
         var pct = int((floor_transition if phase == "floor_drop" else 1.0 - floor_transition) * 100.0)
         _label("TETRIS FLOOR SHIFT %03d%%" % pct, Vector2(384, 200), 18, Color(1, .7, .18), true)
+    if erosion_active and phase == "combat":
+        for lookahead in range(4):
+            var next_index = erosion_index + lookahead
+            if next_index >= erosion_order.size(): break
+            var warning_cell = erosion_order[next_index]
+            var warning_alpha = .62 - lookahead * .12 + sin(game_time * 10) * .14
+            draw_rect(Rect2(warning_cell.x * 64 + 4, 128 + warning_cell.y * 64 + 4, 56, 56), Color(1, .04, .18, warning_alpha), false, 5)
+        _label("FLOOR COLLAPSE — KEEP MOVING!", Vector2(384, 202), 19, Color(1, .2, .38), true)
+    elif phase == "floor_restore":
+        _label("STAGE REBUILDING", Vector2(384, 202), 19, Color(.35, 1, .72), true)
 
 func _draw_corridor_stage() -> void:
     draw_rect(Rect2(0, 128, 768, 896), Color(.018, .025, .05))
@@ -1746,7 +1870,30 @@ func _draw_game_entities() -> void:
         draw_arc(p["pos"] + Vector2(0, 5), locator_radius, game_time * 1.8, game_time * 1.8 + PI * 1.42, 40, locator_color, 3)
         draw_arc(p["pos"] + Vector2(0, 5), locator_radius, game_time * 1.8 + PI, game_time * 1.8 + PI * 1.58, 20, Color.WHITE, 2)
         _label("P%d" % (p["id"] + 1), p["pos"] + Vector2(0, -48), 17, locator_color, true)
-        _sprite("sprites/players/" + p["name"] + "_" + action + ".png", p["pos"], frame, DIRS.find(p["dir"]), Vector2(-1, -1), tint)
+        if dead:
+            var death_scale = Vector2.ONE
+            var death_rotation = 0.0
+            var death_offset = Vector2.ZERO
+            match String(p["death_move"]):
+                "CRUSHED": death_scale = Vector2(1.45, maxf(.12, 1.0 - p["death_progress"] * .7))
+                "SHRINK + STOMP": death_scale = Vector2.ONE * maxf(.12, 1.0 - p["death_progress"] * .48)
+                "VAPORIZED": tint = Color(1.5, .35, 1.8, maxf(.08, 1.0 - p["death_progress"] * .5))
+                "LAUNCHED":
+                    death_offset.y = -p["death_progress"] * 150.0
+                    death_rotation = p["death_progress"] * 7.0
+                "FROZEN SHATTER": tint = Color(.35, .8, 1.8, maxf(.1, 1.0 - p["death_progress"] * .4))
+                "FLATTENED": death_scale = Vector2(1.8, maxf(.08, 1.0 - p["death_progress"] * .85))
+                "ELECTROCUTED":
+                    death_offset = Vector2(randf_range(-5, 5), randf_range(-4, 4))
+                    tint = Color(.6, .9, 1.7)
+                "FLOOR SWALLOWED":
+                    death_offset.y = p["death_progress"] * p["death_progress"] * 210.0
+                    death_scale = Vector2.ONE * maxf(.18, 1.0 - p["death_progress"] * .33)
+            draw_set_transform(p["pos"] + death_offset, death_rotation, death_scale)
+            _sprite("sprites/players/" + p["name"] + "_death.png", Vector2.ZERO, frame, DIRS.find(p["dir"]), Vector2(-1, -1), tint)
+            draw_set_transform(Vector2.ZERO)
+        else:
+            _sprite("sprites/players/" + p["name"] + "_" + action + ".png", p["pos"], frame, DIRS.find(p["dir"]), Vector2(-1, -1), tint)
         if dead:
             continue
         var origin: Vector2 = p["pos"] + Vector2(0, -18)
