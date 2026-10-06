@@ -93,6 +93,7 @@ var corridor_spawn_mark := 0
 var wave_spawned := false
 var wave_reinforcements_spawned := false
 var combat_elapsed := 0.0
+var enemy_clear_stable_time := 0.0
 var erosion_cells: Dictionary = {}
 var erosion_order: Array[Vector2i] = []
 var erosion_timer := 0.0
@@ -167,6 +168,7 @@ func restart() -> void:
     wave_spawned = false
     wave_reinforcements_spawned = false
     combat_elapsed = 0.0
+    enemy_clear_stable_time = 0.0
     erosion_cells.clear()
     erosion_order.clear()
     erosion_timer = 0.0
@@ -1064,6 +1066,12 @@ func _update_waves(dt: float) -> void:
         _update_floor_transition(dt)
         return
     if phase == "clear_hold":
+        # Never let the floor transition strand a living or spawning enemy.
+        # If anything reappears during the clear flourish, resume combat.
+        if _living_enemy_count() > 0:
+            phase = "combat"
+            enemy_clear_stable_time = 0.0
+            return
         phase_timer -= dt
         if phase_timer <= 0:
             _finish_floor_clear()
@@ -1078,9 +1086,12 @@ func _update_waves(dt: float) -> void:
         return
     if phase == "turn":
         phase_timer -= dt
-        floor_transition = 1.0 - clampf(phase_timer / 0.85, 0.0, 1.0)
+        floor_transition = 1.0 - clampf(phase_timer / 1.35, 0.0, 1.0)
         if phase_timer <= 0:
-            _begin_corridor()
+            # Door choices now stay in the twin-stick game. The old connector
+            # corridor changed Arena Brawl into a slow side-scroller and broke
+            # the pace immediately after a boss.
+            _start_floor_drop(pending_route)
         return
     if phase == "corridor":
         _update_corridor(dt)
@@ -1103,7 +1114,11 @@ func _update_waves(dt: float) -> void:
                 for j in range(mini(5, 2 + int(wave_index / 4))):
                     _spawn_enemy(pool[randi() % pool.size()], doors[(j + wave_index) % doors.size()], false)
                 _popup("BONUS WAVE!", Vector2(384, 430), Color(1, .35, .72))
-        if wave_spawned and wave_reinforcements_spawned and combat_elapsed >= 12.0 and enemies.is_empty():
+        if _living_enemy_count() == 0:
+            enemy_clear_stable_time += dt
+        else:
+            enemy_clear_stable_time = 0.0
+        if wave_spawned and wave_reinforcements_spawned and combat_elapsed >= 12.0 and enemy_clear_stable_time >= 2.0:
             phase = "floor_restore" if erosion_active else "clear_hold"
             phase_timer = 3.0 if erosion_active else 1.8
             floor_transition = 0.0
@@ -1112,6 +1127,10 @@ func _update_waves(dt: float) -> void:
 
 func _finish_floor_clear() -> void:
     if phase != "clear_hold":
+        return
+    if _living_enemy_count() > 0:
+        phase = "combat"
+        enemy_clear_stable_time = 0.0
         return
     wave_spawned = false
     audio.play_sfx("wave_clear")
@@ -1244,10 +1263,23 @@ func _update_floor_trail_bombs(dt: float) -> void:
         var owner = int(bomb["owner"])
         var center: Vector2 = bomb["center"]
         var radius = float(bomb["radius"])
+        var bomb_kills := 0
         for enemy in enemies:
             var distance = enemy["pos"].distance_to(center)
-            if distance < radius:
-                _hurt_enemy(enemy, lerpf(285.0, 95.0, distance / radius), owner)
+            if distance < radius and enemy["hp"] > 0:
+                # The loop is a strong crowd-control reward, not a room-clear
+                # button. It can finish at most three regular enemies and only
+                # chips bosses; everyone else is left alive to be fought.
+                var damage = lerpf(72.0, 28.0, distance / radius)
+                if enemy["boss"]:
+                    damage = minf(damage, float(enemy["max_hp"]) * .08)
+                elif damage >= float(enemy["hp"]):
+                    if bomb_kills >= 3:
+                        damage = maxf(0.0, float(enemy["hp"]) - 1.0)
+                    else:
+                        bomb_kills += 1
+                if damage > 0:
+                    _hurt_enemy(enemy, damage, owner)
         for player in _active_players():
             if player["pos"].distance_to(center) < radius * .62:
                 _hurt_player(player, 32.0, "floor_bomb")
@@ -1258,6 +1290,13 @@ func _update_floor_trail_bombs(dt: float) -> void:
             players[owner]["trail_cooldown"] = 3.0
             players[owner]["floor_trail"].clear()
     floor_trail_bombs = floor_trail_bombs.filter(func(bomb): return float(bomb["time"]) < float(bomb["fuse"]))
+
+func _living_enemy_count() -> int:
+    var count := 0
+    for enemy in enemies:
+        if float(enemy["hp"]) > 0.0:
+            count += 1
+    return count
 
 func _safe_floor_position(player_id: int) -> Vector2:
     var preferred = Vector2i(4 + player_id * 3, 7)
@@ -1297,14 +1336,11 @@ func _update_route_choice() -> void:
                 route_history.append(route)
                 pending_route = route
                 _move_map(route)
-                if route in ["WEST", "EAST"]:
-                    corridor_direction = -1 if route == "WEST" else 1
-                    phase = "turn"
-                    phase_timer = 0.85
-                    floor_transition = 0.0
-                    audio.play_sfx("door_open")
-                else:
-                    _start_floor_drop(route)
+                corridor_direction = -1 if route == "WEST" else 1
+                phase = "turn"
+                phase_timer = 1.35
+                floor_transition = 0.0
+                audio.play_sfx("door_open")
                 return
 
 func _start_floor_drop(route: String) -> void:
@@ -1427,6 +1463,7 @@ func _begin_wave() -> void:
     wave_spawned = false
     wave_reinforcements_spawned = false
     combat_elapsed = 0.0
+    enemy_clear_stable_time = 0.0
     erosion_active = false
     erosion_cells.clear()
     hazards.clear()
@@ -1965,17 +2002,37 @@ func _draw_corridor_stage() -> void:
     draw_rect(Rect2(104, 214, 560 * corridor_progress / CORRIDOR_LENGTH, 10), Color(1, .32, .72))
 
 func _draw_screen_turn() -> void:
-    var t = floor_transition
+    # A full-room cube roll: the current arena compresses into perspective,
+    # exposes the illuminated outer wall, then the next top-down room opens.
+    var t = smoothstep(0.0, 1.0, floor_transition)
     var fold = sin(t * PI)
-    var edge = 384.0 + corridor_direction * fold * 280.0
-    draw_colored_polygon(PackedVector2Array([
-        Vector2(0, 128), Vector2(768, 128), Vector2(768 - fold * 150, 1024), Vector2(fold * 150, 1024)]),
-        Color(.015, .02, .045, .18 + fold * .62))
-    draw_line(Vector2(edge, 128), Vector2(edge - corridor_direction * fold * 120, 1024), Color(.25, .9, 1, fold), 7)
-    for stripe in range(7):
-        var sx = lerpf(40.0, 728.0, stripe / 6.0)
-        draw_line(Vector2(sx, 128), Vector2(384 + (sx - 384) * (1.0 - fold * .65), 1024), Color(.2, .5, .75, fold * .45), 2)
-    _label("TURNING %s" % ("RIGHT" if corridor_direction > 0 else "LEFT"), Vector2(384, 530), 34, Color(1, .75, .2, maxf(.25, fold)), true)
+    var from_left = corridor_direction < 0
+    var hinge_x = 0.0 if from_left else 768.0
+    var moving_edge = lerpf(768.0 if from_left else 0.0, hinge_x, t)
+    var top_inset = fold * 118.0
+    var bottom_inset = fold * 205.0
+    var wall = PackedVector2Array([
+        Vector2(moving_edge, 128 + top_inset), Vector2(hinge_x, 128),
+        Vector2(hinge_x, 1024), Vector2(moving_edge, 1024 - bottom_inset)])
+    draw_colored_polygon(wall, Color(.018, .035, .075, .96))
+    # Perspective circuitry makes the revealed outer wall read as a physical
+    # rotating set instead of a flat screen wipe.
+    for stripe in range(9):
+        var amount = stripe / 8.0
+        var top = Vector2(lerpf(moving_edge, hinge_x, amount), lerpf(128 + top_inset, 128, amount))
+        var bottom = Vector2(lerpf(moving_edge, hinge_x, amount), lerpf(1024 - bottom_inset, 1024, amount))
+        draw_line(top, bottom, Color(.08, .7, 1, .2 + fold * .42), 2)
+    for row in range(7):
+        var amount = row / 6.0
+        var a = Vector2(moving_edge, lerpf(128 + top_inset, 1024 - bottom_inset, amount))
+        var b = Vector2(hinge_x, lerpf(128, 1024, amount))
+        draw_line(a, b, Color(1, .12, .68, .12 + fold * .32), 2)
+    draw_line(Vector2(moving_edge, 128 + top_inset), Vector2(moving_edge, 1024 - bottom_inset), Color(.25, .95, 1, .85), 8)
+    draw_circle(Vector2(lerpf(moving_edge, hinge_x, .55), 555), 42 + fold * 30, Color(.05, .8, 1, .08))
+    draw_arc(Vector2(lerpf(moving_edge, hinge_x, .55), 555), 42 + fold * 30, -PI * .75, PI * .75, 32, Color(1, .2, .72, fold), 5)
+    var route_label = pending_route if not pending_route.is_empty() else ("EAST" if corridor_direction > 0 else "WEST")
+    _label("ROUTE LOCKED: " + route_label, Vector2(384, 500), 29, Color(1, .75, .2, maxf(.25, fold)), true)
+    _label("NEXT ARENA", Vector2(384, 548), 22, Color(.25, .92, 1, maxf(.25, fold)), true)
 
 func _draw_backstage_entrance() -> void:
     # A warm television-studio backstage instead of abstract guide beams.
