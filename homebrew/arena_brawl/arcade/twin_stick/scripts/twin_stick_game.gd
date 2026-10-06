@@ -189,8 +189,6 @@ func restart() -> void:
         audio.stop_all()
         audio.play_music("circuit_1")
         audio.announce_sequence(["voice_contestant_1.wav", "voice_contestant_2.wav", "voice_cheer_2.wav"] if p2_enabled else ["voice_contestant_1.wav", "voice_cheer_2.wav"])
-    for i in range(weapon_ids.size()):
-        drops.append({"kind": "weapon", "id": weapon_ids[i], "pos": Vector2(155 + (i % 5) * 115, 820 + int(i / 5) * 72), "life": 40.0})
 
 func _new_player(index: int, point: Vector2) -> Dictionary:
     return {"id": index, "name": "volt" if index == 0 else "nova", "pos": point,
@@ -369,11 +367,10 @@ func _cycle_weapon(player: Dictionary) -> void:
     audio.play_sfx("weapon_pickup")
 
 func _process(delta: float) -> void:
-    # Preserve real-time game speed during a temporary frame-rate dip. The old
-    # 40 ms clamp made the entire simulation run in slow motion below 25 FPS,
-    # even though menus remained responsive. Keep only a generous safety cap
-    # to prevent one long stall from producing an oversized simulation jump.
-    var dt = minf(delta, 0.1)
+    # Use elapsed wall-clock time so the entrance and gameplay never become
+    # slow motion when the cabinet briefly drops frames. Pausing does not build
+    # up delta, so a clamp here only makes overloaded hardware run slower.
+    var dt = delta
     controller_help_timer = maxf(0.0, controller_help_timer - dt)
     if control_wizard_open and control_wizard_hold_button >= 0:
         control_wizard_hold_time += dt
@@ -783,6 +780,8 @@ func _nearest_player(point: Vector2) -> Dictionary:
     var result: Dictionary = {}
     var best = INF
     for p in _active_players():
+        if p["buffs"].has("blessing_stealth"):
+            continue
         var distance = point.distance_squared_to(p["pos"])
         if distance < best:
             best = distance
@@ -1162,11 +1161,6 @@ func _update_floor_paint(player: Dictionary) -> void:
     player["floor_cell"] = cell
     if cell.x <= 0 or cell.x >= 11 or cell.y <= 0 or cell.y >= 13 or erosion_cells.has(cell):
         return
-    var player_color = int(player["id"]) + 1
-    # Like Q*bert, every new landing flips the square. P1 paints cyan, P2
-    # paints magenta, and either player stepping on a lit tile turns it back.
-    floor_tile_states[cell] = 0 if int(floor_tile_states.get(cell, 0)) != 0 else player_color
-    floor_tile_changed_at[cell] = game_time
     _extend_floor_trail(player, cell)
 
 func _fade_floor_marks() -> void:
@@ -1178,7 +1172,7 @@ func _fade_floor_marks() -> void:
         floor_tile_changed_at.erase(cell)
         floor_tile_states.erase(cell)
     for player in players:
-        var trail_life = 3.2 + float(player["lightning_level"]) * .35
+        var trail_life = 5.5 + float(player["lightning_level"])
         if not player["floor_trail"].is_empty() and game_time - float(player["trail_last_step"]) > trail_life:
             player["floor_trail"].clear()
 
@@ -1190,29 +1184,43 @@ func _extend_floor_trail(player: Dictionary, cell: Vector2i) -> void:
     if trail.is_empty():
         trail.append(cell)
         return
-    # Only join neighboring squares so crossing the arena cannot create a
-    # hidden diagonal shortcut through the bomb outline.
+    # Analog diagonals often cross two grid boundaries in one rendered frame.
+    # Fill both orthogonal steps so the laser remains connected instead of
+    # randomly resetting while the player draws a perfectly sensible loop.
     var previous: Vector2i = trail[-1]
-    if abs(cell.x - previous.x) + abs(cell.y - previous.y) != 1:
-        trail.clear()
-        trail.append(cell)
-        return
+    var cursor = previous
+    while cursor.x != cell.x:
+        cursor.x += 1 if cell.x > cursor.x else -1
+        if _append_floor_trail_cell(player, cursor): return
+    while cursor.y != cell.y:
+        cursor.y += 1 if cell.y > cursor.y else -1
+        if _append_floor_trail_cell(player, cursor): return
+
+func _append_floor_trail_cell(player: Dictionary, cell: Vector2i) -> bool:
+    var trail: Array = player["floor_trail"]
+    # Stepping back one square is a correction, not a failed loop. Erasing the
+    # whole trail here made analog controls feel random and unreliable.
+    if trail.size() >= 2 and cell == trail[-2]:
+        trail.pop_back()
+        return false
     var earlier = trail.find(cell)
     if earlier >= 0:
         var loop: Array = trail.slice(earlier)
-        var max_loop = 8 + int(player["lightning_level"]) * 3
+        var max_loop = 14 + int(player["lightning_level"]) * 5
         if loop.size() >= 4 and loop.size() <= max_loop:
             loop.append(cell)
             _arm_floor_trail_bomb(player, loop)
             trail.clear()
+            return true
         else:
-            trail.clear()
-            trail.append(cell)
-        return
+            trail = trail.slice(earlier)
+            player["floor_trail"] = trail
+            return false
     trail.append(cell)
-    var max_trail = 8 + int(player["lightning_level"]) * 3
+    var max_trail = 14 + int(player["lightning_level"]) * 5
     if trail.size() > max_trail:
         trail.pop_front()
+    return false
 
 func _arm_floor_trail_bomb(player: Dictionary, cells: Array) -> void:
     var points := PackedVector2Array()
@@ -1441,6 +1449,8 @@ func _begin_wave() -> void:
         _spawn_enemy(pool[randi() % pool.size()], point, false)
     for j in range(int(wave["hazard_count"])):
         _spawn_hazard(["electric_floor", "flame_vent", "rotating_laser", "crusher"][j % 4], Vector2(225 + (j % 2) * 318, 390 + int(j / 2) * 300))
+    if wave_index in [0, 2]:
+        _spawn_blessing_rings()
     wave_spawned = true
     if wave_index == 14:
         _prepare_floor_erosion()
@@ -1641,12 +1651,38 @@ func _hurt_enemy(enemy: Dictionary, amount: float, owner: int) -> void:
 func _add_pickup(id: String, point: Vector2) -> void:
     drops.append({"kind": "pickup", "id": id, "pos": point, "life": 22.0})
 
+func _spawn_blessing_rings() -> void:
+    for player in _active_players():
+        var owner = int(player["id"])
+        var blessing = "full_health" if randf() < .28 else "random_weapon"
+        var point = Vector2(220 + owner * 328, 765)
+        drops.append({"kind": "blessing_ring", "id": blessing, "owner": owner,
+            "pos": point, "life": 18.0})
+        _popup("P%d BLESSING RING" % (owner + 1), point + Vector2(0, -48), Color(.2, .9, 1) if owner == 0 else Color(1, .25, .75))
+
 func _update_drops(dt: float) -> void:
     for item in drops:
         item["life"] -= dt
         for p in _active_players():
             if item["life"] <= 0 or p["pos"].distance_to(item["pos"]) > 31:
                 continue
+            if item["kind"] == "blessing_ring":
+                if int(p["id"]) != int(item["owner"]):
+                    continue
+                if item["id"] == "full_health":
+                    p["health"] = 100.0
+                    p["armor"] = maxf(float(p["armor"]), 50.0)
+                    _popup("P%d BLESSED — FULL HEALTH" % (int(p["id"]) + 1), p["pos"] + Vector2(0, -58), Color(1, .92, .35))
+                    audio.play_sfx("health_pickup")
+                else:
+                    p["weapon"] = weapon_ids[randi() % weapon_ids.size()]
+                    _popup("P%d BLESSED — %s" % [int(p["id"]) + 1, weapons[p["weapon"]]["display_name"]], p["pos"] + Vector2(0, -58), Color(.35, .95, 1))
+                    audio.play_sfx("weapon_pickup")
+                p["buffs"]["invulnerability"] = 5.0
+                p["buffs"]["blessing_stealth"] = 5.0
+                _effect("enemy_spawn", p["pos"], 1.4)
+                item["life"] = 0
+                break
             if item["kind"] == "weapon":
                 if item["id"] == "orbit_drone":
                     p["drone_level"] = mini(3, int(p["drone_level"]) + 1)
@@ -1851,9 +1887,15 @@ func _draw_floor_trails() -> void:
         for cell in trail:
             points.append(Vector2(cell.x * 64 + 32, 128 + cell.y * 64 + 32))
         var color = Color(.1, .95, 1) if int(player["id"]) == 0 else Color(1, .15, .76)
-        # Traveling sparks make it obvious which floor squares have connected.
+        var trail_life = 5.5 + float(player["lightning_level"])
+        var life_alpha = clampf(1.0 - (game_time - float(player["trail_last_step"])) / trail_life, .18, 1.0)
+        # Small illuminated nodes and a continuous traveling beam make every
+        # accepted connection visible without changing the floor tiles.
+        for point in points:
+            draw_rect(Rect2(point - Vector2(11, 11), Vector2(22, 22)), Color(color.r, color.g, color.b, life_alpha * .16), true)
+            draw_rect(Rect2(point - Vector2(8, 8), Vector2(16, 16)), Color(color.r, color.g, color.b, life_alpha * .9), false, 3)
         draw_polyline(points, Color(color.r, color.g, color.b, .28), 9, true)
-        draw_polyline(points, color, 3, true)
+        draw_polyline(points, Color(color.r, color.g, color.b, life_alpha), 3, true)
         var segment = posmod(int(game_time * 8.0), points.size() - 1)
         var spark = points[segment].lerp(points[segment + 1], fmod(game_time * 8.0, 1.0))
         draw_circle(spark, 7, Color(1, 1, 1, .92))
@@ -2033,7 +2075,19 @@ func _draw_game_entities() -> void:
             draw_line(hazard["pos"] - ray, hazard["pos"] + ray, Color(.95, .2, .7), 5)
             draw_line(hazard["pos"] - ray, hazard["pos"] + ray, Color.WHITE, 1)
     for drop in drops:
-        if drop["kind"] == "weapon":
+        if drop["kind"] == "blessing_ring":
+            var owner = int(drop["owner"])
+            var ring_color = Color(.1, .9, 1) if owner == 0 else Color(1, .16, .72)
+            var pulse = 1.0 + sin(game_time * 7.0) * .12
+            for glow in range(4, 0, -1):
+                var glow_color = ring_color
+                glow_color.a = .05 * glow
+                draw_arc(drop["pos"], (29 + glow * 4) * pulse, 0, TAU, 40, glow_color, 3 + glow)
+            draw_arc(drop["pos"], 29 * pulse, 0, TAU, 40, ring_color, 5)
+            draw_circle(drop["pos"], 18, Color(ring_color.r, ring_color.g, ring_color.b, .12))
+            _label("P%d ONLY" % (owner + 1), drop["pos"] + Vector2(0, -42), 13, ring_color, true)
+            _label("BLESSING", drop["pos"] + Vector2(0, 50), 11, Color.WHITE, true)
+        elif drop["kind"] == "weapon":
             _sprite("sprites/pickups/weapon_" + drop["id"] + ".png", drop["pos"])
             var weapon_label = "ORBIT DRONE UPGRADE" if drop["id"] == "orbit_drone" else String(weapons[drop["id"]]["display_name"])
             _label(weapon_label, drop["pos"] + Vector2(0, -34), 12, Color(.35, .92, 1), true)
@@ -2088,6 +2142,12 @@ func _draw_game_entities() -> void:
         draw_arc(p["pos"] + Vector2(0, 5), locator_radius, game_time * 1.8, game_time * 1.8 + PI * 1.42, 40, locator_color, 3)
         draw_arc(p["pos"] + Vector2(0, 5), locator_radius, game_time * 1.8 + PI, game_time * 1.8 + PI * 1.58, 20, Color.WHITE, 2)
         _label("P%d" % (p["id"] + 1), p["pos"] + Vector2(0, -48), 17, locator_color, true)
+        if p["buffs"].has("blessing_stealth"):
+            var blessing_left = float(p["buffs"]["blessing_stealth"])
+            var blessing_alpha = .35 + sin(game_time * 14.0) * .14
+            draw_colored_polygon(PackedVector2Array([p["pos"] + Vector2(-38, -320), p["pos"] + Vector2(38, -320), p["pos"] + Vector2(58, 35), p["pos"] + Vector2(-58, 35)]), Color(locator_color.r, locator_color.g, locator_color.b, blessing_alpha * .22))
+            draw_arc(p["pos"] + Vector2(0, 5), 42 + sin(game_time * 9.0) * 5, 0, TAU, 48, Color(1, 1, .7, .9), 4)
+            _label("BLESSED %.1f" % blessing_left, p["pos"] + Vector2(0, -68), 14, Color(1, 1, .65), true)
         if dead:
             var death_scale = Vector2.ONE
             var death_rotation = 0.0
