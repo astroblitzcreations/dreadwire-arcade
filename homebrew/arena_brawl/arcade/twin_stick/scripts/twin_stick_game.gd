@@ -127,7 +127,8 @@ func _ready() -> void:
         weapons[definition["id"]] = definition
         weapon_ids.append(definition["id"])
     for definition in library.data("prizes"):
-        pickup_ids.append(definition["id"])
+        if definition["id"] != "bomb":
+            pickup_ids.append(definition["id"])
     waves = _build_campaign_waves(library.data("waves"))
     audio = AUDIO.new()
     add_child(audio)
@@ -217,7 +218,7 @@ func _new_player(index: int, point: Vector2) -> Dictionary:
         "move": Vector2.ZERO, "dir": "s", "invuln": 2.5,
         "respawn": 0.0, "damage_flash": 0.0, "buffs": {}, "anim_time": 0.0,
         "fire_held": false, "lock_held": false, "locked_aim": Vector2.UP,
-        "secondary_held": false, "bombs": 1, "drone_level": 0,
+        "secondary_held": false, "bombs": 0, "drone_level": 0,
         "shield_share_cooldown": 0.0, "death_move": "", "death_progress": 0.0,
         "floor_cell": Vector2i(-99, -99), "floor_trail": [], "trail_cooldown": 0.0,
         "trail_last_step": 0.0, "lightning_level": 0,
@@ -402,13 +403,12 @@ func _process(delta: float) -> void:
         if phase == "entrance":
             _update_entrance(dt)
         else:
-            if phase in ["combat", "route"]:
+            if phase in ["combat", "route", "clear_hold", "intermission"]:
                 _update_players(dt)
             _update_waves(dt)
             if phase in ["combat", "corridor"]:
                 _update_enemies(dt)
         _update_shots(dt)
-        _update_player_bombs(dt)
         _update_floor_trail_bombs(dt)
         _update_drops(dt)
         _update_hazards(dt)
@@ -938,8 +938,8 @@ func _update_players(dt: float) -> void:
             aim = p["locked_aim"]
         p["fire_held"] = fire_button
         p["lock_held"] = lock_button
-        if secondary_button and not bool(p["secondary_held"]) and int(p["bombs"]) > 0:
-            _drop_player_bomb(p)
+        # Ground bombs were removed: noisy controller edges could repeatedly
+        # trigger them and cover the arena with automatic orange blast rings.
         p["secondary_held"] = secondary_button
         p["move"] = move
         p["aim"] = aim if aim.length() > 0.01 else Vector2.UP
@@ -1162,8 +1162,6 @@ func _finish_floor_clear() -> void:
         return
     wave_spawned = false
     var defeated_boss = not str(waves[wave_index]["boss"]).is_empty()
-    if randf() < .60:
-        _add_pickup("bomb", Vector2(randf_range(170, 598), randf_range(410, 720)))
     if randf() < .28:
         _add_pickup("reflect_shield", Vector2(randf_range(170, 598), randf_range(410, 720)))
     if randf() < .32:
@@ -1273,16 +1271,22 @@ func _append_floor_trail_cell(player: Dictionary, cell: Vector2i) -> bool:
     return false
 
 func _arm_floor_trail_bomb(player: Dictionary, cells: Array) -> void:
-    var points := PackedVector2Array()
     var center := Vector2.ZERO
     for cell in cells:
         var point = Vector2(cell.x * 64 + 32, 128 + cell.y * 64 + 32)
-        points.append(point)
         center += point
     center /= float(cells.size())
+    center = _clamp_room(center, 82.0)
+    # Completing any valid loop produces the same readable, compact cage.
+    # The player's rough drawing is only the activation gesture—not a giant
+    # polygon that can cover half of the portrait screen.
+    var half := 70.0
+    var points = PackedVector2Array([
+        center + Vector2(-half, -half), center + Vector2(half, -half),
+        center + Vector2(half, half), center + Vector2(-half, half)])
     floor_trail_bombs.append({"owner": int(player["id"]), "points": points,
-        "center": center, "time": 0.0, "fuse": 6.0, "hp": 180.0, "max_hp": 180.0, "dead": false})
-    _popup("RICOCHET SHIELD CONNECTED!", center + Vector2(0, -55), Color(.2, 1, .95) if int(player["id"]) == 0 else Color(1, .2, .78))
+        "center": center, "time": 0.0, "fuse": 5.0, "hp": 120.0, "max_hp": 120.0, "dead": false})
+    _popup("PRISM CAGE ONLINE", center + Vector2(0, -92), Color(.2, 1, .95) if int(player["id"]) == 0 else Color(1, .2, .78))
     audio.play_sfx("electric_floor")
 
 func _update_floor_trail_bombs(dt: float) -> void:
@@ -1736,7 +1740,7 @@ func _hurt_enemy(enemy: Dictionary, amount: float, owner: int) -> void:
             _popup("BOSS PHASE %d" % (next_phase + 1), enemy["pos"] + Vector2(0, -90), Color(1, .2, .15) if next_phase == 3 else Color(1, .62, .12))
     _effect("impact_plasma" if amount > 60 else "impact_enemy", enemy["pos"] + Vector2(0, -15), .25)
     if enemy["hp"] > 0:
-        audio.play_sfx("enemy_hit")
+        audio.play_sfx("bullet_hit_enemy")
         return
     if owner >= 0 and owner < players.size():
         var p: Dictionary = players[owner]
@@ -1803,7 +1807,7 @@ func _update_drops(dt: float) -> void:
                     "extra_life":
                         p["lives"] = mini(9, p["lives"] + 1)
                         audio.announce_sequence(["voice_whoo.wav"], false, 12.0)
-                    "bomb": p["bombs"] = mini(9, int(p["bombs"]) + 1)
+                    "bomb": p["buffs"]["damage_boost"] = 8.0
                     "reflect_shield": p["buffs"]["reflect_shield"] = 10.0
                     "lightning_bolt":
                         p["lightning_level"] = mini(5, int(p["lightning_level"]) + 1)
@@ -2016,16 +2020,13 @@ func _draw_floor_trails() -> void:
         var color = Color(.1, .95, 1) if int(player["id"]) == 0 else Color(1, .15, .76)
         var trail_life = 5.5 + float(player["lightning_level"])
         var life_alpha = clampf(1.0 - (game_time - float(player["trail_last_step"])) / trail_life, .18, 1.0)
-        # Small illuminated nodes and a continuous traveling beam make every
-        # accepted connection visible without changing the floor tiles.
+        # A faint breadcrumb gesture replaces the old screen-filling cable.
         for point in points:
-            draw_rect(Rect2(point - Vector2(11, 11), Vector2(22, 22)), Color(color.r, color.g, color.b, life_alpha * .16), true)
-            draw_rect(Rect2(point - Vector2(8, 8), Vector2(16, 16)), Color(color.r, color.g, color.b, life_alpha * .9), false, 3)
-        draw_polyline(points, Color(color.r, color.g, color.b, .28), 9, true)
-        draw_polyline(points, Color(color.r, color.g, color.b, life_alpha), 3, true)
+            draw_circle(point, 3.0, Color(color.r, color.g, color.b, life_alpha * .55))
+        draw_polyline(points, Color(color.r, color.g, color.b, life_alpha * .28), 1.5, true)
         var segment = posmod(int(game_time * 8.0), points.size() - 1)
         var spark = points[segment].lerp(points[segment + 1], fmod(game_time * 8.0, 1.0))
-        draw_circle(spark, 7, Color(1, 1, 1, .92))
+        draw_circle(spark, 3, Color(1, 1, 1, .65))
     for bomb in floor_trail_bombs:
         var points: PackedVector2Array = bomb["points"]
         var owner = int(bomb["owner"])
@@ -2384,7 +2385,7 @@ func _hud() -> void:
         if p["lives"] <= 0 and p["continue_timer"] > 0:
             _label("CONTINUE? %d" % ceili(p["continue_timer"]), Vector2(x, 70), 16, Color(1, .35, .65))
             _label("START (%d LEFT)" % p["continues"], Vector2(x + 116, 70), 14, Color(1, .8, .2))
-        _label("%s  •  BOMBS %d" % [weapons[p["weapon"]]["display_name"], p["bombs"]], Vector2(x, 92), 13)
+        _label("%s" % weapons[p["weapon"]]["display_name"], Vector2(x, 92), 13)
     _label("ARENA BRAWL", Vector2(384, 70), 22, Color(.5, .8, .95), true)
     _label("ROOM %02d  •  FLOOR %d/%d" % [int(wave_index / FLOORS_PER_ROOM) + 1, floor_in_room, FLOORS_PER_ROOM], Vector2(384, 104), 18, Color(1, .35, .85), true)
     for enemy in enemies:
