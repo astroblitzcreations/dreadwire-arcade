@@ -80,7 +80,8 @@ var entrance_banner_played := false
 var entrance_banner := ""
 var entrance_cheer_played := false
 var entrance_money_step := 0
-var intro_video: VideoStreamPlayer
+var intro_animation: TextureRect
+var intro_frame := -1
 var intro_love_label: Label
 var route_history: Array[String] = []
 var floor_in_room := 1
@@ -181,9 +182,10 @@ func restart() -> void:
     entrance_banner = ""
     entrance_cheer_played = false
     entrance_money_step = 0
-    if is_instance_valid(intro_video):
-        intro_video.stop()
-        intro_video.visible = false
+    if is_instance_valid(intro_animation):
+        intro_animation.visible = false
+        intro_animation.texture = null
+        intro_frame = -1
     if is_instance_valid(intro_love_label):
         intro_love_label.visible = false
     route_history.clear()
@@ -226,17 +228,17 @@ func restart() -> void:
         audio.announce_sequence(["voice_contestant_1.wav", "voice_contestant_2.wav"] if p2_enabled else ["voice_contestant_1.wav"])
 
 func _setup_intro_video() -> void:
-    intro_video = VideoStreamPlayer.new()
-    intro_video.stream = load(BASE + "assets/video/big_money_intro.ogv")
-    intro_video.expand = true
-    intro_video.autoplay = false
-    intro_video.loop = false
-    intro_video.volume_db = -80.0
-    intro_video.size = Vector2(576, 736)
-    intro_video.position = Vector2(-620, 152)
-    intro_video.visible = false
-    intro_video.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    add_child(intro_video)
+    # Godot's Theora decoder corrupts this particular animation on the Pi's
+    # GLES stack. A short numbered-image sequence is deterministic and keeps
+    # every frame pristine on both the cabinet and remote stream.
+    intro_animation = TextureRect.new()
+    intro_animation.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    intro_animation.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+    intro_animation.size = Vector2(576, 736)
+    intro_animation.position = Vector2(-620, 152)
+    intro_animation.visible = false
+    intro_animation.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    add_child(intro_animation)
     intro_love_label = Label.new()
     intro_love_label.text = "I LOVE IT!"
     intro_love_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -260,6 +262,7 @@ func _new_player(index: int, point: Vector2) -> Dictionary:
         "fire_held": false, "lock_held": false, "locked_aim": Vector2.UP,
         "secondary_held": false, "bombs": 0, "drone_level": 0,
         "shield_share_cooldown": 0.0, "death_move": "", "death_progress": 0.0,
+        "death_direction": 1.0,
         "floor_cell": Vector2i(-99, -99), "floor_trail": [], "trail_cooldown": 0.0,
         "trail_last_step": 0.0, "lightning_level": 0,
         "floor_falling": false,
@@ -487,8 +490,8 @@ func _update_entrance(_dt: float) -> void:
     if entrance_elapsed >= 6.5 and not entrance_banner_played:
         entrance_banner_played = true
         entrance_banner = "BIG MONEY"
-        intro_video.visible = true
-        intro_video.play()
+        intro_animation.visible = true
+        intro_frame = -1
         audio.announce_sequence(["voice_big_money.wav"], true, 0.0, true)
         entrance_money_step = 1
     if entrance_money_step == 1 and entrance_elapsed >= 8.15:
@@ -499,6 +502,10 @@ func _update_entrance(_dt: float) -> void:
         audio.announce_sequence(["voice_i_love_it.wav"], true, 0.0, true)
     if entrance_banner_played:
         var banner_time := entrance_elapsed - 6.5
+        var wanted_frame := clampi(floori(banner_time * 10.0) + 1, 1, 51)
+        if wanted_frame != intro_frame:
+            intro_frame = wanted_frame
+            intro_animation.texture = load(BASE + "assets/intro_frames/frame_%03d.jpg" % intro_frame)
         var banner_x := 96.0
         if banner_time < .48:
             var slide_in := clampf(banner_time / .48, 0.0, 1.0)
@@ -507,13 +514,13 @@ func _update_entrance(_dt: float) -> void:
         elif banner_time > 5.75:
             var slide_out := clampf((banner_time - 5.75) / .72, 0.0, 1.0)
             banner_x = lerpf(96.0, 790.0, slide_out * slide_out)
-        intro_video.position = Vector2(banner_x, 152)
+        intro_animation.position = Vector2(banner_x, 152)
         intro_love_label.position = Vector2(banner_x, 770)
         intro_love_label.visible = banner_time >= 4.95 and banner_time < 6.47
         intro_love_label.modulate.a = .72 + abs(sin(entrance_elapsed * 9.0)) * .28
     if phase_timer <= 0:
-        intro_video.stop()
-        intro_video.visible = false
+        intro_animation.visible = false
+        intro_animation.texture = null
         intro_love_label.visible = false
         phase = "warning"
         phase_timer = 1.4
@@ -1085,10 +1092,11 @@ func _hurt_player(p: Dictionary, amount: float, finisher_source: String = "") ->
     _effect("blood_damage", p["pos"], 0.45)
     if p["health"] <= 0:
         p["lives"] -= 1
-        p["respawn"] = 2.8
-        var death_moves = ["CRUSHED", "SHRINK + STOMP", "VAPORIZED", "LAUNCHED", "FROZEN SHATTER", "FLATTENED", "ELECTROCUTED"]
+        p["respawn"] = 3.2
+        var death_moves = ["CRUSHED", "SHRINK + STOMP", "VAPORIZED", "LAUNCHED", "FROZEN SHATTER", "FLATTENED", "ELECTROCUTED", "CAMERA SMASH", "FIELD GOAL", "UPPERCUT", "SPUN OUT", "DISINTEGRATED"]
         p["death_move"] = "FLOOR SWALLOWED" if finisher_source == "floor" else death_moves[randi() % death_moves.size()]
         p["death_progress"] = 0.0
+        p["death_direction"] = -1.0 if randf() < .5 else 1.0
         _popup(p["death_move"], p["pos"] + Vector2(0, -62), Color(1, .2, .32))
         _effect("explosion_medium", p["pos"], 0.8)
         audio.play_sfx("player_death")
@@ -1355,8 +1363,10 @@ func _arm_floor_trail_bomb(player: Dictionary, cells: Array) -> void:
     for enemy in enemies:
         if float(enemy["hp"]) > 0.0 and Geometry2D.is_point_in_polygon(enemy["pos"], points):
             trapped_uids.append(int(enemy["uid"]))
+    var wall_hp := [randf_range(68.0, 108.0), randf_range(68.0, 108.0), randf_range(68.0, 108.0), randf_range(68.0, 108.0)]
     floor_trail_bombs.append({"owner": int(player["id"]), "points": points,
-        "center": center, "time": 0.0, "fuse": 6.5, "hp": 150.0, "max_hp": 150.0,
+        "center": center, "time": 0.0, "fuse": 6.5, "hp": 1.0, "max_hp": 1.0,
+        "wall_hp": wall_hp, "wall_max_hp": wall_hp.duplicate(),
         "trapped_uids": trapped_uids, "dead": false})
     _popup("CONTAINMENT CAGE: %d TRAPPED" % trapped_uids.size(), center + Vector2(0, -92), Color(.2, 1, .95) if int(player["id"]) == 0 else Color(1, .2, .78))
     audio.play_sfx("electric_floor")
@@ -1364,11 +1374,14 @@ func _arm_floor_trail_bomb(player: Dictionary, cells: Array) -> void:
 func _update_floor_trail_bombs(dt: float) -> void:
     for bomb in floor_trail_bombs:
         bomb["time"] += dt
-        if float(bomb["time"]) < float(bomb["fuse"]) and float(bomb["hp"]) > 0.0:
+        var intact_walls: int = 0
+        for hp in bomb["wall_hp"]:
+            if float(hp) > 0.0: intact_walls += 1
+        if float(bomb["time"]) < float(bomb["fuse"]) and intact_walls > 0:
             continue
         var owner = int(bomb["owner"])
         var center: Vector2 = bomb["center"]
-        _popup("CAGE BREACHED" if float(bomb["hp"]) <= 0.0 else "CAGE RELEASED", center + Vector2(0, -84), Color(.25, 1, .9))
+        _popup("CAGE BREACHED" if intact_walls <= 0 else "CAGE RELEASED", center + Vector2(0, -84), Color(.25, 1, .9))
         _effect("electric_arcs", center, .8)
         audio.play_sfx("shield_block")
         bomb["dead"] = true
@@ -1564,6 +1577,12 @@ func _begin_wave() -> void:
         audio.announce_sequence(["voice_good_luck.wav", "voice_youll_need_it.wav"], true, 20.0, true)
     else:
         audio.play_music("circuit_3" if wave_index >= 14 else "circuit_2" if wave_index >= 7 else "circuit_1")
+    var formation_points: Array[Vector2] = []
+    var formation_name := ""
+    if str(wave["boss"]).is_empty() and count >= 6 and randf() < .72:
+        formation_name = ["WEDGE", "PHALANX", "DIAMOND", "PINCER"][randi() % 4]
+        formation_points = _formation_points(formation_name, mini(count, 10))
+        _popup("%s FORMATION!" % formation_name, Vector2(384, 300), Color(1, .32, .18))
     for j in range(count):
         var point: Vector2 = doors[j % doors.size()] + Vector2(randf_range(-28, 28), randf_range(-28, 28))
         # Move a spawn to the opposite door if a live player is too close.
@@ -1571,6 +1590,10 @@ func _begin_wave() -> void:
         if not target.is_empty() and point.distance_to(target["pos"]) < 125:
             point = doors[(j + 2) % doors.size()]
         _spawn_enemy(pool[randi() % pool.size()], point, false)
+        if j < formation_points.size() and not enemies.is_empty():
+            enemies[-1]["formation_target"] = formation_points[j]
+            enemies[-1]["formation_until"] = game_time + 7.5
+            enemies[-1]["timer"] = 1.0 + j * .08
     for j in range(int(wave["hazard_count"])):
         _spawn_hazard(["electric_floor", "flame_vent", "rotating_laser", "crusher"][j % 4], Vector2(225 + (j % 2) * 318, 390 + int(j / 2) * 300))
     if floor_in_room in [1, 3]:
@@ -1579,6 +1602,26 @@ func _begin_wave() -> void:
         _spawn_weapon_choice()
     wave_spawned = true
     audio.play_sfx("door_open")
+
+func _formation_points(kind: String, count: int) -> Array[Vector2]:
+    var result: Array[Vector2] = []
+    var center := Vector2(384, 450)
+    for i in range(count):
+        var point := center
+        match kind:
+            "WEDGE":
+                var row := int(i / 2)
+                point += Vector2((-1 if i % 2 == 0 else 1) * (34 + row * 34), row * 52)
+            "PHALANX":
+                point += Vector2((i % 5 - 2) * 72, int(i / 5) * 82)
+            "DIAMOND":
+                var ring := i % 8
+                point += Vector2.from_angle(-PI / 2.0 + ring * TAU / 8.0) * (105.0 if i < 8 else 48.0)
+            "PINCER":
+                var side := -1 if i % 2 == 0 else 1
+                point += Vector2(side * (155 - int(i / 2) * 18), int(i / 2) * 62 - 80)
+        result.append(_clamp_room(point, 38.0))
+    return result
 
 func _spawn_weapon_choice() -> void:
     var candidates = weapon_ids.filter(func(id): return id != "pulse_pistol" and id != "orbit_drone")
@@ -1640,6 +1683,14 @@ func _update_enemies(dt: float) -> void:
             direction = aim if distance > 280 else aim.rotated(PI / 2) if distance > 180 else -aim
         elif enemy["id"] == "turret":
             speed = 0
+        if enemy.has("formation_target") and game_time < float(enemy["formation_until"]):
+            var formation_delta: Vector2 = enemy["formation_target"] - enemy["pos"]
+            if formation_delta.length() > 16.0:
+                direction = formation_delta.normalized()
+                speed *= 1.28
+            else:
+                direction = Vector2.ZERO
+                speed = 0.0
         enemy["dir"] = _direction(aim)
         enemy["vel"] = direction * speed
         var previous_pos: Vector2 = enemy["pos"]
@@ -1775,10 +1826,18 @@ func _confine_caged_enemy(enemy: Dictionary, previous_pos: Vector2) -> void:
             continue
         var polygon: PackedVector2Array = cage["points"]
         if not Geometry2D.is_point_in_polygon(enemy["pos"], polygon):
-            enemy["pos"] = previous_pos
-            enemy["vel"] = Vector2.ZERO
-            # A contained enemy pauses at the wall, but keeps attacking it.
-            enemy["timer"] = minf(float(enemy["timer"]), .3)
+            var crossed_wall := -1
+            for i in range(polygon.size()):
+                if Geometry2D.segment_intersects_segment(previous_pos, enemy["pos"], polygon[i], polygon[(i + 1) % polygon.size()]) != null:
+                    crossed_wall = i
+                    break
+            if crossed_wall < 0 or float(cage["wall_hp"][crossed_wall]) > 0.0:
+                enemy["pos"] = previous_pos
+                enemy["vel"] = Vector2.ZERO
+                # A contained enemy pauses at the wall, but keeps attacking it.
+                enemy["timer"] = minf(float(enemy["timer"]), .3)
+            else:
+                cage["trapped_uids"].erase(uid)
         return
 
 func _ricochet_from_floor_shield(shot: Dictionary) -> bool:
@@ -1790,6 +1849,8 @@ func _ricochet_from_floor_shield(shot: Dictionary) -> bool:
             continue
         var points: PackedVector2Array = bomb["points"]
         for i in range(points.size()):
+            if float(bomb["wall_hp"][i]) <= 0.0:
+                continue
             var a = points[i]
             var b = points[(i + 1) % points.size()]
             var hit = Geometry2D.segment_intersects_segment(shot["old"], shot["pos"], a, b)
@@ -1798,9 +1859,12 @@ func _ricochet_from_floor_shield(shot: Dictionary) -> bool:
             # Enemy fire is absorbed by the wall and chips away at its health.
             shot["pos"] = hit
             shot["life"] = 0.0
-            bomb["hp"] -= maxf(9.0, float(shot["damage"]) * .55)
+            bomb["wall_hp"][i] -= maxf(11.0, float(shot["damage"]) * .62)
             _effect("electric_arcs", hit, .2)
             audio.play_sfx("shield_block")
+            if float(bomb["wall_hp"][i]) <= 0.0:
+                _popup("CAGE WALL BREACHED", hit + Vector2(0, -28), Color(1, .35, .18))
+                _effect("explosion_small", hit, .55)
             return true
     return false
 
@@ -2106,10 +2170,24 @@ func _draw_floor_trails() -> void:
         var owner = int(bomb["owner"])
         var color = Color(.1, .95, 1) if owner == 0 else Color(1, .15, .76)
         var remaining = maxf(0.0, float(bomb["fuse"]) - float(bomb["time"]))
-        var health_ratio = clampf(float(bomb["hp"]) / float(bomb["max_hp"]), 0.0, 1.0)
+        var total_hp := 0.0
+        var total_max := 0.0
+        for i in range(4):
+            total_hp += maxf(0.0, float(bomb["wall_hp"][i]))
+            total_max += float(bomb["wall_max_hp"][i])
+        var health_ratio = clampf(total_hp / maxf(1.0, total_max), 0.0, 1.0)
         var flicker = health_ratio if health_ratio > .3 else health_ratio * (.35 + abs(sin(game_time * 18.0)) * .65)
         draw_colored_polygon(points, Color(color.r, color.g, color.b, .025 + flicker * .035))
-        draw_polyline(points, Color(color.r, color.g, color.b, .18 + flicker * .48), 3, true)
+        # Draw all four sides explicitly. PackedVector2Array polylines do not
+        # close themselves, which was why the cage always looked three-sided.
+        for i in range(4):
+            var side_ratio = clampf(float(bomb["wall_hp"][i]) / float(bomb["wall_max_hp"][i]), 0.0, 1.0)
+            if side_ratio > 0.0:
+                draw_line(points[i], points[(i + 1) % 4], Color(color.r, color.g, color.b, .24 + side_ratio * .62), 3.0 + side_ratio, true)
+            else:
+                var middle := points[i].lerp(points[(i + 1) % 4], .5)
+                draw_line(points[i], points[i].lerp(middle, .55), Color(color.r, color.g, color.b, .16), 2, true)
+                draw_line(points[(i + 1) % 4], points[(i + 1) % 4].lerp(middle, .55), Color(color.r, color.g, color.b, .16), 2, true)
         var trapped_count: int = bomb["trapped_uids"].size()
         _label("CAGE %d%%  •  %d TRAPPED  •  %.1fs" % [roundi(health_ratio * 100.0), trapped_count, remaining], bomb["center"] + Vector2(0, 7), 12, Color(1, 1, 1, .78), true)
 
@@ -2387,6 +2465,29 @@ func _draw_game_entities() -> void:
                 "ELECTROCUTED":
                     death_offset = Vector2(randf_range(-5, 5), randf_range(-4, 4))
                     tint = Color(.6, .9, 1.7)
+                "CAMERA SMASH":
+                    var rush: float = minf(1.0, float(p["death_progress"]) * .62)
+                    death_scale = Vector2.ONE * (1.0 + rush * rush * 7.5)
+                    death_offset = (Vector2(384, 520) - p["pos"]) * rush
+                    death_rotation = sin(p["death_progress"] * 13.0) * .18
+                    tint.a = maxf(.05, 1.0 - maxf(0.0, rush - .72) * 3.5)
+                "FIELD GOAL":
+                    var flight: float = float(p["death_progress"])
+                    death_offset.x = float(p["death_direction"]) * flight * 250.0
+                    death_offset.y = -sin(minf(1.0, flight * .58) * PI) * 245.0 + flight * 35.0
+                    death_rotation = float(p["death_direction"]) * flight * 9.0
+                    death_scale = Vector2.ONE * maxf(.24, 1.0 - flight * .24)
+                "UPPERCUT":
+                    death_offset.y = -p["death_progress"] * p["death_progress"] * 245.0
+                    death_rotation = p["death_progress"] * 5.5
+                    death_scale = Vector2(1.0 - p["death_progress"] * .12, 1.0 + p["death_progress"] * .3)
+                "SPUN OUT":
+                    death_offset.x = sin(p["death_progress"] * 9.0) * 72.0
+                    death_rotation = p["death_progress"] * 14.0
+                    death_scale = Vector2.ONE * maxf(.12, 1.0 - p["death_progress"] * .38)
+                "DISINTEGRATED":
+                    death_scale = Vector2(1.0 + p["death_progress"] * .3, maxf(.04, 1.0 - p["death_progress"] * .55))
+                    tint = Color(1.7, .25 + abs(sin(game_time * 22.0)), .1, maxf(.04, 1.0 - p["death_progress"] * .42))
                 "FLOOR SWALLOWED":
                     death_offset.y = p["death_progress"] * p["death_progress"] * 210.0
                     death_scale = Vector2.ONE * maxf(.18, 1.0 - p["death_progress"] * .33)
