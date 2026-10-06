@@ -18,6 +18,7 @@ var shots: Array = []
 var drops: Array = []
 var effects: Array = []
 var hazards: Array = []
+var player_bombs: Array = []
 var popups: Array = []
 var enemy_defs: Dictionary = {}
 var boss_defs: Dictionary = {}
@@ -45,7 +46,7 @@ var shake: float = 0.0
 var next_enemy_uid: int = 1
 var exit_armed_until: float = 0.0
 const PAUSE_ITEMS = ["RESUME GAME", "RESTART GAME", "RECONFIGURE PLAYER 1", "RECONFIGURE PLAYER 2", "PLAYER 1 CONTROLLER", "PLAYER 2 CONTROLLER", "MUSIC", "SOUND EFFECTS", "VOICE", "CONTROLLER HELP", "EXIT TO ARCADE"]
-const CONTROL_ACTIONS = ["MOVE UP", "MOVE DOWN", "MOVE LEFT", "MOVE RIGHT", "FIRE", "FIRE UP", "FIRE DOWN", "FIRE LEFT", "FIRE RIGHT", "LOCK AIM", "PAUSE", "SELECT", "START"]
+const CONTROL_ACTIONS = ["MOVE UP", "MOVE DOWN", "MOVE LEFT", "MOVE RIGHT", "FIRE", "SECONDARY / BOMB", "FIRE UP", "FIRE DOWN", "FIRE LEFT", "FIRE RIGHT", "LOCK AIM", "PAUSE", "SELECT", "START"]
 var pause_selection := 0
 var control_wizard_open := false
 var control_wizard_step := 0
@@ -77,6 +78,20 @@ var entrance_go_played := false
 var entrance_banner_played := false
 var entrance_banner := ""
 var route_history: Array[String] = []
+var floor_in_room := 1
+var floor_transition := 0.0
+var floor_order: Array[Vector2i] = []
+var floor_rank: Dictionary = {}
+var pending_route := ""
+var map_position := Vector2i.ZERO
+var map_path: Array[Vector2i] = []
+var map_visited: Dictionary = {}
+var map_hidden_found: Dictionary = {}
+var corridor_direction := 1
+var corridor_progress := 0.0
+var corridor_spawn_mark := 0
+const FLOORS_PER_ROOM := 5
+const CORRIDOR_LENGTH := 1350.0
 var prize_spawn_timer := 12.0
 var tally_time := 0.0
 var high_score_music_started := false
@@ -115,6 +130,7 @@ func restart() -> void:
     drops.clear()
     effects.clear()
     hazards.clear()
+    player_bombs.clear()
     popups.clear()
     players = [_new_player(0, Vector2(280, 545)), _new_player(1, Vector2(488, 545))]
     wave_index = 0
@@ -126,6 +142,17 @@ func restart() -> void:
     entrance_banner_played = false
     entrance_banner = ""
     route_history.clear()
+    floor_in_room = 1
+    floor_transition = 0.0
+    floor_order.clear()
+    floor_rank.clear()
+    pending_route = ""
+    map_position = Vector2i.ZERO
+    map_path = [Vector2i.ZERO]
+    map_visited = {"0,0": true}
+    map_hidden_found.clear()
+    corridor_progress = 0.0
+    corridor_spawn_mark = 0
     prize_spawn_timer = randf_range(10.0, 16.0)
     tally_time = 0.0
     high_score_music_started = false
@@ -150,7 +177,8 @@ func _new_player(index: int, point: Vector2) -> Dictionary:
         "move": Vector2.ZERO, "dir": "s", "invuln": 2.5,
         "respawn": 0.0, "damage_flash": 0.0, "buffs": {}, "anim_time": 0.0,
         "fire_held": false, "lock_held": false, "locked_aim": Vector2.UP,
-        "continue_timer": 0.0, "continues": 3}
+        "secondary_held": false, "bombs": 1, "drone_level": 0,
+        "shield_share_cooldown": 0.0, "continue_timer": 0.0, "continues": 3}
 
 func _input(event: InputEvent) -> void:
     if control_wizard_open:
@@ -327,13 +355,16 @@ func _process(delta: float) -> void:
         if phase == "entrance":
             _update_entrance(dt)
         else:
-            _update_players(dt)
+            if phase in ["combat", "route", "corridor"]:
+                _update_players(dt)
             _update_waves(dt)
-            _update_enemies(dt)
-            _update_shots(dt)
-            _update_drops(dt)
-            _update_hazards(dt)
-            _update_random_prizes(dt)
+            if phase in ["combat", "corridor"]:
+                _update_enemies(dt)
+        _update_shots(dt)
+        _update_player_bombs(dt)
+        _update_drops(dt)
+        _update_hazards(dt)
+        _update_random_prizes(dt)
     elif victory:
         tally_time += dt
         if tally_time >= 7.0 and not high_score_music_started:
@@ -748,6 +779,7 @@ func _update_players(dt: float) -> void:
             continue
         p["invuln"] = maxf(0, p["invuln"] - dt)
         p["damage_flash"] = maxf(0, p["damage_flash"] - dt)
+        p["shield_share_cooldown"] = maxf(0, p["shield_share_cooldown"] - dt)
         p["fire_timer"] = maxf(0, p["fire_timer"] - dt)
         p["anim_time"] += dt
         for key in p["buffs"].keys():
@@ -770,10 +802,12 @@ func _update_players(dt: float) -> void:
         var firing = false
         var fire_button = false
         var lock_button = false
+        var secondary_button = false
         if p["id"] == 0:
             aim = (get_global_mouse_position() - p["pos"] - Vector2(0, -18)).normalized()
             fire_button = Input.is_action_pressed("brawl_p1_fire") or _mapped_keyboard_action_pressed("FIRE")
             lock_button = Input.is_physical_key_pressed(KEY_SHIFT) or _mapped_keyboard_action_pressed("LOCK AIM")
+            secondary_button = Input.is_physical_key_pressed(KEY_B) or _mapped_keyboard_action_pressed("SECONDARY / BOMB")
             firing = Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) or fire_button
             if fire_button and move.length() > 0.1:
                 aim = move.normalized()
@@ -782,6 +816,7 @@ func _update_players(dt: float) -> void:
             if key_aim.length() > 0.1:
                 aim = key_aim.normalized()
             firing = Input.is_action_pressed("brawl_p2_fire") or key_aim.length() > 0.1
+            secondary_button = Input.is_physical_key_pressed(KEY_O)
         # Cabinet/first gamepad is P1. A second gamepad or phone becomes P2.
         var device = _assigned_pad(int(p["id"]))
         if device >= 0:
@@ -805,15 +840,17 @@ func _update_players(dt: float) -> void:
             var has_directional_bindings = not String((controller_mappings.get(device_name.strip_edges(), {}) as Dictionary).get("FIRE UP", "")).is_empty()
             if not has_directional_bindings:
                 fixed_aim = Vector2(
-                    float(Input.is_joy_button_pressed(device, JOY_BUTTON_B)) - float(Input.is_joy_button_pressed(device, JOY_BUTTON_X)),
+                    float(Input.is_joy_button_pressed(device, JOY_BUTTON_RIGHT_SHOULDER)) - float(Input.is_joy_button_pressed(device, JOY_BUTTON_X)),
                     float(Input.is_joy_button_pressed(device, JOY_BUTTON_A)) - float(Input.is_joy_button_pressed(device, JOY_BUTTON_Y)))
             if fixed_aim.length() > 0.1:
                 aim = fixed_aim.normalized()
                 firing = true
             var action_fire = mapped_fire
             var action_lock = _mapped_action_pressed(device_name, device, "LOCK AIM")
+            var action_secondary = _mapped_action_pressed(device_name, device, "SECONDARY / BOMB")
             fire_button = fire_button or action_fire
             lock_button = lock_button or action_lock
+            secondary_button = secondary_button or action_secondary or Input.is_joy_button_pressed(device, JOY_BUTTON_B)
             firing = firing or action_fire or Input.get_joy_axis(device, JOY_AXIS_TRIGGER_RIGHT) > 0.3
             if action_fire and right.length() <= 0.1 and move.length() > 0.1 and not lock_button:
                 aim = move.normalized()
@@ -840,6 +877,9 @@ func _update_players(dt: float) -> void:
             aim = p["locked_aim"]
         p["fire_held"] = fire_button
         p["lock_held"] = lock_button
+        if secondary_button and not bool(p["secondary_held"]) and int(p["bombs"]) > 0:
+            _drop_player_bomb(p)
+        p["secondary_held"] = secondary_button
         p["move"] = move
         p["aim"] = aim if aim.length() > 0.01 else Vector2.UP
         if move.length() > 0.01:
@@ -850,6 +890,7 @@ func _update_players(dt: float) -> void:
         p["pos"] = _clamp_room(p["pos"] + move * speed * dt)
         if firing and p["fire_timer"] <= 0:
             _fire_player(p)
+    _share_reflect_shields()
     var anyone_alive = false
     var continue_available = false
     for p in players:
@@ -877,8 +918,6 @@ func _fire_player(p: Dictionary) -> void:
     var count = int(w["projectile_count"]) + (2 if p["buffs"].has("spread_shot") else 0)
     var spread = maxf(float(w["spread_degrees"]), 7 if count > 1 else 0)
     var origin: Vector2 = p["pos"] + Vector2(0, -18)
-    if w["id"] == "orbit_drone":
-        origin += Vector2.from_angle(game_time * 3.0) * 42.0
     var angle: float = p["aim"].angle()
     for j in range(count):
         var direction = Vector2.from_angle(angle + deg_to_rad((j - (count - 1) * 0.5) * spread))
@@ -887,6 +926,17 @@ func _fire_player(p: Dictionary) -> void:
             "damage": w["damage"] * (1.6 if p["buffs"].has("damage_boost") else 1),
             "life": w["lifetime"], "pierce": w["piercing"] or p["buffs"].has("piercing"),
             "splash": w["splash_radius"], "chain": w["chain_targets"], "hit_ids": []})
+    # The orbit robot is a companion upgrade, not a replacement weapon.  It
+    # copies the owner's aim and fires extra scaled shots alongside them.
+    if int(p["drone_level"]) > 0:
+        for drone_index in range(mini(3, int(p["drone_level"]))):
+            var orbit_angle = game_time * (3.0 + drone_index * .18) + drone_index * TAU / maxf(1.0, float(p["drone_level"]))
+            var drone_origin = p["pos"] + Vector2.from_angle(orbit_angle) * (42.0 + drone_index * 7.0)
+            var direction = p["aim"].normalized()
+            shots.append({"pos": drone_origin + direction * 18, "old": drone_origin,
+                "vel": direction * float(w["projectile_speed"]), "owner": p["id"], "kind": w["projectile"],
+                "damage": float(w["damage"]) * (.55 + drone_index * .12), "life": w["lifetime"],
+                "pierce": false, "splash": float(w["splash_radius"]) * .45, "chain": 0, "hit_ids": []})
     if w["id"] != "flame_projector" or int(game_time * 10) % 5 == 0:
         if sfx_enabled:
             audio.play_sfx(w["sound"], randf_range(0.96, 1.04))
@@ -913,20 +963,84 @@ func _hurt_player(p: Dictionary, amount: float) -> void:
     elif p["health"] < 30:
         audio.announce("player_low_health")
 
+func _drop_player_bomb(p: Dictionary) -> void:
+    p["bombs"] = maxi(0, int(p["bombs"]) - 1)
+    player_bombs.append({"pos": p["pos"], "owner": p["id"], "time": 0.0, "fuse": .72})
+    _popup("BOMB ARMED", p["pos"] + Vector2(0, -52), Color(1, .35, .15))
+    audio.play_sfx("bomber_throw")
+
+func _update_player_bombs(dt: float) -> void:
+    for bomb in player_bombs:
+        bomb["time"] += dt
+        if bomb["time"] < bomb["fuse"]:
+            continue
+        for enemy in enemies:
+            var distance = enemy["pos"].distance_to(bomb["pos"])
+            if distance < 210.0:
+                _hurt_enemy(enemy, lerpf(185.0, 60.0, distance / 210.0), int(bomb["owner"]))
+        for shot in shots:
+            if int(shot["owner"]) < 0 and shot["pos"].distance_to(bomb["pos"]) < 245.0:
+                shot["life"] = 0
+        _effect("explosion_large", bomb["pos"], 1.0)
+        audio.play_sfx("explosion_large")
+        shake = 8.0
+    player_bombs = player_bombs.filter(func(bomb): return bomb["time"] < bomb["fuse"])
+
+func _share_reflect_shields() -> void:
+    var active = _active_players()
+    if active.size() < 2:
+        return
+    var a: Dictionary = active[0]
+    var b: Dictionary = active[1]
+    if a["pos"].distance_to(b["pos"]) > 42 or a["shield_share_cooldown"] > 0 or b["shield_share_cooldown"] > 0:
+        return
+    var a_time = float(a["buffs"].get("reflect_shield", 0.0))
+    var b_time = float(b["buffs"].get("reflect_shield", 0.0))
+    var donor: Dictionary = a if a_time > b_time + 1.0 else b if b_time > a_time + 1.0 else {}
+    if donor.is_empty():
+        return
+    var receiver: Dictionary = b if donor == a else a
+    var shared = float(donor["buffs"]["reflect_shield"]) * .5
+    donor["buffs"]["reflect_shield"] = shared
+    receiver["buffs"]["reflect_shield"] = shared
+    donor["shield_share_cooldown"] = 1.5
+    receiver["shield_share_cooldown"] = 1.5
+    _popup("SHIELD SHARED!", (a["pos"] + b["pos"]) * .5 + Vector2(0, -55), Color(1, .25, .8))
+    audio.play_sfx("shield_block")
+
 func _update_waves(dt: float) -> void:
     if phase == "route":
         _update_route_choice()
+        return
+    if phase == "floor_drop" or phase == "floor_build":
+        _update_floor_transition(dt)
+        return
+    if phase == "turn":
+        phase_timer -= dt
+        floor_transition = 1.0 - clampf(phase_timer / 0.85, 0.0, 1.0)
+        if phase_timer <= 0:
+            _begin_corridor()
+        return
+    if phase == "corridor":
+        _update_corridor(dt)
         return
     phase_timer -= dt
     if phase == "warning" and phase_timer <= 0:
         _begin_wave()
     elif phase == "combat" and enemies.is_empty():
-        phase = "route"
-        phase_timer = 0.0
         audio.play_sfx("wave_clear")
-        audio.announce_sequence(["voice_lets_go.wav"])
-        _popup("ROOM CLEARED - CHOOSE A DOOR", Vector2(384, 470), Color(0.3, 1, 0.65))
-        _add_pickup("prize_box", Vector2(384, 560))
+        if randf() < .60:
+            _add_pickup("bomb", Vector2(randf_range(170, 598), randf_range(410, 720)))
+        if randf() < .28:
+            _add_pickup("reflect_shield", Vector2(randf_range(170, 598), randf_range(410, 720)))
+        if floor_in_room < FLOORS_PER_ROOM:
+            _start_floor_drop("")
+        else:
+            phase = "route"
+            phase_timer = 0.0
+            audio.announce_sequence(["voice_lets_go.wav"])
+            _popup("FIVE FLOORS CLEARED - CHOOSE A DOOR", Vector2(384, 470), Color(0.3, 1, 0.65))
+            _add_pickup("prize_box", Vector2(384, 560))
 
 func _update_route_choice() -> void:
     var exits = {
@@ -936,24 +1050,133 @@ func _update_route_choice() -> void:
         for route in exits:
             if p["pos"].distance_to(exits[route]) < 62:
                 route_history.append(route)
-                wave_index += 1
-                if wave_index >= waves.size():
-                    victory = true
-                    tally_time = 0.0
-                    audio.play_music("win_game")
-                    audio.announce("victory", true)
-                    return
-                if route in ["WEST", "EAST"] and randf() < .42:
-                    _add_pickup("prize_box", Vector2(340, 560))
-                    _add_pickup("credits", Vector2(428, 560))
-                    audio.play_music("junkyard")
-                    _popup("SECRET PRIZE ROUTE!", Vector2(384, 490), Color(1, .72, .12))
-                phase = "warning"
-                phase_timer = 1.4
-                for player in players:
-                    player["pos"] = Vector2(280 + player["id"] * 208, 545)
-                audio.play_sfx("door_open")
+                pending_route = route
+                _move_map(route)
+                if route in ["WEST", "EAST"]:
+                    corridor_direction = -1 if route == "WEST" else 1
+                    phase = "turn"
+                    phase_timer = 0.85
+                    floor_transition = 0.0
+                    audio.play_sfx("door_open")
+                else:
+                    _start_floor_drop(route)
                 return
+
+func _start_floor_drop(route: String) -> void:
+    pending_route = route
+    _make_floor_order()
+    phase = "floor_drop"
+    floor_transition = 0.0
+    phase_timer = 1.35
+    shots.clear()
+    hazards.clear()
+    audio.play_sfx("electric_floor")
+    _popup("FLOOR %d DESCENDING" % floor_in_room, Vector2(384, 430), Color(1, .52, .12))
+
+func _make_floor_order() -> void:
+    floor_order.clear()
+    floor_rank.clear()
+    # Interlocking four-cell clusters produce a fast, readable Tetris cascade.
+    var clusters: Array = []
+    for by in range(1, 13, 2):
+        var row: Array[Vector2i] = []
+        for bx in range(1, 11, 2):
+            var shape = posmod(bx / 2 + by / 2 + wave_index, 4)
+            var cells: Array[Vector2i] = []
+            if shape == 0: cells = [Vector2i(bx, by), Vector2i(bx + 1, by), Vector2i(bx, by + 1), Vector2i(bx + 1, by + 1)]
+            elif shape == 1: cells = [Vector2i(bx, by), Vector2i(bx, by + 1), Vector2i(bx + 1, by + 1), Vector2i(bx + 1, by + 2)]
+            elif shape == 2: cells = [Vector2i(bx, by), Vector2i(bx + 1, by), Vector2i(bx + 1, by + 1), Vector2i(bx + 1, by + 2)]
+            else: cells = [Vector2i(bx, by), Vector2i(bx + 1, by), Vector2i(bx + 2, by), Vector2i(bx + 1, by + 1)]
+            for cell in cells:
+                if cell.x > 0 and cell.x < 11 and cell.y > 0 and cell.y < 13 and not row.has(cell):
+                    row.append(cell)
+        if int(by / 2) % 2 == 1:
+            row.reverse()
+        clusters.append_array(row)
+    for y in range(1, 13):
+        for x in range(1, 11):
+            var cell = Vector2i(x, y)
+            if not clusters.has(cell): clusters.append(cell)
+    floor_order.assign(clusters)
+    for i in range(floor_order.size()): floor_rank[floor_order[i]] = i
+
+func _update_floor_transition(dt: float) -> void:
+    phase_timer -= dt
+    if phase == "floor_drop":
+        floor_transition = 1.0 - clampf(phase_timer / 1.35, 0.0, 1.0)
+        if floor_transition > .55:
+            for player in _active_players(): player["pos"].y += dt * (260.0 + floor_transition * 520.0)
+        if phase_timer <= 0:
+            wave_index += 1
+            if wave_index >= waves.size():
+                victory = true
+                tally_time = 0.0
+                audio.play_music("win_game")
+                audio.announce("victory", true)
+                return
+            if not pending_route.is_empty(): floor_in_room = 1
+            else: floor_in_room += 1
+            for player in players:
+                player["pos"] = Vector2(280 + player["id"] * 208, 365)
+                player["invuln"] = maxf(player["invuln"], 1.5)
+            phase = "floor_build"
+            phase_timer = 1.15
+            floor_transition = 0.0
+    else:
+        floor_transition = 1.0 - clampf(phase_timer / 1.15, 0.0, 1.0)
+        for player in _active_players(): player["pos"].y = lerpf(365.0, 545.0, floor_transition)
+        if phase_timer <= 0:
+            phase = "warning"
+            phase_timer = 1.15
+            pending_route = ""
+            audio.play_sfx("door_open")
+
+func _begin_corridor() -> void:
+    phase = "corridor"
+    corridor_progress = 0.0
+    corridor_spawn_mark = 0
+    enemies.clear()
+    shots.clear()
+    hazards.clear()
+    for player in players:
+        player["pos"] = Vector2(150 if corridor_direction > 0 else 618, 650 + player["id"] * 65)
+    audio.play_music("junkyard")
+    _popup("SIDE STAGE - PUSH %s" % ("RIGHT" if corridor_direction > 0 else "LEFT"), Vector2(384, 430), Color(1, .72, .12))
+
+func _update_corridor(dt: float) -> void:
+    var push := 0.0
+    for player in _active_players(): push = maxf(push, player["move"].x * corridor_direction)
+    corridor_progress = minf(CORRIDOR_LENGTH, corridor_progress + maxf(.12, push) * 155.0 * dt)
+    var mark = int(corridor_progress / 225.0)
+    while corridor_spawn_mark < mark and corridor_spawn_mark < 6:
+        corridor_spawn_mark += 1
+        var wave: Dictionary = waves[mini(wave_index, waves.size() - 1)]
+        var pool: Array = wave["enemy_pool"]
+        for j in range(2 + corridor_spawn_mark % 2):
+            var x = 700.0 if corridor_direction > 0 else 68.0
+            _spawn_enemy(pool[(corridor_spawn_mark + j) % pool.size()], Vector2(x, 330 + j * 210), false)
+            enemies[-1]["spawn"] = .35
+    if corridor_progress >= CORRIDOR_LENGTH and enemies.is_empty():
+        _start_floor_drop(pending_route)
+
+func _move_map(route: String) -> void:
+    var delta: Vector2i = {"NORTH": Vector2i(0, -1), "SOUTH": Vector2i(0, 1), "WEST": Vector2i(-1, 0), "EAST": Vector2i(1, 0)}[route]
+    map_position += delta
+    map_path.append(map_position)
+    var key = "%d,%d" % [map_position.x, map_position.y]
+    var was_visited = map_visited.has(key)
+    map_visited[key] = true
+    var hidden = key in ["2,0", "-2,1", "1,-2"]
+    if hidden and not map_hidden_found.has(key):
+        map_hidden_found[key] = true
+        _add_pickup("prize_box", Vector2(340, 560))
+        _add_pickup("credits", Vector2(428, 560))
+        audio.announce("bonus", true)
+        _popup("HIDDEN PATH DISCOVERED!", Vector2(384, 490), Color(1, .72, .12))
+    elif was_visited:
+        _popup("BACKTRACKING - KNOWN ROOM", Vector2(384, 490), Color(.45, .8, 1))
+    elif abs(map_position.x) + abs(map_position.y) >= 4:
+        _popup("DEAD END AHEAD - REMEMBER THE WAY BACK", Vector2(384, 490), Color(1, .35, .3))
 
 func _begin_wave() -> void:
     var wave: Dictionary = waves[wave_index]
@@ -1104,6 +1327,15 @@ func _update_shots(dt: float) -> void:
         if shot["owner"] < 0:
             for p in _active_players():
                 if _segment_hit(shot["old"], shot["pos"], p["pos"] + Vector2(0, -12), 20):
+                    if p["buffs"].has("reflect_shield"):
+                        shot["owner"] = p["id"]
+                        shot["vel"] = -shot["vel"] * 1.18
+                        shot["damage"] = maxf(28.0, float(shot["damage"]) * 1.35)
+                        shot["old"] = shot["pos"]
+                        shot["hit_ids"] = []
+                        _effect("electric_arcs", shot["pos"], .35)
+                        audio.play_sfx("shield_block")
+                        break
                     _hurt_player(p, shot["damage"])
                     shot["life"] = 0
                     break
@@ -1173,15 +1405,22 @@ func _update_drops(dt: float) -> void:
             if item["life"] <= 0 or p["pos"].distance_to(item["pos"]) > 31:
                 continue
             if item["kind"] == "weapon":
-                p["weapon"] = item["id"]
+                if item["id"] == "orbit_drone":
+                    p["drone_level"] = mini(3, int(p["drone_level"]) + 1)
+                    p["buffs"]["orbit_drone"] = 35.0
+                    _popup("ORBIT DRONE LV.%d" % p["drone_level"], p["pos"] + Vector2(0, -50), Color(.35, 1, .9))
+                else:
+                    p["weapon"] = item["id"]
+                    _popup(weapons[item["id"]]["display_name"], p["pos"] + Vector2(0, -50), Color(0.2, .85, 1))
                 audio.play_sfx("weapon_pickup")
-                _popup(weapons[item["id"]]["display_name"], p["pos"] + Vector2(0, -50), Color(0.2, .85, 1))
             else:
                 var id = item["id"]
                 match id:
                     "health": p["health"] = minf(100.0, p["health"] + 40.0)
                     "armor": p["armor"] = minf(100.0, p["armor"] + 50.0)
                     "extra_life": p["lives"] = mini(9, p["lives"] + 1)
+                    "bomb": p["bombs"] = mini(9, int(p["bombs"]) + 1)
+                    "reflect_shield": p["buffs"]["reflect_shield"] = 10.0
                     "credits":
                         p["score"] += 5000
                         p["cash"] += 5000
@@ -1189,7 +1428,6 @@ func _update_drops(dt: float) -> void:
                         p["score"] += 10000
                         p["cash"] += 7500
                         p["gold"] += 1
-                        p["weapon"] = weapon_ids[randi() % weapon_ids.size()]
                         audio.announce_sequence(["voice_big_money.wav", "voice_big_prizes.wav", "voice_i_love_it.wav"])
                     _: p["buffs"][id] = 12.0
                 audio.play_sfx("extra_life" if id == "extra_life" else "health_pickup" if id == "health" else "credits_pickup")
@@ -1279,15 +1517,13 @@ func _actor(enemy: Dictionary) -> void:
 func _draw() -> void:
     if players.is_empty() or font == null:
         return
-    var tile = library.texture(ART + "tilesets/arena/arena_tiles.png")
-    if tile != null:
-        for y in range(14):
-            for x in range(12):
-                var index = 10 if y == 0 else 11 if y == 13 else 12 if x == 0 else 13 if x == 11 else 2 if (x + y) % 4 == 0 else 0
-                draw_texture_rect_region(tile, Rect2(x * 64, 128 + y * 64, 64, 64), Rect2((index % 8) * 64, int(index / 8) * 64, 64, 64))
-    var door_state = "warning" if phase == "warning" else "open" if phase == "route" else "closed"
-    for point in [Vector2(384, 150), Vector2(384, 980), Vector2(38, 555), Vector2(730, 555)]:
-        _sprite("tilesets/arena/door_" + door_state + ".png", point, int(game_time * 8) % (4 if door_state == "warning" else 1))
+    if phase == "corridor":
+        _draw_corridor_stage()
+    else:
+        _draw_arena_floor()
+        var door_state = "warning" if phase == "warning" else "open" if phase == "route" else "closed"
+        for point in [Vector2(384, 150), Vector2(384, 980), Vector2(38, 555), Vector2(730, 555)]:
+            _sprite("tilesets/arena/door_" + door_state + ".png", point, int(game_time * 8) % (4 if door_state == "warning" else 1))
     if phase == "entrance":
         _draw_backstage_entrance()
         if not entrance_banner.is_empty():
@@ -1305,6 +1541,63 @@ func _draw() -> void:
         _label("▶", Vector2(686, 565), 38, arrow_color, true)
         _draw_route_map()
     _draw_game_entities()
+    if phase == "turn":
+        _draw_screen_turn()
+
+func _draw_arena_floor() -> void:
+    var tile = library.texture(ART + "tilesets/arena/arena_tiles.png")
+    if tile == null: return
+    var removed := 0
+    if phase == "floor_drop": removed = int(floor_transition * floor_order.size())
+    elif phase == "floor_build": removed = floor_order.size() - int(floor_transition * floor_order.size())
+    for y in range(14):
+        for x in range(12):
+            var cell = Vector2i(x, y)
+            var rank = int(floor_rank.get(cell, floor_order.size()))
+            var index = 10 if y == 0 else 11 if y == 13 else 12 if x == 0 else 13 if x == 11 else 2 if (x + y) % 4 == 0 else 0
+            var source = Rect2((index % 8) * 64, int(index / 8) * 64, 64, 64)
+            if rank >= removed:
+                draw_texture_rect_region(tile, Rect2(x * 64, 128 + y * 64, 64, 64), source)
+            elif phase == "floor_drop" and rank >= removed - 13:
+                var age = clampf((float(removed - rank)) / 13.0, 0.0, 1.0)
+                var center = Vector2(x * 64 + 32, 160 + y * 64 + age * age * 360)
+                draw_set_transform(center, (x % 3 - 1) * age * .42, Vector2.ONE * (1.0 - age * .18))
+                draw_texture_rect_region(tile, Rect2(-32, -32, 64, 64), source, Color(1, 1.0 - age * .35, 1.0 - age * .55, 1.0 - age * .35))
+                draw_set_transform(Vector2.ZERO)
+    if phase in ["floor_drop", "floor_build"]:
+        var pct = int((floor_transition if phase == "floor_drop" else 1.0 - floor_transition) * 100.0)
+        _label("TETRIS FLOOR SHIFT %03d%%" % pct, Vector2(384, 200), 18, Color(1, .7, .18), true)
+
+func _draw_corridor_stage() -> void:
+    draw_rect(Rect2(0, 128, 768, 896), Color(.018, .025, .05))
+    var scroll = fmod(corridor_progress, 128.0)
+    for i in range(-1, 8):
+        var x = i * 128.0 - scroll * corridor_direction
+        draw_rect(Rect2(x, 200, 112, 700), Color(.035, .065, .095))
+        draw_line(Vector2(x, 200), Vector2(x, 900), Color(.1, .42, .55), 3)
+        draw_line(Vector2(x + 112, 200), Vector2(x + 112, 900), Color(.08, .22, .32), 2)
+    draw_colored_polygon(PackedVector2Array([Vector2(0, 900), Vector2(768, 900), Vector2(768, 1024), Vector2(0, 1024)]), Color(.035, .04, .06))
+    for hole in range(4):
+        var hx = fmod(hole * 247.0 - corridor_progress * corridor_direction, 980.0) - 100.0
+        draw_circle(Vector2(hx, 335 + (hole % 2) * 330), 54, Color(.005, .008, .012))
+        draw_arc(Vector2(hx, 335 + (hole % 2) * 330), 56, 0, TAU, 32, Color(1, .22, .14), 5)
+    var direction_text = "RIGHT" if corridor_direction > 0 else "LEFT"
+    _label("CONNECTOR STAGE • PUSH " + direction_text, Vector2(384, 180), 22, Color(.25, .9, 1), true)
+    draw_rect(Rect2(104, 214, 560, 10), Color(.04, .1, .16))
+    draw_rect(Rect2(104, 214, 560 * corridor_progress / CORRIDOR_LENGTH, 10), Color(1, .32, .72))
+
+func _draw_screen_turn() -> void:
+    var t = floor_transition
+    var fold = sin(t * PI)
+    var edge = 384.0 + corridor_direction * fold * 280.0
+    draw_colored_polygon(PackedVector2Array([
+        Vector2(0, 128), Vector2(768, 128), Vector2(768 - fold * 150, 1024), Vector2(fold * 150, 1024)]),
+        Color(.015, .02, .045, .18 + fold * .62))
+    draw_line(Vector2(edge, 128), Vector2(edge - corridor_direction * fold * 120, 1024), Color(.25, .9, 1, fold), 7)
+    for stripe in range(7):
+        var sx = lerpf(40.0, 728.0, stripe / 6.0)
+        draw_line(Vector2(sx, 128), Vector2(384 + (sx - 384) * (1.0 - fold * .65), 1024), Color(.2, .5, .75, fold * .45), 2)
+    _label("TURNING %s" % ("RIGHT" if corridor_direction > 0 else "LEFT"), Vector2(384, 530), 34, Color(1, .75, .2, maxf(.25, fold)), true)
 
 func _draw_backstage_entrance() -> void:
     # A warm television-studio backstage instead of abstract guide beams.
@@ -1366,21 +1659,31 @@ func _draw_backstage_entrance() -> void:
     _label("LIVE • ARENA BRAWL", Vector2(384, 232), 16, Color(.65, .88, 1), true)
 
 func _draw_route_map() -> void:
-    var map_origin = Vector2(384, 315)
-    draw_rect(Rect2(258, 272, 252, 120), Color(.008, .015, .035, .9))
-    draw_rect(Rect2(258, 272, 252, 120), Color(.18, .72, .9), false, 2)
-    _label("STUDIO ROUTE", Vector2(384, 296), 15, Color(.6, .9, 1), true)
-    var point = map_origin
-    draw_circle(point, 7, Color(.3, 1, .6))
-    var visible_steps = route_history.slice(maxi(0, route_history.size() - 6))
-    for route in visible_steps:
-        var delta = {"NORTH": Vector2(0, -22), "SOUTH": Vector2(0, 22), "WEST": Vector2(-30, 0), "EAST": Vector2(30, 0)}[route]
-        var next = point + delta
-        draw_line(point, next, Color(.35, .72, .9), 3)
-        draw_circle(next, 6, Color(1, .65, .14))
-        point = next
-    draw_circle(point, 10 + sin(game_time * 5) * 2, Color(1, .2, .55), false, 3)
-    _label("BOSS %d ROOMS" % maxi(1, 5 - (wave_index % 5)), Vector2(384, 380), 13, Color(1, .72, .2), true)
+    var panel = Rect2(218, 260, 332, 198)
+    var center = panel.get_center() + Vector2(0, 10)
+    var scale = Vector2(39, 31)
+    draw_rect(panel, Color(.008, .015, .035, .94))
+    draw_rect(panel, Color(.18, .72, .9), false, 2)
+    _label("LIVE STUDIO MAP", Vector2(384, 286), 15, Color(.6, .9, 1), true)
+    for gx in range(-3, 4):
+        for gy in range(-2, 3):
+            var dot = center + Vector2(gx * scale.x, gy * scale.y)
+            draw_circle(dot, 2, Color(.13, .25, .35))
+    for i in range(1, map_path.size()):
+        var a = center + Vector2(map_path[i - 1] - map_position) * scale
+        var b = center + Vector2(map_path[i] - map_position) * scale
+        draw_line(a, b, Color(.3, .72, .92), 4)
+    for key in map_visited:
+        var parts = String(key).split(",")
+        var room = Vector2i(int(parts[0]), int(parts[1]))
+        var point = center + Vector2(room - map_position) * scale
+        if panel.grow(-12).has_point(point):
+            var hidden = map_hidden_found.has(key)
+            draw_circle(point, 8 if hidden else 6, Color(1, .25, .75) if hidden else Color(1, .65, .14))
+            if hidden: _label("★", point + Vector2(0, 5), 13, Color.WHITE, true)
+    draw_circle(center, 11 + sin(game_time * 5) * 2, Color(.2, 1, .55), false, 3)
+    _label("YOU", center + Vector2(0, -14), 11, Color(.4, 1, .65), true)
+    _label("ROOM FLOOR %d/%d • BOSS IN %d" % [floor_in_room, FLOORS_PER_ROOM, maxi(1, 20 - wave_index)], Vector2(384, 444), 13, Color(1, .72, .2), true)
 
 func _draw_game_entities() -> void:
     for hazard in hazards:
@@ -1396,8 +1699,27 @@ func _draw_game_entities() -> void:
     for drop in drops:
         if drop["kind"] == "weapon":
             _sprite("sprites/pickups/weapon_" + drop["id"] + ".png", drop["pos"])
+            var weapon_label = "ORBIT DRONE UPGRADE" if drop["id"] == "orbit_drone" else String(weapons[drop["id"]]["display_name"])
+            _label(weapon_label, drop["pos"] + Vector2(0, -34), 12, Color(.35, .92, 1), true)
         else:
-            _sprite("sprites/pickups/" + drop["id"] + ".png", drop["pos"], int(game_time * 10) % 8)
+            if drop["id"] == "bomb":
+                draw_circle(drop["pos"], 15 + sin(game_time * 7) * 2, Color(.08, .1, .14))
+                draw_circle(drop["pos"] + Vector2(5, -12), 4, Color(1, .48, .12))
+                _label("BOMB +1", drop["pos"] + Vector2(0, -30), 12, Color(1, .48, .15), true)
+            elif drop["id"] == "reflect_shield":
+                draw_arc(drop["pos"], 18 + sin(game_time * 6) * 3, 0, TAU, 32, Color(1, .18, .76), 5)
+                draw_arc(drop["pos"], 11, 0, TAU, 24, Color(.5, .85, 1), 2)
+                _label("REFLECT SHIELD", drop["pos"] + Vector2(0, -32), 12, Color(1, .28, .82), true)
+            else:
+                _sprite("sprites/pickups/" + drop["id"] + ".png", drop["pos"], int(game_time * 10) % 8)
+                _label(String(drop["id"]).replace("_", " ").to_upper(), drop["pos"] + Vector2(0, -32), 11, Color(1, .8, .3), true)
+        if float(drop["life"]) < 5.0 and int(game_time * 8) % 2 == 0:
+            draw_arc(drop["pos"], 25, 0, TAU, 24, Color(1, .2, .25, .7), 2)
+    for bomb in player_bombs:
+        var pulse = 1.0 + sin(float(bomb["time"]) * 28.0) * .18
+        draw_circle(bomb["pos"], 18 * pulse, Color(.035, .04, .06))
+        draw_arc(bomb["pos"], 22 * pulse, 0, TAU, 24, Color(1, .18, .08), 4)
+        draw_circle(bomb["pos"] + Vector2(7, -14), 4 + pulse, Color(1, .8, .2))
     var sorted = enemies.duplicate()
     sorted.sort_custom(func(a, b): return a["pos"].y < b["pos"].y)
     for enemy in sorted:
@@ -1417,20 +1739,34 @@ func _draw_game_entities() -> void:
         _sprite("sprites/effects/ground_shadow.png", p["pos"] + Vector2(0, 9))
         var locator_color = Color(.08, .85, 1, .92) if p["id"] == 0 else Color(1, .72, .08, .92)
         var locator_radius = 30.0 + sin(game_time * 5.0 + p["id"] * 1.7) * 3.0
-        draw_arc(p["pos"] + Vector2(0, 5), locator_radius, 0, TAU, 40, Color(locator_color, .24), 8)
-        draw_arc(p["pos"] + Vector2(0, 5), locator_radius, 0, TAU, 40, locator_color, 3)
+        for glow_step in range(4, 0, -1):
+            var glow_color = locator_color
+            glow_color.a = .055 * glow_step
+            draw_arc(p["pos"] + Vector2(0, 5), locator_radius + glow_step * 2.8, game_time * .7, TAU + game_time * .7, 48, glow_color, 2.0 + glow_step)
+        draw_arc(p["pos"] + Vector2(0, 5), locator_radius, game_time * 1.8, game_time * 1.8 + PI * 1.42, 40, locator_color, 3)
+        draw_arc(p["pos"] + Vector2(0, 5), locator_radius, game_time * 1.8 + PI, game_time * 1.8 + PI * 1.58, 20, Color.WHITE, 2)
         _label("P%d" % (p["id"] + 1), p["pos"] + Vector2(0, -48), 17, locator_color, true)
         _sprite("sprites/players/" + p["name"] + "_" + action + ".png", p["pos"], frame, DIRS.find(p["dir"]), Vector2(-1, -1), tint)
         if dead:
             continue
         var origin: Vector2 = p["pos"] + Vector2(0, -18)
-        if p["weapon"] == "orbit_drone":
-            origin += Vector2.from_angle(game_time * 3) * 42
         draw_set_transform(origin, p["aim"].angle(), Vector2.ONE)
         _sprite("sprites/weapons/" + p["weapon"] + ".png", Vector2.ZERO, int(game_time * 10) % 4, 0, Vector2(24, 32), tint)
         draw_set_transform(Vector2.ZERO)
+        for drone_index in range(mini(3, int(p["drone_level"]))):
+            var drone_angle = game_time * (3.0 + drone_index * .18) + drone_index * TAU / maxf(1.0, float(p["drone_level"]))
+            var drone_pos = p["pos"] + Vector2.from_angle(drone_angle) * (42.0 + drone_index * 7.0)
+            draw_circle(drone_pos, 12, Color(.05, .12, .18, .85))
+            draw_arc(drone_pos, 14, 0, TAU, 20, locator_color, 3)
+            draw_line(drone_pos, drone_pos + p["aim"] * 18, Color(.5, 1, .95), 3)
         if p["buffs"].has("invulnerability"):
             draw_arc(p["pos"] + Vector2(0, -12), 32, 0, TAU, 32, Color(.8, .65, 1, .6), 2)
+        if p["buffs"].has("reflect_shield"):
+            var shield_center = p["pos"] + Vector2(0, -12)
+            for shield_glow in range(5, 0, -1):
+                draw_arc(shield_center, 35 + shield_glow * 2, game_time * 2.4, game_time * 2.4 + TAU, 48, Color(1, .12, .72, .035 * shield_glow), 2 + shield_glow)
+            draw_arc(shield_center, 36, game_time * 2.4, game_time * 2.4 + TAU, 48, Color(1, .3, .82, .9), 3)
+            draw_arc(shield_center, 31, -game_time * 3.1, -game_time * 3.1 + PI * 1.45, 32, Color(.5, .9, 1, .85), 2)
         if p["id"] == 1:
             _sprite("ui/hud/crosshair_p2.png", p["pos"] + p["aim"] * 115)
     for shot in shots:
@@ -1476,9 +1812,9 @@ func _hud() -> void:
         if p["lives"] <= 0 and p["continue_timer"] > 0:
             _label("CONTINUE? %d" % ceili(p["continue_timer"]), Vector2(x, 70), 16, Color(1, .35, .65))
             _label("START (%d LEFT)" % p["continues"], Vector2(x + 116, 70), 14, Color(1, .8, .2))
-        _label(weapons[p["weapon"]]["display_name"], Vector2(x, 92), 14)
+        _label("%s  •  BOMBS %d" % [weapons[p["weapon"]]["display_name"], p["bombs"]], Vector2(x, 92), 13)
     _label("ARENA BRAWL", Vector2(384, 70), 22, Color(.5, .8, .95), true)
-    _label("WAVE %02d/20" % (wave_index + 1), Vector2(384, 104), 18, Color(1, .35, .85), true)
+    _label("ROOM %02d  •  FLOOR %d/%d" % [int(wave_index / FLOORS_PER_ROOM) + 1, floor_in_room, FLOORS_PER_ROOM], Vector2(384, 104), 18, Color(1, .35, .85), true)
     for enemy in enemies:
         if enemy["boss"]:
             draw_rect(Rect2(139, 132, 490, 15), Color(.12, .09, .16))
@@ -1486,7 +1822,7 @@ func _hud() -> void:
             _label(boss_defs[enemy["id"]]["display_name"], Vector2(384, 166), 18, Color.WHITE, true)
             break
     if phase == "warning":
-        _label("GET READY - WAVE %02d" % (wave_index + 1), Vector2(384, 500), 30, Color(1, .76, .25), true)
+        _label("GET READY - FLOOR %d/%d" % [floor_in_room, FLOORS_PER_ROOM], Vector2(384, 500), 30, Color(1, .76, .25), true)
     if show_help:
         draw_rect(Rect2(12, 950, 744, 62), Color(.02, .04, .08, .94))
         _label("LEFT STICK MOVE  RIGHT STICK AIM  A/X/TRIGGER FIRE", Vector2(28, 975), 15)

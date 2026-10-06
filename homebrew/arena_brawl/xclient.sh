@@ -20,7 +20,15 @@ cleanup() {
 }
 trap cleanup EXIT
 
-/opt/dreadwire/arena-brawl/arena-brawl.arm64 \
+game_binary=/opt/dreadwire/arena-brawl/arena-brawl.arm64
+# New builds are staged beside the live executable.  A running game keeps its
+# current process; only the next launch reads this script and selects the staged
+# build, so an active cabinet session is never interrupted by an upgrade.
+if [[ -x /opt/dreadwire/arena-brawl/arena-brawl.next.arm64 ]]; then
+  game_binary=/opt/dreadwire/arena-brawl/arena-brawl.next.arm64
+fi
+
+"$game_binary" \
   --fullscreen \
   --rendering-method gl_compatibility \
   --rendering-driver opengl3
