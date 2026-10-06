@@ -1284,9 +1284,14 @@ func _arm_floor_trail_bomb(player: Dictionary, cells: Array) -> void:
     var points = PackedVector2Array([
         center + Vector2(-half, -half), center + Vector2(half, -half),
         center + Vector2(half, half), center + Vector2(-half, half)])
+    var trapped_uids: Array[int] = []
+    for enemy in enemies:
+        if float(enemy["hp"]) > 0.0 and Geometry2D.is_point_in_polygon(enemy["pos"], points):
+            trapped_uids.append(int(enemy["uid"]))
     floor_trail_bombs.append({"owner": int(player["id"]), "points": points,
-        "center": center, "time": 0.0, "fuse": 5.0, "hp": 120.0, "max_hp": 120.0, "dead": false})
-    _popup("PRISM CAGE ONLINE", center + Vector2(0, -92), Color(.2, 1, .95) if int(player["id"]) == 0 else Color(1, .2, .78))
+        "center": center, "time": 0.0, "fuse": 6.5, "hp": 150.0, "max_hp": 150.0,
+        "trapped_uids": trapped_uids, "dead": false})
+    _popup("CONTAINMENT CAGE: %d TRAPPED" % trapped_uids.size(), center + Vector2(0, -92), Color(.2, 1, .95) if int(player["id"]) == 0 else Color(1, .2, .78))
     audio.play_sfx("electric_floor")
 
 func _update_floor_trail_bombs(dt: float) -> void:
@@ -1296,10 +1301,7 @@ func _update_floor_trail_bombs(dt: float) -> void:
             continue
         var owner = int(bomb["owner"])
         var center: Vector2 = bomb["center"]
-        var polygon: PackedVector2Array = bomb["points"]
-        for player in _active_players():
-            if Geometry2D.is_point_in_polygon(player["pos"], polygon):
-                _hurt_player(player, 28.0, "ricochet_implosion")
+        _popup("CAGE BREACHED" if float(bomb["hp"]) <= 0.0 else "CAGE RELEASED", center + Vector2(0, -84), Color(.25, 1, .9))
         _effect("electric_arcs", center, .8)
         audio.play_sfx("shield_block")
         bomb["dead"] = true
@@ -1573,7 +1575,9 @@ func _update_enemies(dt: float) -> void:
             speed = 0
         enemy["dir"] = _direction(aim)
         enemy["vel"] = direction * speed
+        var previous_pos: Vector2 = enemy["pos"]
         enemy["pos"] = _clamp_room(enemy["pos"] + enemy["vel"] * dt, enemy["radius"])
+        _confine_caged_enemy(enemy, previous_pos)
         if distance < enemy["radius"] + 20:
             _hurt_player(target, 22.0 if enemy["boss"] else float(enemy_defs[enemy["id"]]["contact_damage"]), String(enemy["id"]))
         enemy["timer"] -= dt
@@ -1697,7 +1701,23 @@ func _update_shots(dt: float) -> void:
     shots = shots.filter(func(s): return s["life"] > 0)
     enemies = enemies.filter(func(e): return e["hp"] > 0)
 
+func _confine_caged_enemy(enemy: Dictionary, previous_pos: Vector2) -> void:
+    var uid := int(enemy["uid"])
+    for cage in floor_trail_bombs:
+        if bool(cage["dead"]) or not cage["trapped_uids"].has(uid):
+            continue
+        var polygon: PackedVector2Array = cage["points"]
+        if not Geometry2D.is_point_in_polygon(enemy["pos"], polygon):
+            enemy["pos"] = previous_pos
+            enemy["vel"] = Vector2.ZERO
+            # A contained enemy pauses at the wall, but keeps attacking it.
+            enemy["timer"] = minf(float(enemy["timer"]), .3)
+        return
+
 func _ricochet_from_floor_shield(shot: Dictionary) -> bool:
+    # Friendly fire passes cleanly through containment walls.
+    if int(shot["owner"]) >= 0:
+        return false
     for bomb in floor_trail_bombs:
         if bool(bomb["dead"]):
             continue
@@ -1708,18 +1728,10 @@ func _ricochet_from_floor_shield(shot: Dictionary) -> bool:
             var hit = Geometry2D.segment_intersects_segment(shot["old"], shot["pos"], a, b)
             if hit == null:
                 continue
-            var edge: Vector2 = (b - a).normalized()
-            var normal = Vector2(-edge.y, edge.x)
-            if shot["vel"].dot(normal) > 0:
-                normal = -normal
-            shot["pos"] = hit + normal * 7.0
-            shot["old"] = shot["pos"]
-            shot["vel"] = shot["vel"].bounce(normal) * 1.05
-            shot["owner"] = int(bomb["owner"])
-            shot["damage"] = float(shot["damage"]) * .8
-            shot["shield_cooldown"] = .1
-            shot["hit_ids"] = []
-            bomb["hp"] -= maxf(7.0, float(shot["damage"]) * .3)
+            # Enemy fire is absorbed by the wall and chips away at its health.
+            shot["pos"] = hit
+            shot["life"] = 0.0
+            bomb["hp"] -= maxf(9.0, float(shot["damage"]) * .55)
             _effect("electric_arcs", hit, .2)
             audio.play_sfx("shield_block")
             return true
@@ -2036,7 +2048,8 @@ func _draw_floor_trails() -> void:
         var flicker = health_ratio if health_ratio > .3 else health_ratio * (.35 + abs(sin(game_time * 18.0)) * .65)
         draw_colored_polygon(points, Color(color.r, color.g, color.b, .025 + flicker * .035))
         draw_polyline(points, Color(color.r, color.g, color.b, .18 + flicker * .48), 3, true)
-        _label("SHIELD %.1f" % remaining, bomb["center"] + Vector2(0, 7), 13, Color(1, 1, 1, .75), true)
+        var trapped_count: int = bomb["trapped_uids"].size()
+        _label("CAGE %d%%  •  %d TRAPPED  •  %.1fs" % [roundi(health_ratio * 100.0), trapped_count, remaining], bomb["center"] + Vector2(0, 7), 12, Color(1, 1, 1, .78), true)
 
 func _draw_matrix_floor_tile(cell: Vector2i, rect: Rect2) -> void:
     var room_palette = int(wave_index / 11) % 4
