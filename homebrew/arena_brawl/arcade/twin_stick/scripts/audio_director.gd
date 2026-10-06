@@ -46,7 +46,7 @@ func _ready() -> void:
     var smash_sfx = {
         "pulse_fire": "sfx_01.wav", "automatic_fire": "sfx_02.wav",
         "shotgun_fire": "sfx_03.wav", "plasma_fire": "sfx_04.wav",
-        "rail_fire": "sfx_05.wav", "rocket_launch": "sfx_06.wav",
+        "rail_fire": "sfx_05.wav",
         "flame_loop": "sfx_07.wav", "arc_discharge": "sfx_08.wav",
         "twin_pulse_fire": "sfx_09.wav", "orbit_fire": "sfx_10.wav",
         "bullet_hit_enemy": "sfx_12.wav", "bullet_hit_metal": "sfx_13.wav",
@@ -166,7 +166,7 @@ func announce(category: String, priority: bool = false) -> void:
     last_voice = chosen["id"]
     voice_delay = float(chosen.get("cooldown_seconds", 4.0))
 
-func announce_sequence(paths: Array, priority: bool = true, cooldown: float = 8.0, force: bool = false) -> void:
+func announce_sequence(paths: Array, priority: bool = true, cooldown: float = 8.0, force: bool = false, gap: float = .7) -> void:
     if voice_muted:
         return
     var now = Time.get_ticks_msec() / 1000.0
@@ -184,7 +184,7 @@ func announce_sequence(paths: Array, priority: bool = true, cooldown: float = 8.
             voice_path_recent[path] = now
     voice_delay = 0.0
     voice_gap = 0.0
-    sequence_gap = 0.7
+    sequence_gap = maxf(0.0, gap)
 
 func play_music(id: String) -> void:
     if not music_map.has(id):

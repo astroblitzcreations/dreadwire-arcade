@@ -74,9 +74,14 @@ var enemy_fire_scale := 1.18
 var enemy_damage_scale := 0.85
 var enemy_count_scale := 0.9
 var entrance_elapsed := 0.0
+var entrance_started_msec := 0
 var entrance_go_played := false
 var entrance_banner_played := false
 var entrance_banner := ""
+var entrance_cheer_played := false
+var entrance_money_step := 0
+var intro_video: VideoStreamPlayer
+var intro_love_label: Label
 var route_history: Array[String] = []
 var floor_in_room := 1
 var floor_transition := 0.0
@@ -132,6 +137,7 @@ func _ready() -> void:
     waves = _build_campaign_waves(library.data("waves"))
     audio = AUDIO.new()
     add_child(audio)
+    _setup_intro_video()
     _load_difficulty()
     _load_controller_mappings()
     _refresh_player_controllers()
@@ -167,11 +173,19 @@ func restart() -> void:
     wave_index = 0
     game_time = 0.0
     phase = "entrance"
-    phase_timer = 12.0
+    phase_timer = 13.4
     entrance_elapsed = 0.0
+    entrance_started_msec = Time.get_ticks_msec()
     entrance_go_played = false
     entrance_banner_played = false
     entrance_banner = ""
+    entrance_cheer_played = false
+    entrance_money_step = 0
+    if is_instance_valid(intro_video):
+        intro_video.stop()
+        intro_video.visible = false
+    if is_instance_valid(intro_love_label):
+        intro_love_label.visible = false
     route_history.clear()
     floor_in_room = 1
     floor_transition = 0.0
@@ -209,7 +223,33 @@ func restart() -> void:
     if audio != null:
         audio.stop_all()
         audio.play_music("circuit_1")
-        audio.announce_sequence(["voice_contestant_1.wav", "voice_contestant_2.wav", "voice_cheer_2.wav"] if p2_enabled else ["voice_contestant_1.wav", "voice_cheer_2.wav"])
+        audio.announce_sequence(["voice_contestant_1.wav", "voice_contestant_2.wav"] if p2_enabled else ["voice_contestant_1.wav"])
+
+func _setup_intro_video() -> void:
+    intro_video = VideoStreamPlayer.new()
+    intro_video.stream = load(BASE + "assets/video/big_money_intro.ogv")
+    intro_video.expand = true
+    intro_video.autoplay = false
+    intro_video.loop = false
+    intro_video.volume_db = -80.0
+    intro_video.size = Vector2(576, 736)
+    intro_video.position = Vector2(-620, 152)
+    intro_video.visible = false
+    intro_video.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    add_child(intro_video)
+    intro_love_label = Label.new()
+    intro_love_label.text = "I LOVE IT!"
+    intro_love_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    intro_love_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    intro_love_label.add_theme_font_size_override("font_size", 48)
+    intro_love_label.add_theme_color_override("font_color", Color(1, .92, .2))
+    intro_love_label.add_theme_color_override("font_outline_color", Color(1, .05, .5))
+    intro_love_label.add_theme_constant_override("outline_size", 10)
+    intro_love_label.size = Vector2(576, 92)
+    intro_love_label.position = Vector2(-620, 770)
+    intro_love_label.visible = false
+    intro_love_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    add_child(intro_love_label)
 
 func _new_player(index: int, point: Vector2) -> Dictionary:
     return {"id": index, "name": "volt" if index == 0 else "nova", "pos": point,
@@ -423,31 +463,58 @@ func _process(delta: float) -> void:
     shake = move_toward(shake, 0.0, dt * 16.0)
     queue_redraw()
 
-func _update_entrance(dt: float) -> void:
-    entrance_elapsed += dt
-    phase_timer -= dt
-    var travel = clampf(entrance_elapsed / 10.5, 0.0, 1.0)
+func _update_entrance(_dt: float) -> void:
+    # Drive the show sequence from a monotonic clock. This keeps voice/video
+    # sync exact even when Theora decoding or remote capture drops a frame.
+    entrance_elapsed = (Time.get_ticks_msec() - entrance_started_msec) / 1000.0
+    phase_timer = maxf(0.0, 13.4 - entrance_elapsed)
+    # Keep the television-studio entrance energetic: contestants reach the
+    # arena in five seconds rather than slowly drifting for most of the intro.
+    var travel = clampf(entrance_elapsed / 5.0, 0.0, 1.0)
     travel = travel * travel * (3.0 - 2.0 * travel)
     players[0]["pos"] = Vector2(lerpf(35.0, 330.0, travel), lerpf(860.0, 545.0, travel))
     players[0]["move"] = Vector2(1, -0.35) if travel < 1 else Vector2.ZERO
     if p2_enabled:
         players[1]["pos"] = Vector2(lerpf(733.0, 438.0, travel), lerpf(860.0, 545.0, travel))
         players[1]["move"] = Vector2(-1, -0.35) if travel < 1 else Vector2.ZERO
-    if entrance_elapsed >= 7.0 and not entrance_go_played:
+    if entrance_elapsed >= .55 and not entrance_go_played:
         entrance_go_played = true
-        audio.announce_sequence(["voice_go.wav", "voice_go.wav", "voice_go.wav", "voice_go.wav"])
-    if entrance_elapsed >= 10.2 and not entrance_banner_played:
+        # The original show cadence is four fast, distinct calls.
+        audio.announce_sequence(["voice_go.wav", "voice_go.wav", "voice_go.wav", "voice_go.wav"], true, 0.0, true, .05)
+    if entrance_elapsed >= 2.45 and not entrance_cheer_played:
+        entrance_cheer_played = true
+        audio.announce_sequence(["voice_cheer_2.wav"], false, 0.0, true)
+    if entrance_elapsed >= 6.5 and not entrance_banner_played:
         entrance_banner_played = true
-        var choices = [
-            ["GOOD LUCK!", "voice_good_luck.wav"],
-            ["I'D BUY THAT FOR A DOLLAR!", "voice_dollar.wav"],
-            ["BIG PRIZES!", "voice_big_prizes.wav"],
-            ["BIG MONEY!", "voice_big_money.wav"],
-            ["I LOVE IT!", "voice_i_love_it.wav"]]
-        var choice = choices[randi() % choices.size()]
-        entrance_banner = choice[0]
-        audio.announce_sequence([choice[1]])
+        entrance_banner = "BIG MONEY"
+        intro_video.visible = true
+        intro_video.play()
+        audio.announce_sequence(["voice_big_money.wav"], true, 0.0, true)
+        entrance_money_step = 1
+    if entrance_money_step == 1 and entrance_elapsed >= 8.15:
+        entrance_money_step = 2
+        audio.announce_sequence(["voice_big_prizes.wav"], true, 0.0, true)
+    if entrance_money_step == 2 and entrance_elapsed >= 10.29:
+        entrance_money_step = 3
+        audio.announce_sequence(["voice_i_love_it.wav"], true, 0.0, true)
+    if entrance_banner_played:
+        var banner_time := entrance_elapsed - 6.5
+        var banner_x := 96.0
+        if banner_time < .48:
+            var slide_in := clampf(banner_time / .48, 0.0, 1.0)
+            slide_in = 1.0 - pow(1.0 - slide_in, 3.0)
+            banner_x = lerpf(-620.0, 96.0, slide_in)
+        elif banner_time > 5.75:
+            var slide_out := clampf((banner_time - 5.75) / .72, 0.0, 1.0)
+            banner_x = lerpf(96.0, 790.0, slide_out * slide_out)
+        intro_video.position = Vector2(banner_x, 152)
+        intro_love_label.position = Vector2(banner_x, 770)
+        intro_love_label.visible = banner_time >= 4.95 and banner_time < 6.47
+        intro_love_label.modulate.a = .72 + abs(sin(entrance_elapsed * 9.0)) * .28
     if phase_timer <= 0:
+        intro_video.stop()
+        intro_video.visible = false
+        intro_love_label.visible = false
         phase = "warning"
         phase_timer = 1.4
 
@@ -1931,11 +1998,6 @@ func _draw() -> void:
             _sprite("tilesets/arena/door_" + door_state + ".png", point, int(game_time * 8) % (4 if door_state == "warning" else 1))
     if phase == "entrance":
         _draw_backstage_entrance()
-        if not entrance_banner.is_empty():
-            var banner_y = 360.0 + sin(entrance_elapsed * 3.0) * 7.0
-            draw_rect(Rect2(80, banner_y - 48, 608, 82), Color(.12, .01, .05, .95))
-            draw_rect(Rect2(80, banner_y - 48, 608, 82), Color(1, .12, .25), false, 4)
-            _label("$  " + entrance_banner + "  $", Vector2(384, banner_y + 8), 27, Color(1, .25, .22), true)
     if phase == "route":
         var pulse = .65 + sin(game_time * 6.0) * .3
         var arrow_color = Color(1, .78, .12, pulse)
@@ -2287,9 +2349,9 @@ func _draw_game_entities() -> void:
         if p["lives"] <= 0:
             continue
         var dead = p["respawn"] > 0
-        var action = "death" if dead else "run" if p["move"].length() > .05 else "idle"
+        var action = "death" if dead else "run" if p["move"].length() > .05 else "fire" if p["fire_held"] else "idle"
         var frames = 8 if dead else 6 if action == "run" else 4
-        var frame = mini(7, int((2.0 - p["respawn"]) * 10)) if dead else int(p["anim_time"] * (12 if action == "run" else 6)) % frames
+        var frame = mini(7, int((2.0 - p["respawn"]) * 10)) if dead else int(p["anim_time"] * (12 if action == "run" else 8 if action == "fire" else 6)) % frames
         var tint = Color.WHITE
         if p["invuln"] > 0 and int(game_time * 15) % 2 == 0:
             tint.a = .45
@@ -2335,9 +2397,11 @@ func _draw_game_entities() -> void:
             _sprite("sprites/players/" + p["name"] + "_" + action + ".png", p["pos"], frame, DIRS.find(p["dir"]), Vector2(-1, -1), tint)
         if dead:
             continue
-        var origin: Vector2 = p["pos"] + Vector2(0, -18)
+        # Weapon sheets are 64px frames; render them as compact hand-held
+        # silhouettes instead of covering the contestant's entire torso.
+        var origin: Vector2 = p["pos"] + Vector2(0, -17) + p["aim"] * 4.0
         draw_set_transform(origin, p["aim"].angle(), Vector2.ONE)
-        _sprite("sprites/weapons/" + p["weapon"] + ".png", Vector2.ZERO, int(game_time * 10) % 4, 0, Vector2(24, 32), tint)
+        _sprite("sprites/weapons/" + p["weapon"] + ".png", Vector2.ZERO, int(game_time * 10) % 4, 0, Vector2(18, 32), tint, .62)
         draw_set_transform(Vector2.ZERO)
         for drone_index in range(mini(3, int(p["drone_level"]))):
             var drone_angle = game_time * (3.0 + drone_index * .18) + drone_index * TAU / maxf(1.0, float(p["drone_level"]))
