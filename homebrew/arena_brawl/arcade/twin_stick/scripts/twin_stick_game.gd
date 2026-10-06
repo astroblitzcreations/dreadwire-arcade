@@ -1363,7 +1363,7 @@ func _arm_floor_trail_bomb(player: Dictionary, cells: Array) -> void:
     for enemy in enemies:
         if float(enemy["hp"]) > 0.0 and Geometry2D.is_point_in_polygon(enemy["pos"], points):
             trapped_uids.append(int(enemy["uid"]))
-    var wall_hp := [randf_range(68.0, 108.0), randf_range(68.0, 108.0), randf_range(68.0, 108.0), randf_range(68.0, 108.0)]
+    var wall_hp := [randf_range(68.0, 136.0), randf_range(68.0, 136.0), randf_range(68.0, 136.0), randf_range(68.0, 136.0)]
     floor_trail_bombs.append({"owner": int(player["id"]), "points": points,
         "center": center, "time": 0.0, "fuse": 6.5, "hp": 1.0, "max_hp": 1.0,
         "wall_hp": wall_hp, "wall_max_hp": wall_hp.duplicate(),
