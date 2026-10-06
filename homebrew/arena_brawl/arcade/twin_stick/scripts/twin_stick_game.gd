@@ -94,6 +94,7 @@ var wave_spawned := false
 var wave_reinforcements_spawned := false
 var combat_elapsed := 0.0
 var enemy_clear_stable_time := 0.0
+var door_open_timer := 0.0
 var erosion_cells: Dictionary = {}
 var erosion_order: Array[Vector2i] = []
 var erosion_timer := 0.0
@@ -102,7 +103,7 @@ var erosion_active := false
 var floor_tile_states: Dictionary = {}
 var floor_tile_changed_at: Dictionary = {}
 var floor_trail_bombs: Array = []
-const FLOORS_PER_ROOM := 5
+const FLOORS_PER_ROOM := 10
 const CORRIDOR_LENGTH := 1350.0
 var prize_spawn_timer := 12.0
 var tally_time := 0.0
@@ -127,7 +128,7 @@ func _ready() -> void:
         weapon_ids.append(definition["id"])
     for definition in library.data("prizes"):
         pickup_ids.append(definition["id"])
-    waves = library.data("waves")
+    waves = _build_campaign_waves(library.data("waves"))
     audio = AUDIO.new()
     add_child(audio)
     _load_difficulty()
@@ -135,6 +136,23 @@ func _ready() -> void:
     _refresh_player_controllers()
     _make_crt()
     restart()
+
+func _build_campaign_waves(source: Array) -> Array:
+    var campaign: Array = []
+    for stage in range(4):
+        var base = stage * 5
+        var recipes: Array = source.slice(base, base + 4)
+        for floor_number in range(10):
+            var wave: Dictionary = recipes[floor_number % recipes.size()].duplicate(true)
+            wave["wave"] = campaign.size() + 1
+            wave["count"] = int(wave["count"]) + floor_number * 2
+            wave["hazard_count"] = mini(4, int(wave["hazard_count"]) + int(floor_number / 3))
+            wave["boss"] = ""
+            campaign.append(wave)
+        var boss_wave: Dictionary = source[base + 4].duplicate(true)
+        boss_wave["wave"] = campaign.size() + 1
+        campaign.append(boss_wave)
+    return campaign
 
 func restart() -> void:
     enemies.clear()
@@ -384,7 +402,7 @@ func _process(delta: float) -> void:
         if phase == "entrance":
             _update_entrance(dt)
         else:
-            if phase in ["combat", "route", "corridor", "floor_drop"]:
+            if phase in ["combat", "route"]:
                 _update_players(dt)
             _update_waves(dt)
             if phase in ["combat", "corridor"]:
@@ -1059,6 +1077,7 @@ func _share_reflect_shields() -> void:
     audio.play_sfx("shield_block")
 
 func _update_waves(dt: float) -> void:
+    door_open_timer = maxf(0.0, door_open_timer - dt)
     if phase == "route":
         _update_route_choice()
         return
@@ -1076,6 +1095,13 @@ func _update_waves(dt: float) -> void:
         if phase_timer <= 0:
             _finish_floor_clear()
         return
+    if phase == "intermission":
+        phase_timer -= dt
+        if phase_timer <= 0:
+            phase = "warning"
+            phase_timer = 1.4
+            _popup("NEXT ROUND STARTS NOW!", Vector2(384, 430), Color(.3, 1, .72))
+        return
     if phase == "floor_restore":
         phase_timer -= dt
         floor_transition = 1.0 - clampf(phase_timer / 3.0, 0.0, 1.0)
@@ -1088,10 +1114,11 @@ func _update_waves(dt: float) -> void:
         phase_timer -= dt
         floor_transition = 1.0 - clampf(phase_timer / 1.35, 0.0, 1.0)
         if phase_timer <= 0:
-            # Door choices now stay in the twin-stick game. The old connector
-            # corridor changed Arena Brawl into a slow side-scroller and broke
-            # the pace immediately after a boss.
-            _start_floor_drop(pending_route)
+            wave_index += 1
+            floor_in_room = 1
+            phase = "intermission"
+            phase_timer = 3.0
+            pending_route = ""
         return
     if phase == "corridor":
         _update_corridor(dt)
@@ -1119,11 +1146,12 @@ func _update_waves(dt: float) -> void:
         else:
             enemy_clear_stable_time = 0.0
         if wave_spawned and wave_reinforcements_spawned and combat_elapsed >= 12.0 and enemy_clear_stable_time >= 2.0:
-            phase = "floor_restore" if erosion_active else "clear_hold"
-            phase_timer = 3.0 if erosion_active else 1.8
+            phase = "clear_hold"
+            phase_timer = 5.0
             floor_transition = 0.0
             audio.play_sfx("wave_clear")
-            _popup("ALL ENEMIES CLEARED", Vector2(384, 430), Color(.35, 1, .55))
+            audio.play_sfx("door_close")
+            _popup("ROUND CLEAR — NEXT ROUND IN 5", Vector2(384, 430), Color(.35, 1, .55))
 
 func _finish_floor_clear() -> void:
     if phase != "clear_hold":
@@ -1133,21 +1161,24 @@ func _finish_floor_clear() -> void:
         enemy_clear_stable_time = 0.0
         return
     wave_spawned = false
-    audio.play_sfx("wave_clear")
+    var defeated_boss = not str(waves[wave_index]["boss"]).is_empty()
     if randf() < .60:
         _add_pickup("bomb", Vector2(randf_range(170, 598), randf_range(410, 720)))
     if randf() < .28:
         _add_pickup("reflect_shield", Vector2(randf_range(170, 598), randf_range(410, 720)))
     if randf() < .32:
         _add_pickup("lightning_bolt", Vector2(randf_range(170, 598), randf_range(410, 720)))
-    if floor_in_room < FLOORS_PER_ROOM:
-        _start_floor_drop("")
-    else:
+    if defeated_boss:
         phase = "route"
         phase_timer = 0.0
         audio.announce_sequence(["voice_lets_go.wav"])
-        _popup("FIVE FLOORS CLEARED - CHOOSE A DOOR", Vector2(384, 470), Color(0.3, 1, 0.65))
+        _popup("STAGE CLEARED — CHOOSE A DOOR", Vector2(384, 470), Color(0.3, 1, 0.65))
         _add_pickup("prize_box", Vector2(384, 560))
+    else:
+        wave_index += 1
+        floor_in_room += 1
+        phase = "intermission"
+        phase_timer = 0.8
 
 func _prepare_floor_erosion() -> void:
     erosion_cells.clear()
@@ -1225,7 +1256,7 @@ func _append_floor_trail_cell(player: Dictionary, cell: Vector2i) -> bool:
     var earlier = trail.find(cell)
     if earlier >= 0:
         var loop: Array = trail.slice(earlier)
-        var max_loop = 14 + int(player["lightning_level"]) * 5
+        var max_loop = 8 + mini(2, int(player["lightning_level"]))
         if loop.size() >= 4 and loop.size() <= max_loop:
             loop.append(cell)
             _arm_floor_trail_bomb(player, loop)
@@ -1236,7 +1267,7 @@ func _append_floor_trail_cell(player: Dictionary, cell: Vector2i) -> bool:
             player["floor_trail"] = trail
             return false
     trail.append(cell)
-    var max_trail = 14 + int(player["lightning_level"]) * 5
+    var max_trail = 10
     if trail.size() > max_trail:
         trail.pop_front()
     return false
@@ -1249,47 +1280,29 @@ func _arm_floor_trail_bomb(player: Dictionary, cells: Array) -> void:
         points.append(point)
         center += point
     center /= float(cells.size())
-    var blast_radius = 165.0 + minf(150.0, float(cells.size() - 4) * 16.0)
     floor_trail_bombs.append({"owner": int(player["id"]), "points": points,
-        "center": center, "time": 0.0, "fuse": 3.0, "radius": blast_radius})
-    _popup("FLOOR BOMB CONNECTED!", center + Vector2(0, -55), Color(.2, 1, .95) if int(player["id"]) == 0 else Color(1, .2, .78))
+        "center": center, "time": 0.0, "fuse": 6.0, "hp": 180.0, "max_hp": 180.0, "dead": false})
+    _popup("RICOCHET SHIELD CONNECTED!", center + Vector2(0, -55), Color(.2, 1, .95) if int(player["id"]) == 0 else Color(1, .2, .78))
     audio.play_sfx("electric_floor")
 
 func _update_floor_trail_bombs(dt: float) -> void:
     for bomb in floor_trail_bombs:
         bomb["time"] += dt
-        if float(bomb["time"]) < float(bomb["fuse"]):
+        if float(bomb["time"]) < float(bomb["fuse"]) and float(bomb["hp"]) > 0.0:
             continue
         var owner = int(bomb["owner"])
         var center: Vector2 = bomb["center"]
-        var radius = float(bomb["radius"])
-        var bomb_kills := 0
-        for enemy in enemies:
-            var distance = enemy["pos"].distance_to(center)
-            if distance < radius and enemy["hp"] > 0:
-                # The loop is a strong crowd-control reward, not a room-clear
-                # button. It can finish at most three regular enemies and only
-                # chips bosses; everyone else is left alive to be fought.
-                var damage = lerpf(72.0, 28.0, distance / radius)
-                if enemy["boss"]:
-                    damage = minf(damage, float(enemy["max_hp"]) * .08)
-                elif damage >= float(enemy["hp"]):
-                    if bomb_kills >= 3:
-                        damage = maxf(0.0, float(enemy["hp"]) - 1.0)
-                    else:
-                        bomb_kills += 1
-                if damage > 0:
-                    _hurt_enemy(enemy, damage, owner)
+        var polygon: PackedVector2Array = bomb["points"]
         for player in _active_players():
-            if player["pos"].distance_to(center) < radius * .62:
-                _hurt_player(player, 32.0, "floor_bomb")
-        _effect("explosion_large", center, 1.2)
-        audio.play_sfx("explosion_large")
-        shake = 10.0
+            if Geometry2D.is_point_in_polygon(player["pos"], polygon):
+                _hurt_player(player, 28.0, "ricochet_implosion")
+        _effect("electric_arcs", center, .8)
+        audio.play_sfx("shield_block")
+        bomb["dead"] = true
         if owner >= 0 and owner < players.size():
             players[owner]["trail_cooldown"] = 3.0
             players[owner]["floor_trail"].clear()
-    floor_trail_bombs = floor_trail_bombs.filter(func(bomb): return float(bomb["time"]) < float(bomb["fuse"]))
+    floor_trail_bombs = floor_trail_bombs.filter(func(bomb): return not bool(bomb["dead"]))
 
 func _living_enemy_count() -> int:
     var count := 0
@@ -1464,6 +1477,7 @@ func _begin_wave() -> void:
     wave_reinforcements_spawned = false
     combat_elapsed = 0.0
     enemy_clear_stable_time = 0.0
+    door_open_timer = 2.2
     erosion_active = false
     erosion_cells.clear()
     hazards.clear()
@@ -1474,7 +1488,7 @@ func _begin_wave() -> void:
         count = maxi(4, count / 3)
         _spawn_enemy(wave["boss"], Vector2(384, 260), true)
         audio.play_music("inner_sanctum")
-        audio.announce("final_boss" if wave_index == 19 else "boss_start", true)
+        audio.announce_sequence(["voice_good_luck.wav", "voice_youll_need_it.wav"], true, 20.0, true)
     else:
         audio.play_music("circuit_3" if wave_index >= 14 else "circuit_2" if wave_index >= 7 else "circuit_1")
     for j in range(count):
@@ -1486,12 +1500,22 @@ func _begin_wave() -> void:
         _spawn_enemy(pool[randi() % pool.size()], point, false)
     for j in range(int(wave["hazard_count"])):
         _spawn_hazard(["electric_floor", "flame_vent", "rotating_laser", "crusher"][j % 4], Vector2(225 + (j % 2) * 318, 390 + int(j / 2) * 300))
-    if wave_index in [0, 2]:
+    if floor_in_room in [1, 3]:
         _spawn_blessing_rings()
+    if str(wave["boss"]).is_empty() and floor_in_room in [2, 5, 8]:
+        _spawn_weapon_choice()
     wave_spawned = true
-    if wave_index == 14:
-        _prepare_floor_erosion()
     audio.play_sfx("door_open")
+
+func _spawn_weapon_choice() -> void:
+    var candidates = weapon_ids.filter(func(id): return id != "pulse_pistol" and id != "orbit_drone")
+    candidates.shuffle()
+    var count = mini(2 if p2_enabled else 1, candidates.size())
+    for i in range(count):
+        drops.append({"kind": "weapon", "id": candidates[i],
+            "pos": Vector2(300 + i * 168, 540), "life": 18.0})
+    if floor_in_room in [5, 8] and randf() < .55:
+        drops.append({"kind": "weapon", "id": "orbit_drone", "pos": Vector2(384, 650), "life": 18.0})
 
 func _spawn_enemy(id: String, point: Vector2, is_boss: bool) -> void:
     if enemies.size() >= 120:
@@ -1506,7 +1530,7 @@ func _spawn_enemy(id: String, point: Vector2, is_boss: bool) -> void:
         "boss": is_boss, "hp": health, "max_hp": health,
         "speed": speed, "radius": float(definition["radius"]), "dir": "s",
         "timer": randf_range(1.0, 2.2), "flash": 0.0, "attack_flash": 0.0, "spawn": 0.7,
-        "attack_index": 0, "score": definition["score"], "anim_time": randf() * 2})
+        "attack_index": 0, "boss_phase": 0, "score": definition["score"], "anim_time": randf() * 2})
     next_enemy_uid += 1
     _effect("enemy_spawn", point, 0.65)
 
@@ -1534,7 +1558,9 @@ func _update_enemies(dt: float) -> void:
         var distance: float = enemy["pos"].distance_to(target["pos"])
         var aim: Vector2 = (target["pos"] - enemy["pos"]).normalized()
         var direction = aim
-        var speed = enemy["speed"]
+        var speed = enemy["speed"] * (1.0 + int(enemy.get("boss_phase", 0)) * .12)
+        if enemy["boss"] and int(enemy["boss_phase"]) >= 2:
+            direction = aim.rotated(sin(game_time * (7.0 + int(enemy["boss_phase"]))) * (.28 + int(enemy["boss_phase"]) * .08))
         if enemy["id"] == "runner":
             direction = aim.rotated(sin(game_time * 5 + enemy["uid"]) * 0.55)
         elif enemy["id"] in ["drone", "bomber"]:
@@ -1611,6 +1637,9 @@ func _update_shots(dt: float) -> void:
         shot["old"] = shot["pos"]
         shot["pos"] += shot["vel"] * dt
         shot["life"] -= dt
+        shot["shield_cooldown"] = maxf(0.0, float(shot.get("shield_cooldown", 0.0)) - dt)
+        if float(shot["shield_cooldown"]) <= 0.0 and _ricochet_from_floor_shield(shot):
+            continue
         if not ROOM.grow(25).has_point(shot["pos"]):
             shot["life"] = 0
             continue
@@ -1664,11 +1693,47 @@ func _update_shots(dt: float) -> void:
     shots = shots.filter(func(s): return s["life"] > 0)
     enemies = enemies.filter(func(e): return e["hp"] > 0)
 
+func _ricochet_from_floor_shield(shot: Dictionary) -> bool:
+    for bomb in floor_trail_bombs:
+        if bool(bomb["dead"]):
+            continue
+        var points: PackedVector2Array = bomb["points"]
+        for i in range(points.size()):
+            var a = points[i]
+            var b = points[(i + 1) % points.size()]
+            var hit = Geometry2D.segment_intersects_segment(shot["old"], shot["pos"], a, b)
+            if hit == null:
+                continue
+            var edge: Vector2 = (b - a).normalized()
+            var normal = Vector2(-edge.y, edge.x)
+            if shot["vel"].dot(normal) > 0:
+                normal = -normal
+            shot["pos"] = hit + normal * 7.0
+            shot["old"] = shot["pos"]
+            shot["vel"] = shot["vel"].bounce(normal) * 1.05
+            shot["owner"] = int(bomb["owner"])
+            shot["damage"] = float(shot["damage"]) * .8
+            shot["shield_cooldown"] = .1
+            shot["hit_ids"] = []
+            bomb["hp"] -= maxf(7.0, float(shot["damage"]) * .3)
+            _effect("electric_arcs", hit, .2)
+            audio.play_sfx("shield_block")
+            return true
+    return false
+
 func _hurt_enemy(enemy: Dictionary, amount: float, owner: int) -> void:
     if enemy["hp"] <= 0:
         return
     enemy["hp"] -= amount
     enemy["flash"] = .09
+    if enemy["boss"] and enemy["hp"] > 0:
+        var next_phase = clampi(4 - int(ceil(float(enemy["hp"]) / float(enemy["max_hp"]) * 4.0)), 0, 3)
+        if next_phase > int(enemy["boss_phase"]):
+            enemy["boss_phase"] = next_phase
+            enemy["timer"] = minf(float(enemy["timer"]), 0.45)
+            audio.play_sfx("boss_stagger")
+            audio.announce_sequence(["voice_aaargh.wav" if next_phase == 3 else "voice_urk.wav"], true, 5.0, true)
+            _popup("BOSS PHASE %d" % (next_phase + 1), enemy["pos"] + Vector2(0, -90), Color(1, .2, .15) if next_phase == 3 else Color(1, .62, .12))
     _effect("impact_plasma" if amount > 60 else "impact_enemy", enemy["pos"] + Vector2(0, -15), .25)
     if enemy["hp"] > 0:
         audio.play_sfx("enemy_hit")
@@ -1681,7 +1746,7 @@ func _hurt_enemy(enemy: Dictionary, amount: float, owner: int) -> void:
     if enemy["boss"]:
         shake = 7.0
         _add_pickup("extra_life", enemy["pos"])
-        audio.announce("big_kill", true)
+        audio.announce_sequence(["voice_aaargh.wav"], true, 2.0, true)
     elif randf() < enemy_defs[enemy["id"]]["drop_chance"]:
         _add_pickup(pickup_ids[randi() % pickup_ids.size()], enemy["pos"])
 
@@ -1729,12 +1794,15 @@ func _update_drops(dt: float) -> void:
                     p["weapon"] = item["id"]
                     _popup(weapons[item["id"]]["display_name"], p["pos"] + Vector2(0, -50), Color(0.2, .85, 1))
                 audio.play_sfx("weapon_pickup")
+                audio.announce_sequence(["voice_yeah.wav"], false, 8.0)
             else:
                 var id = item["id"]
                 match id:
                     "health": p["health"] = minf(100.0, p["health"] + 40.0)
                     "armor": p["armor"] = minf(100.0, p["armor"] + 50.0)
-                    "extra_life": p["lives"] = mini(9, p["lives"] + 1)
+                    "extra_life":
+                        p["lives"] = mini(9, p["lives"] + 1)
+                        audio.announce_sequence(["voice_whoo.wav"], false, 12.0)
                     "bomb": p["bombs"] = mini(9, int(p["bombs"]) + 1)
                     "reflect_shield": p["buffs"]["reflect_shield"] = 10.0
                     "lightning_bolt":
@@ -1747,7 +1815,7 @@ func _update_drops(dt: float) -> void:
                         p["score"] += 10000
                         p["cash"] += 7500
                         p["gold"] += 1
-                        audio.announce_sequence(["voice_big_money.wav", "voice_big_prizes.wav", "voice_i_love_it.wav"])
+                        audio.announce("pickup")
                     _: p["buffs"][id] = 12.0
                 audio.play_sfx("extra_life" if id == "extra_life" else "health_pickup" if id == "health" else "credits_pickup")
                 _popup(id.replace("_", " ").to_upper(), p["pos"] + Vector2(0, -48), Color(1, .75, .25))
@@ -1828,6 +1896,8 @@ func _actor(enemy: Dictionary) -> void:
         return
     var frame = int(enemy["anim_time"] * 10) % int(meta["columns"])
     var tint = Color(1.8, 1.8, 1.8, 1) if enemy["flash"] > 0 else Color.WHITE
+    if enemy["boss"] and enemy["flash"] <= 0:
+        tint = [Color.WHITE, Color(1.15, .9, .55), Color(1.2, .5, .22), Color(1.35, .14, .12)][int(enemy.get("boss_phase", 0))]
     if enemy["spawn"] > 0:
         tint.a = 0.45
     _sprite("sprites/effects/ground_shadow.png", enemy["pos"] + Vector2(0, 9))
@@ -1840,7 +1910,7 @@ func _draw() -> void:
         _draw_corridor_stage()
     else:
         _draw_arena_floor()
-        var door_state = "warning" if phase == "warning" else "open" if phase == "route" else "closed"
+        var door_state = "warning" if phase == "warning" else "open" if phase == "route" or (phase == "combat" and door_open_timer > 0.0) else "closed"
         for point in [Vector2(384, 150), Vector2(384, 980), Vector2(38, 555), Vector2(730, 555)]:
             _sprite("tilesets/arena/door_" + door_state + ".png", point, int(game_time * 8) % (4 if door_state == "warning" else 1))
     if phase == "entrance":
@@ -1859,6 +1929,9 @@ func _draw() -> void:
         _label("◀", Vector2(82, 565), 38, arrow_color, true)
         _label("▶", Vector2(686, 565), 38, arrow_color, true)
         _draw_route_map()
+    elif phase == "clear_hold":
+        _label("ROUND CLEAR", Vector2(384, 420), 31, Color(.35, 1, .62), true)
+        _label("NEXT ROUND IN %d" % maxi(1, ceili(phase_timer)), Vector2(384, 466), 22, Color(1, .82, .22), true)
     _draw_game_entities()
     if phase == "turn":
         _draw_screen_turn()
@@ -1913,7 +1986,24 @@ func _draw_arena_floor() -> void:
         _label("FLOOR COLLAPSE — KEEP MOVING!", Vector2(384, 202), 19, Color(1, .2, .38), true)
     elif phase == "floor_restore":
         _label("STAGE REBUILDING", Vector2(384, 202), 19, Color(.35, 1, .72), true)
+    _draw_floor_atmosphere()
     _draw_floor_trails()
+
+func _draw_floor_atmosphere() -> void:
+    var pulse = .5 + sin(game_time * 1.7) * .5
+    match floor_in_room:
+        2, 7:
+            draw_rect(Rect2(55, 190, 658, 750), Color(.02, .01, .08, .10 + pulse * .10))
+            _label("NIGHT SHOOT", Vector2(384, 236), 14, Color(.45, .5, 1, .6), true)
+        4, 9:
+            var scan_y = 220.0 + fmod(game_time * 115.0, 650.0)
+            draw_rect(Rect2(55, scan_y - 28, 658, 56), Color(.05, 1, .72, .035))
+            draw_line(Vector2(55, scan_y), Vector2(713, scan_y), Color(.15, 1, .8, .35), 2)
+            _label("SCANNER FLOOR", Vector2(384, 236), 14, Color(.25, 1, .82, .6), true)
+        6, 10:
+            var strobe = .12 if int(game_time * 2.0) % 2 == 0 else .025
+            draw_rect(Rect2(55, 190, 658, 750), Color(1, .04, .14, strobe))
+            _label("RED ALERT", Vector2(384, 236), 14, Color(1, .25, .3, .75), true)
 
 func _draw_floor_trails() -> void:
     for player in _active_players():
@@ -1941,14 +2031,14 @@ func _draw_floor_trails() -> void:
         var owner = int(bomb["owner"])
         var color = Color(.1, .95, 1) if owner == 0 else Color(1, .15, .76)
         var remaining = maxf(0.0, float(bomb["fuse"]) - float(bomb["time"]))
-        var flashes = int(float(bomb["time"]) * 6.0)
-        var alpha = .72 if flashes % 2 == 0 else .2
-        draw_colored_polygon(points, Color(color.r, color.g, color.b, alpha * .24))
-        draw_polyline(points, Color(color.r, color.g, color.b, alpha), 8, true)
-        _label("%.1f" % remaining, bomb["center"] + Vector2(0, 8), 22, Color.WHITE, true)
+        var health_ratio = clampf(float(bomb["hp"]) / float(bomb["max_hp"]), 0.0, 1.0)
+        var flicker = health_ratio if health_ratio > .3 else health_ratio * (.35 + abs(sin(game_time * 18.0)) * .65)
+        draw_colored_polygon(points, Color(color.r, color.g, color.b, .025 + flicker * .035))
+        draw_polyline(points, Color(color.r, color.g, color.b, .18 + flicker * .48), 3, true)
+        _label("SHIELD %.1f" % remaining, bomb["center"] + Vector2(0, 7), 13, Color(1, 1, 1, .75), true)
 
 func _draw_matrix_floor_tile(cell: Vector2i, rect: Rect2) -> void:
-    var room_palette = int(wave_index / FLOORS_PER_ROOM) % 4
+    var room_palette = int(wave_index / 11) % 4
     var base_colors = [Color(.08, .88, 1), Color(.2, 1, .48), Color(1, .54, .08), Color(.5, .38, 1)]
     var accent_colors = [Color(1, .1, .72), Color(.12, .7, 1), Color(1, .12, .35), Color(.1, 1, .85)]
     var base: Color = base_colors[room_palette]

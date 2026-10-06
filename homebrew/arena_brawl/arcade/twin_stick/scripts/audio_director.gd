@@ -13,6 +13,9 @@ var voice_delay: float = 0.0
 var last_voice: String = ""
 var voice_queue: Array[AudioStream] = []
 var voice_gap: float = 0.0
+var sequence_gap: float = 0.65
+var voice_was_playing := false
+var voice_path_recent: Dictionary = {}
 var music_muted: bool = false
 var sfx_muted: bool = false
 var voice_muted: bool = false
@@ -107,17 +110,23 @@ func _stream(path: String) -> AudioStream:
 func _process(delta: float) -> void:
     voice_delay = maxf(0.0, voice_delay - delta)
     voice_gap = maxf(0.0, voice_gap - delta)
+    if voice_was_playing and not voice_player.playing:
+        voice_gap = sequence_gap
+    voice_was_playing = voice_player.playing
     if not voice_player.playing and voice_gap <= 0.0 and not voice_queue.is_empty():
         voice_player.stream = voice_queue.pop_front()
         voice_player.play()
-        voice_gap = 0.12
+        voice_was_playing = true
 
 func play_sfx(id: String, pitch: float = 1.0) -> void:
     if sfx_muted or not sound_map.has(id):
         return
     var now = Time.get_ticks_msec()
     # Per-effect voice limits stop overlapping automatic-fire samples from swamping the mix.
-    if now - int(recent.get(id, -10000)) < (125 if id.contains("fire") else 45):
+    var fire_limits = {"automatic_fire": 180, "flame_loop": 220, "orbit_fire": 180,
+        "twin_pulse_fire": 170, "pulse_fire": 155, "arc_discharge": 190}
+    var minimum_gap = int(fire_limits.get(id, 125 if id.contains("fire") else 45))
+    if now - int(recent.get(id, -10000)) < minimum_gap:
         return
     recent[id] = now
     var entry = sound_map[id]
@@ -155,9 +164,14 @@ func announce(category: String, priority: bool = false) -> void:
     last_voice = chosen["id"]
     voice_delay = float(chosen.get("cooldown_seconds", 4.0))
 
-func announce_sequence(paths: Array, priority: bool = true) -> void:
+func announce_sequence(paths: Array, priority: bool = true, cooldown: float = 8.0, force: bool = false) -> void:
     if voice_muted:
         return
+    var now = Time.get_ticks_msec() / 1000.0
+    if not force:
+        for path in paths:
+            if now - float(voice_path_recent.get(path, -999.0)) < cooldown:
+                return
     if priority:
         voice_player.stop()
         voice_queue.clear()
@@ -165,8 +179,10 @@ func announce_sequence(paths: Array, priority: bool = true) -> void:
         var stream = _stream(SMASH + path)
         if stream != null:
             voice_queue.append(stream)
+            voice_path_recent[path] = now
     voice_delay = 0.0
     voice_gap = 0.0
+    sequence_gap = 0.7
 
 func play_music(id: String) -> void:
     if not music_map.has(id):
