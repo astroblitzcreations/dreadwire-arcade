@@ -9,6 +9,11 @@ pkill -TERM -f '/home/pi/Music/dreadwire-arcade/' >/dev/null 2>&1 || true
 # system mute must not leave the game stream silent after the jukebox exits.
 pactl set-sink-mute @DEFAULT_SINK@ 0 >/dev/null 2>&1 || true
 xrandr --output HDMI-1 --mode 1024x768 --rotate left --pos 0x0 --brightness 1.12 2>/dev/null || xrandr -o left
+# A gamepad produces no keyboard/mouse activity, so X11 otherwise decides the
+# cabinet is idle and powers the monitor off after ten minutes mid-game.
+xset s off
+xset s noblank
+xset -dpms
 
 cleanup() {
   /usr/local/bin/dreadwire-musicctl.py gameresume >/dev/null 2>&1 || true

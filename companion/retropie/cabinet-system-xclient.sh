@@ -2,6 +2,9 @@
 set -euo pipefail
 
 xrandr --output HDMI-1 --mode 1024x768 --rotate left --pos 0x0 2>/dev/null || xrandr -o left
+xset s off
+xset s noblank
+xset -dpms
 browser=$(command -v chromium || command -v chromium-browser)
 
 exec "$browser" \

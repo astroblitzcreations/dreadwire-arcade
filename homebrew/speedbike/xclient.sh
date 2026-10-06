@@ -6,6 +6,9 @@ set -euo pipefail
 /usr/local/bin/dreadwire-musicctl.py gamepause >/dev/null 2>&1 || true
 
 xrandr --output HDMI-1 --mode 1024x768 --rotate left --pos 0x0 --brightness 1.12 2>/dev/null || xrandr -o left
+xset s off
+xset s noblank
+xset -dpms
 
 # Keep the cabinet translator alive if an input device is briefly recreated.
 (while true; do
