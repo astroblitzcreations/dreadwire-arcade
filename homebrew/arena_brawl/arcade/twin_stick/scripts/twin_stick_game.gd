@@ -91,6 +91,7 @@ var corridor_direction := 1
 var corridor_progress := 0.0
 var corridor_spawn_mark := 0
 var wave_spawned := false
+var wave_reinforcements_spawned := false
 var combat_elapsed := 0.0
 var erosion_cells: Dictionary = {}
 var erosion_order: Array[Vector2i] = []
@@ -164,6 +165,7 @@ func restart() -> void:
     corridor_progress = 0.0
     corridor_spawn_mark = 0
     wave_spawned = false
+    wave_reinforcements_spawned = false
     combat_elapsed = 0.0
     erosion_cells.clear()
     erosion_order.clear()
@@ -200,6 +202,7 @@ func _new_player(index: int, point: Vector2) -> Dictionary:
         "secondary_held": false, "bombs": 1, "drone_level": 0,
         "shield_share_cooldown": 0.0, "death_move": "", "death_progress": 0.0,
         "floor_cell": Vector2i(-99, -99), "floor_trail": [], "trail_cooldown": 0.0,
+        "floor_falling": false,
         "continue_timer": 0.0, "continues": 3}
 
 func _input(event: InputEvent) -> void:
@@ -381,7 +384,7 @@ func _process(delta: float) -> void:
         if phase == "entrance":
             _update_entrance(dt)
         else:
-            if phase in ["combat", "route", "corridor"]:
+            if phase in ["combat", "route", "corridor", "floor_drop"]:
                 _update_players(dt)
             _update_waves(dt)
             if phase in ["combat", "corridor"]:
@@ -1086,7 +1089,18 @@ func _update_waves(dt: float) -> void:
         combat_elapsed += dt
         if erosion_active:
             _update_floor_erosion(dt)
-        if wave_spawned and combat_elapsed >= 8.0 and enemies.is_empty():
+        # Upgraded weapons can erase the opening group very quickly. A second
+        # arrival makes each normal floor feel like a complete round.
+        if wave_spawned and not wave_reinforcements_spawned and combat_elapsed >= 10.0:
+            var wave: Dictionary = waves[wave_index]
+            wave_reinforcements_spawned = true
+            if str(wave["boss"]).is_empty():
+                var pool: Array = wave["enemy_pool"]
+                var doors = [Vector2(384, 180), Vector2(384, 940), Vector2(58, 555), Vector2(710, 555)]
+                for j in range(mini(5, 2 + int(wave_index / 4))):
+                    _spawn_enemy(pool[randi() % pool.size()], doors[(j + wave_index) % doors.size()], false)
+                _popup("BONUS WAVE!", Vector2(384, 430), Color(1, .35, .72))
+        if wave_spawned and wave_reinforcements_spawned and combat_elapsed >= 12.0 and enemies.is_empty():
             phase = "floor_restore" if erosion_active else "clear_hold"
             phase_timer = 3.0 if erosion_active else 1.8
             floor_transition = 0.0
@@ -1266,7 +1280,7 @@ func _start_floor_drop(route: String) -> void:
     _make_floor_order()
     phase = "floor_drop"
     floor_transition = 0.0
-    phase_timer = 3.4
+    phase_timer = 6.5
     shots.clear()
     hazards.clear()
     audio.play_sfx("electric_floor")
@@ -1302,9 +1316,18 @@ func _make_floor_order() -> void:
 func _update_floor_transition(dt: float) -> void:
     phase_timer -= dt
     if phase == "floor_drop":
-        floor_transition = 1.0 - clampf(phase_timer / 3.4, 0.0, 1.0)
-        if floor_transition > .68:
-            for player in _active_players(): player["pos"].y += dt * (85.0 + floor_transition * 190.0)
+        floor_transition = 1.0 - clampf(phase_timer / 6.5, 0.0, 1.0)
+        var removed = int(floor_transition * floor_order.size())
+        for player in _active_players():
+            var cell = _floor_cell_at(player["pos"])
+            var tile_rank = int(floor_rank.get(cell, floor_order.size()))
+            # Run downward to stay ahead of the cascade. The final bottom
+            # strip always gives way, so every surviving player eventually
+            # drops into the next floor.
+            if tile_rank < removed or floor_transition > .91:
+                player["floor_falling"] = true
+            if bool(player["floor_falling"]):
+                player["pos"].y += dt * (115.0 + floor_transition * 235.0)
         if phase_timer <= 0:
             wave_index += 1
             if wave_index >= waves.size():
@@ -1320,6 +1343,7 @@ func _update_floor_transition(dt: float) -> void:
             for player in players:
                 player["pos"] = Vector2(280 + player["id"] * 208, 365)
                 player["floor_cell"] = Vector2i(-99, -99)
+                player["floor_falling"] = false
                 player["invuln"] = maxf(player["invuln"], 1.5)
             phase = "floor_build"
             phase_timer = 2.8
@@ -1384,6 +1408,7 @@ func _begin_wave() -> void:
     var wave: Dictionary = waves[wave_index]
     phase = "combat"
     wave_spawned = false
+    wave_reinforcements_spawned = false
     combat_elapsed = 0.0
     erosion_active = false
     erosion_cells.clear()
