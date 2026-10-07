@@ -1,4 +1,2 @@
 #!/usr/bin/env bash
 /usr/local/bin/dreadwire-musicctl.py toggle
-sleep 0.25
-/home/pi/RetroPie/retropiemenu/music-now-playing.rp brief

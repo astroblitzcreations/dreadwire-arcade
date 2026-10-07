@@ -154,6 +154,10 @@ class Jukebox:
         """Start the selected track using the current gain setting."""
         if not self.current or not self.enabled or self.game_paused:
             return
+        pulse_environment = os.environ.copy()
+        pulse_environment["PULSE_PROP"] = (
+            "application.name=Dreadwire Jukebox\nmedia.role=music"
+        )
         self.process = subprocess.Popen(
             [
                 "/usr/bin/cvlc", "--intf=dummy", "--play-and-exit", "--no-video",
@@ -163,6 +167,7 @@ class Jukebox:
                 # forever waiting for its launch sound, so the screen fades to
                 # black before runcommand ever starts the selected ROM.
                 "--quiet", "--aout=pulse",
+                "--role=music",
                 "--audio-resampler=soxr", "--audio-replay-gain-mode=none",
                 # Keep VLC at unity gain. The Pulse stream is the single source
                 # of truth, preventing gain from being attenuated twice.
@@ -171,6 +176,7 @@ class Jukebox:
             stdin=subprocess.DEVNULL,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
+            env=pulse_environment,
         )
         self.set_live_stream_volume(retry=True)
 
