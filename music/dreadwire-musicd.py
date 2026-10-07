@@ -100,30 +100,40 @@ class Jukebox:
                 self.process.wait()
         self.process = None
 
-    def adjust_live_stream(self, delta):
-        """Adjust VLC's existing Pulse stream without restarting the song."""
+    def set_live_stream_volume(self, retry=False):
+        """Set VLC's exact Pulse volume without restarting the song."""
         if not self.process or self.process.poll() is not None or self.paused:
             return
-        try:
-            listing = subprocess.check_output(
-                ["pactl", "list", "sink-inputs"], text=True,
-                stderr=subprocess.DEVNULL,
-            )
-            stream_id = None
-            for block in re.split(r"(?=Sink Input #)", listing):
-                if f'application.process.id = "{self.process.pid}"' not in block:
+        attempts = 12 if retry else 1
+        for _ in range(attempts):
+            try:
+                listing = subprocess.check_output(
+                    ["pactl", "list", "sink-inputs"], text=True,
+                    stderr=subprocess.DEVNULL,
+                )
+                stream_id = None
+                for block in re.split(r"(?=Sink Input #)", listing):
+                    if f'application.process.id = "{self.process.pid}"' not in block:
+                        continue
+                    match = re.search(r"Sink Input #(\d+)", block)
+                    if match:
+                        stream_id = match.group(1)
+                        break
+                if not stream_id:
+                    if retry:
+                        time.sleep(0.05)
                     continue
-                match = re.search(r"Sink Input #(\d+)", block)
-                if match:
-                    stream_id = match.group(1)
-                    break
-            if stream_id and abs(delta) > 0.0001:
                 subprocess.run(
-                    ["pactl", "set-sink-input-volume", stream_id, f"{delta * 100:+.0f}%"],
+                    ["pactl", "set-sink-input-mute", stream_id, "0"],
                     check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                 )
-        except (OSError, subprocess.SubprocessError):
-            pass
+                subprocess.run(
+                    ["pactl", "set-sink-input-volume", stream_id, f"{self.volume * 100:.0f}%"],
+                    check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                )
+                return
+            except (OSError, subprocess.SubprocessError):
+                return
 
     def start_next(self):
         if not self.enabled or self.game_paused:
@@ -154,21 +164,23 @@ class Jukebox:
                 # black before runcommand ever starts the selected ROM.
                 "--quiet", "--aout=pulse",
                 "--audio-resampler=soxr", "--audio-replay-gain-mode=none",
-                f"--gain={self.volume:.2f}", str(self.current),
+                # Keep VLC at unity gain. The Pulse stream is the single source
+                # of truth, preventing gain from being attenuated twice.
+                "--gain=1.00", str(self.current),
             ],
             stdin=subprocess.DEVNULL,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
+        self.set_live_stream_volume(retry=True)
 
     def command(self, command):
         command = command.strip().lower()
         if command.startswith("volume:"):
-            previous = self.volume
             try: self.volume = max(0.0, min(1.25, float(command.split(":", 1)[1]) / 100.0))
             except ValueError: return
             self.save_config()
-            self.adjust_live_stream(self.volume - previous)
+            self.set_live_stream_volume()
             self.write_state("Volume set")
             return
         if command in ("next", "skip"):
@@ -226,16 +238,18 @@ class Jukebox:
                 self.start_next()
             self.was_playing_before_game = False
         elif command in ("volumeup", "volup"):
-            previous = self.volume
+            self.enabled = True
+            if self.paused and self.process and self.process.poll() is None:
+                self.process.send_signal(signal.SIGCONT)
+                self.paused = False
             self.volume = min(1.25, self.volume + 0.08)
             self.save_config()
-            self.adjust_live_stream(self.volume - previous)
+            self.set_live_stream_volume()
             self.write_state("Volume increased")
         elif command in ("volumedown", "voldown"):
-            previous = self.volume
             self.volume = max(0.15, self.volume - 0.08)
             self.save_config()
-            self.adjust_live_stream(self.volume - previous)
+            self.set_live_stream_volume()
             self.write_state("Volume decreased")
         elif command == "status":
             self.write_state()
