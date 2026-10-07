@@ -114,6 +114,11 @@ var enemy_finisher_cooldown := 0.0
 const CINEMATIC_FINISHERS = ["LADDER PLANK", "TRASH COMPACTOR", "ROCKET CHAIR", "NEON TRAIN"]
 const FLOORS_PER_ROOM := 10
 const CORRIDOR_LENGTH := 1350.0
+const RECOVERY_PATH := "user://arena_brawl_recovery.cfg"
+const RECOVERY_TEMP_PATH := "user://arena_brawl_recovery.cfg.tmp"
+const RECOVERY_VERSION := 1
+var recovery_save_timer := 0.0
+var recovery_restored := false
 var prize_spawn_timer := 12.0
 var tally_time := 0.0
 var high_score_music_started := false
@@ -165,7 +170,7 @@ func _build_campaign_waves(source: Array) -> Array:
         campaign.append(boss_wave)
     return campaign
 
-func restart() -> void:
+func restart(load_recovery: bool = true) -> void:
     enemies.clear()
     shots.clear()
     drops.clear()
@@ -227,10 +232,86 @@ func restart() -> void:
     game_over = false
     victory = false
     demo_paused = false
+    recovery_save_timer = 0.0
+    recovery_restored = false
     if audio != null:
         audio.stop_all()
         audio.play_music("circuit_1")
         audio.announce_sequence(["voice_contestant_1.wav", "voice_contestant_2.wav"] if p2_enabled else ["voice_contestant_1.wav"])
+    if load_recovery:
+        _restore_recovery_checkpoint()
+
+func _save_recovery_checkpoint() -> void:
+    if attract_mode or game_over or victory or wave_index < 0 or wave_index >= waves.size():
+        return
+    if phase not in ["warning", "combat", "clear_hold", "intermission", "route", "turn", "corridor"]:
+        return
+    var config = ConfigFile.new()
+    config.set_value("recovery", "version", RECOVERY_VERSION)
+    config.set_value("recovery", "saved_unix", int(Time.get_unix_time_from_system()))
+    config.set_value("campaign", "wave_index", wave_index)
+    config.set_value("campaign", "floor_in_room", floor_in_room)
+    config.set_value("campaign", "game_time", game_time)
+    config.set_value("campaign", "route_history", route_history)
+    config.set_value("campaign", "map_position", map_position)
+    config.set_value("campaign", "map_path", map_path)
+    config.set_value("campaign", "map_visited", map_visited)
+    config.set_value("campaign", "map_hidden_found", map_hidden_found)
+    for i in range(players.size()):
+        var p: Dictionary = players[i]
+        var section = "player_%d" % i
+        for key in ["health", "armor", "lives", "score", "cash", "gold", "weapon", "bombs", "drone_level", "lightning_level", "continues"]:
+            config.set_value(section, key, p[key])
+    if config.save(RECOVERY_TEMP_PATH) != OK:
+        return
+    var target = ProjectSettings.globalize_path(RECOVERY_PATH)
+    var temporary = ProjectSettings.globalize_path(RECOVERY_TEMP_PATH)
+    if FileAccess.file_exists(target):
+        DirAccess.remove_absolute(target)
+    DirAccess.rename_absolute(temporary, target)
+
+func _restore_recovery_checkpoint() -> void:
+    var config = ConfigFile.new()
+    if config.load(RECOVERY_PATH) != OK or int(config.get_value("recovery", "version", 0)) != RECOVERY_VERSION:
+        return
+    wave_index = clampi(int(config.get_value("campaign", "wave_index", 0)), 0, waves.size() - 1)
+    floor_in_room = clampi(int(config.get_value("campaign", "floor_in_room", 1)), 1, FLOORS_PER_ROOM)
+    game_time = maxf(0.0, float(config.get_value("campaign", "game_time", 0.0)))
+    route_history = config.get_value("campaign", "route_history", [])
+    map_position = config.get_value("campaign", "map_position", Vector2i.ZERO)
+    map_path = config.get_value("campaign", "map_path", [map_position])
+    map_visited = config.get_value("campaign", "map_visited", {"%d,%d" % [map_position.x, map_position.y]: true})
+    map_hidden_found = config.get_value("campaign", "map_hidden_found", {})
+    for i in range(players.size()):
+        var section = "player_%d" % i
+        var p: Dictionary = players[i]
+        p["health"] = clampf(float(config.get_value(section, "health", 100.0)), 1.0, 100.0)
+        p["armor"] = maxf(0.0, float(config.get_value(section, "armor", 0.0)))
+        p["lives"] = maxi(1, int(config.get_value(section, "lives", 3)))
+        p["score"] = maxi(0, int(config.get_value(section, "score", 0)))
+        p["cash"] = maxi(0, int(config.get_value(section, "cash", 0)))
+        p["gold"] = maxi(0, int(config.get_value(section, "gold", 0)))
+        var saved_weapon = String(config.get_value(section, "weapon", "pulse_pistol"))
+        p["weapon"] = saved_weapon if weapons.has(saved_weapon) else "pulse_pistol"
+        p["bombs"] = maxi(0, int(config.get_value(section, "bombs", 0)))
+        p["drone_level"] = maxi(0, int(config.get_value(section, "drone_level", 0)))
+        p["lightning_level"] = maxi(0, int(config.get_value(section, "lightning_level", 0)))
+        p["continues"] = clampi(int(config.get_value(section, "continues", 3)), 0, 3)
+        p["invuln"] = 3.0
+    phase = "warning"
+    phase_timer = 3.0
+    entrance_elapsed = 99.0
+    recovery_restored = true
+    if audio != null:
+        audio.stop_all()
+        audio.play_music("inner_sanctum" if not str(waves[wave_index]["boss"]).is_empty() else "circuit_3" if wave_index >= 14 else "circuit_2" if wave_index >= 7 else "circuit_1")
+    _popup("RECOVERY LOADED — FLOOR %d/%d" % [floor_in_room, FLOORS_PER_ROOM], Vector2(384, 430), Color(.3, 1, .72))
+
+func _clear_recovery_checkpoint() -> void:
+    for path in [RECOVERY_PATH, RECOVERY_TEMP_PATH]:
+        var absolute = ProjectSettings.globalize_path(path)
+        if FileAccess.file_exists(absolute):
+            DirAccess.remove_absolute(absolute)
 
 func _setup_intro_video() -> void:
     # Godot's Theora decoder corrupts this particular animation on the Pi's
@@ -309,7 +390,8 @@ func _input(event: InputEvent) -> void:
             KEY_P:
                 _set_pause(not demo_paused)
             KEY_R:
-                restart()
+                _clear_recovery_checkpoint()
+                restart(false)
             KEY_TAB:
                 p2_enabled = not p2_enabled
             KEY_M:
@@ -470,6 +552,10 @@ func _process(delta: float) -> void:
             audio.play_music("high_score")
     _update_visuals(dt if not demo_paused else 0.0)
     _fade_floor_marks()
+    recovery_save_timer -= dt
+    if recovery_save_timer <= 0.0:
+        recovery_save_timer = 5.0
+        _save_recovery_checkpoint()
     shake = move_toward(shake, 0.0, dt * 16.0)
     queue_redraw()
 
@@ -499,14 +585,12 @@ func _update_entrance(_dt: float) -> void:
         entrance_banner = "BIG MONEY"
         intro_animation.visible = true
         intro_frame = -1
-        audio.announce_sequence(["voice_big_money.wav"], true, 0.0, true)
-        entrance_money_step = 1
-    if entrance_money_step == 1 and entrance_elapsed >= 8.15:
-        entrance_money_step = 2
-        audio.announce_sequence(["voice_big_prizes.wav"], true, 0.0, true)
-    if entrance_money_step == 2 and entrance_elapsed >= 10.29:
+        # Queue the complete samples as one sequence. Separate timed priority
+        # calls stopped the previous WAV at its last syllable on slower frames.
+        audio.announce_sequence([
+            "voice_big_money.wav", "voice_big_prizes.wav", "voice_i_love_it.wav"
+        ], true, 0.0, true, .05)
         entrance_money_step = 3
-        audio.announce_sequence(["voice_i_love_it.wav"], true, 0.0, true)
     if entrance_banner_played:
         var banner_time := entrance_elapsed - 6.5
         var wanted_frame := clampi(floori(banner_time * 10.0) + 1, 1, 51)
@@ -571,7 +655,8 @@ func _activate_pause_item() -> void:
     match pause_selection:
         0: _set_pause(false)
         1:
-            restart()
+            _clear_recovery_checkpoint()
+            restart(false)
             _set_pause(false)
         2:
             if is_instance_valid(audio):
@@ -1269,6 +1354,7 @@ func _finish_floor_clear() -> void:
         floor_in_room += 1
         phase = "intermission"
         phase_timer = 0.8
+    _save_recovery_checkpoint()
 
 func _prepare_floor_erosion() -> void:
     erosion_cells.clear()
