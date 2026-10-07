@@ -2005,7 +2005,9 @@ func _hurt_enemy(enemy: Dictionary, amount: float, owner: int) -> void:
 func _start_cinematic_finisher(move: String, victim_kind: String, victim_id: int, victim_actor: String = "", attacker_player: int = -1, origin: Vector2 = Vector2(384, 545)) -> void:
     if not cinematic_finisher.is_empty():
         return
-    var duration = 6.4 if move == "LADDER PLANK" else 5.4 if move == "NEON TRAIN" else 4.8
+    # These are arena-floor death gags, not cutaway scenes. Keep them brief so
+    # they match the regular death moves and never distract the other players.
+    var duration = 2.8 if move == "LADDER PLANK" else 2.35 if move == "NEON TRAIN" else 2.2
     var attacker_enemy = victim_actor if victim_kind == "player" and enemy_defs.has(victim_actor) else "grunt"
     cinematic_finisher = {
         "move": move, "time": 0.0, "duration": duration,
@@ -2214,66 +2216,47 @@ func _draw_cinematic_finisher() -> void:
         return
     var move = String(cinematic_finisher["move"])
     var time = float(cinematic_finisher["time"])
-    var duration = float(cinematic_finisher["duration"])
     var direction = float(cinematic_finisher["direction"])
     var center: Vector2 = cinematic_finisher["origin"]
-    var panel = Rect2(center - Vector2(145, 125), Vector2(290, 250))
-    draw_rect(panel, Color(.01, .018, .045, .86))
-    draw_rect(panel, Color(1, .18, .62, .9), false, 3)
-    _label(move, center + Vector2(0, -98), 17, Color(1, .45, .76), true)
-
+    # Draw directly into the live arena at normal character scale. There is
+    # deliberately no backdrop, border, title card, or progress bar.
     if move == "LADDER PLANK":
-        var climb = clampf(time / 2.35, 0.0, 1.0)
-        climb = climb * climb * (3.0 - 2.0 * climb)
-        var top_y = center.y - 50.0
-        var actor_y = lerpf(center.y + 88.0, top_y, climb)
-        draw_line(center + Vector2(-34, -68), center + Vector2(-34, 98), Color(.7, .78, .88), 5)
-        draw_line(center + Vector2(34, -68), center + Vector2(34, 98), Color(.7, .78, .88), 5)
-        for rung in range(-52, 92, 18):
-            draw_line(center + Vector2(-34, rung), center + Vector2(34, rung), Color(.45, .56, .7), 4)
-        draw_rect(Rect2(center + Vector2(-92, -70), Vector2(184, 13)), Color(.75, .42, .1))
-        var victim_pos = Vector2(center.x + 22, actor_y)
-        var attacker_pos = Vector2(center.x - 20, actor_y + 7)
-        var victim_rotation = 0.0
-        if time >= 2.65 and time < 3.65:
-            victim_pos.x += direction * 12.0
-            victim_rotation = direction * .22
-            _label("SHOVE!", center + Vector2(0, 10), 15, Color(1, .82, .2), true)
-        elif time >= 3.65:
-            var fall = clampf((time - 3.65) / 1.75, 0.0, 1.0)
-            victim_pos.x += direction * (18.0 + fall * 68.0)
-            victim_pos.y = top_y + fall * fall * 145.0
-            victim_rotation = direction * fall * 7.0
-            if fall > .9: _label("SPLAT!", center + Vector2(0, 84), 21, Color(1, .18, .22), true)
-        _draw_finisher_attacker(attacker_pos, -direction * .08, Vector2.ONE * .58)
-        _draw_finisher_victim(victim_pos, victim_rotation, Vector2.ONE * .58)
+        var climb = smoothstep(0.0, 1.0, clampf(time / 1.05, 0.0, 1.0))
+        var top_y = center.y - 34.0
+        var actor_y = lerpf(center.y + 42.0, top_y, climb)
+        draw_line(center + Vector2(-19, -45), center + Vector2(-19, 52), Color(.62, .72, .82), 3)
+        draw_line(center + Vector2(19, -45), center + Vector2(19, 52), Color(.62, .72, .82), 3)
+        for rung in range(-37, 48, 14):
+            draw_line(center + Vector2(-19, rung), center + Vector2(19, rung), Color(.4, .52, .66), 2)
+        draw_rect(Rect2(center + Vector2(-47, -49), Vector2(94, 7)), Color(.72, .4, .1))
+        var fall = clampf((time - 1.2) / 1.25, 0.0, 1.0)
+        var victim_pos = Vector2(center.x + 13 + direction * fall * 46.0, actor_y + fall * fall * 82.0)
+        _draw_finisher_attacker(Vector2(center.x - 12, actor_y + 4), -direction * .08, Vector2.ONE * .34)
+        _draw_finisher_victim(victim_pos, direction * fall * 5.0, Vector2.ONE * .34)
     elif move == "TRASH COMPACTOR":
-        var crush = clampf((time - 1.0) / 2.8, 0.0, 1.0)
-        var gap = lerpf(112.0, 28.0, crush)
-        draw_rect(Rect2(center.x - 134, center.y - 62, 134 - gap, 128), Color(.28, .34, .42))
-        draw_rect(Rect2(center.x + gap, center.y - 62, 134 - gap, 128), Color(.28, .34, .42))
-        _draw_finisher_victim(center + Vector2(0, 18), sin(time * 18.0) * crush * .1, Vector2(.62 - crush * .22, .62))
-        _draw_finisher_attacker(center + Vector2(-102, 82), 0, Vector2.ONE * .55)
-        if crush > .9: _label("CRUNCH!", center + Vector2(0, 92), 19, Color(1, .45, .15), true)
+        var crush = smoothstep(0.0, 1.0, clampf((time - .25) / 1.45, 0.0, 1.0))
+        var gap = lerpf(51.0, 12.0, crush)
+        draw_rect(Rect2(center.x - 62, center.y - 34, 62 - gap, 68), Color(.28, .34, .42))
+        draw_rect(Rect2(center.x + gap, center.y - 34, 62 - gap, 68), Color(.28, .34, .42))
+        _draw_finisher_victim(center + Vector2(0, 8), sin(time * 20.0) * crush * .08, Vector2(.36 - crush * .12, .36))
+        _draw_finisher_attacker(center + Vector2(-54, 42), 0, Vector2.ONE * .32)
     elif move == "ROCKET CHAIR":
-        var launch = clampf((time - 1.1) / 2.9, 0.0, 1.0)
-        var chair_pos = center + Vector2(direction * launch * 82.0, 55.0 - launch * launch * 120.0)
-        for trail in range(5):
-            draw_circle(chair_pos + Vector2(-direction * trail * 11.0, 25 + trail * 5.0), 10.0 - trail, Color(1, .3, .06, .75))
-        draw_rect(Rect2(chair_pos + Vector2(-15, -5), Vector2(30, 36)), Color(.3, .42, .55))
-        _draw_finisher_victim(chair_pos + Vector2(0, -10), direction * launch * 6.0, Vector2.ONE * .58)
-        _draw_finisher_attacker(center + Vector2(-95, 82), 0, Vector2.ONE * .55)
+        var launch = smoothstep(0.0, 1.0, clampf((time - .3) / 1.55, 0.0, 1.0))
+        var chair_pos = center + Vector2(direction * launch * 54.0, 20.0 - launch * launch * 76.0)
+        for trail in range(3):
+            draw_circle(chair_pos + Vector2(-direction * trail * 7.0, 15 + trail * 4.0), 6.0 - trail, Color(1, .3, .06, .7))
+        draw_rect(Rect2(chair_pos + Vector2(-9, -3), Vector2(18, 22)), Color(.3, .42, .55))
+        _draw_finisher_victim(chair_pos + Vector2(0, -6), direction * launch * 5.0, Vector2.ONE * .34)
+        _draw_finisher_attacker(center + Vector2(-53, 43), 0, Vector2.ONE * .32)
     else:
-        var train = clampf((time - 1.35) / 2.5, 0.0, 1.0)
-        var train_x = lerpf(center.x - 230.0, center.x + 230.0, train)
-        draw_line(center + Vector2(-130, 58), center + Vector2(130, 58), Color(.4, .58, .72), 5)
-        draw_line(center + Vector2(-130, 82), center + Vector2(130, 82), Color(.4, .58, .72), 5)
-        _draw_finisher_victim(center + Vector2(0, 40), sin(time * 11.0) * .08, Vector2.ONE * .58)
-        draw_rect(Rect2(train_x - 72, center.y - 20, 144, 86), Color(.04, .16, .25))
-        draw_rect(Rect2(train_x - 72, center.y - 20, 144, 86), Color(.1, .9, 1), false, 4)
-        _label("NEON", Vector2(train_x, center.y + 26), 16, Color(1, .3, .72), true)
-        _draw_finisher_attacker(center + Vector2(-100, 92), 0, Vector2.ONE * .52)
-    draw_rect(Rect2(panel.position + Vector2(8, panel.size.y - 9), Vector2((panel.size.x - 16) * maxf(0.0, 1.0 - time / duration), 4)), Color(.2, .9, 1))
+        var train = smoothstep(0.0, 1.0, clampf((time - .3) / 1.65, 0.0, 1.0))
+        var train_x = lerpf(center.x - 90.0, center.x + 90.0, train)
+        draw_line(center + Vector2(-60, 29), center + Vector2(60, 29), Color(.4, .58, .72), 3)
+        draw_line(center + Vector2(-60, 40), center + Vector2(60, 40), Color(.4, .58, .72), 3)
+        _draw_finisher_victim(center + Vector2(0, 18), sin(time * 12.0) * .08, Vector2.ONE * .34)
+        draw_rect(Rect2(train_x - 34, center.y - 12, 68, 43), Color(.04, .16, .25))
+        draw_rect(Rect2(train_x - 34, center.y - 12, 68, 43), Color(.1, .9, 1), false, 2)
+        _draw_finisher_attacker(center + Vector2(-54, 45), 0, Vector2.ONE * .31)
 
 func _draw_cinematic_finisher_fullscreen_unused() -> void:
     if cinematic_finisher.is_empty():
