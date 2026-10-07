@@ -21,6 +21,8 @@ PARTY_QR_SECONDS = 2.0
 REBOOT_SECONDS = 8.0
 ARM_TIMEOUT = 10.0
 SIMULTANEOUS_WINDOW = 0.45
+FLIPPER_REPEAT_DELAY = 0.55
+FLIPPER_REPEAT_SECONDS = 0.22
 EVENT = struct.Struct("llHHI")
 overlay_process = None
 volume_mode = False
@@ -189,6 +191,8 @@ def monitor(fd):
     armed_until = 0.0
     pending_since = None
     volume = current_volume()
+    flipper_held = {LEFT_SIDE: False, RIGHT_SIDE: False}
+    flipper_next = {LEFT_SIDE: 0.0, RIGHT_SIDE: 0.0}
 
     while True:
         now = time.monotonic()
@@ -204,12 +208,21 @@ def monitor(fd):
                     continue
                 if value == 1 and close_party_overlay():
                     continue
-                if value == 1 and code in (LEFT_SIDE, RIGHT_SIDE) and emulationstation_has_focus():
-                    adjust_menu_music("volumedown" if code == LEFT_SIDE else "volumeup")
-                    # Consume the cabinet shortcut internally. EmulationStation
-                    # still receives its own input device event, while games
-                    # never see volume handling from this daemon.
-                    continue
+                if code in (LEFT_SIDE, RIGHT_SIDE):
+                    if value == 0:
+                        flipper_held[code] = False
+                        if emulationstation_has_focus():
+                            pressed[code] = False
+                            continue
+                    elif value == 1 and emulationstation_has_focus():
+                        pressed[code] = False
+                        adjust_menu_music("volumedown" if code == LEFT_SIDE else "volumeup")
+                        flipper_held[code] = True
+                        flipper_next[code] = time.monotonic() + FLIPPER_REPEAT_DELAY
+                        # Consume the cabinet shortcut internally. Games still
+                        # receive these buttons normally; only ES uses them as
+                        # hold-to-repeat jukebox volume controls.
+                        continue
                 if code not in pressed:
                     continue
                 pressed[code] = bool(value)
@@ -219,6 +232,14 @@ def monitor(fd):
                     pending_since = now
 
         now = time.monotonic()
+        for code in (LEFT_SIDE, RIGHT_SIDE):
+            if flipper_held[code] and now >= flipper_next[code]:
+                if emulationstation_has_focus():
+                    adjust_menu_music("volumedown" if code == LEFT_SIDE else "volumeup")
+                    flipper_next[code] = now + FLIPPER_REPEAT_SECONDS
+                else:
+                    flipper_held[code] = False
+
         game_exit_combo = pressed[START] and pressed[SELECT]
         if game_exit_combo:
             if game_exit_since is None:
