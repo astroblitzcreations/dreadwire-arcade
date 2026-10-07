@@ -109,6 +109,7 @@ var erosion_active := false
 var floor_tile_states: Dictionary = {}
 var floor_tile_changed_at: Dictionary = {}
 var floor_trail_bombs: Array = []
+var player_clones: Array = []
 var cinematic_finisher: Dictionary = {}
 var enemy_finisher_cooldown := 0.0
 const CINEMATIC_FINISHERS = ["LADDER PLANK", "TRASH COMPACTOR", "ROCKET CHAIR", "NEON TRAIN"]
@@ -220,6 +221,7 @@ func restart(load_recovery: bool = true) -> void:
     floor_tile_states.clear()
     floor_tile_changed_at.clear()
     floor_trail_bombs.clear()
+    player_clones.clear()
     cinematic_finisher.clear()
     enemy_finisher_cooldown = 0.0
     prize_spawn_timer = randf_range(10.0, 16.0)
@@ -541,6 +543,7 @@ func _process(delta: float) -> void:
             if phase in ["combat", "corridor"]:
                 _update_enemies(dt)
         _update_shots(dt)
+        _update_player_clones(dt)
         _update_floor_trail_bombs(dt)
         _update_drops(dt)
         _update_hazards(dt)
@@ -623,7 +626,7 @@ func _update_random_prizes(dt: float) -> void:
     if prize_spawn_timer <= 0:
         prize_spawn_timer = randf_range(10.0, 18.0)
         var roll = randf()
-        var prize = "lightning_bolt" if roll < .18 else "credits" if roll < .68 else "prize_box"
+        var prize = "combat_clone" if roll < .14 else "lightning_bolt" if roll < .28 else "credits" if roll < .72 else "prize_box"
         _add_pickup(prize, Vector2(randf_range(120, 648), randf_range(260, 870)))
         _popup("BONUS DROP!", Vector2(384, 230), Color(1, .82, .12))
 
@@ -1179,6 +1182,61 @@ func _fire_player(p: Dictionary) -> void:
         if sfx_enabled:
             audio.play_sfx(w["sound"], randf_range(0.96, 1.04))
     _effect("muzzle_plasma" if w["projectile"] == "plasma" else "muzzle_pulse", origin + p["aim"] * 34, 0.20, angle)
+
+func _spawn_combat_clone(p: Dictionary) -> void:
+    var owner = int(p["id"])
+    # Picking up another clone refreshes the existing helper rather than
+    # multiplying autonomous shooters until the arena becomes unreadable.
+    player_clones = player_clones.filter(func(clone): return int(clone["owner"]) != owner)
+    player_clones.append({"owner": owner, "pos": p["pos"] + Vector2(-38 if owner == 0 else 38, 28),
+        "time": 5.0, "fire_timer": .12, "aim": p["aim"], "anim_time": 0.0})
+    _popup("COMBAT CLONE — 5 SECONDS!", p["pos"] + Vector2(0, -72), Color(.45, 1, .95))
+    _effect("enemy_spawn", p["pos"], .8)
+
+func _update_player_clones(dt: float) -> void:
+    for clone in player_clones:
+        clone["time"] -= dt
+        clone["fire_timer"] -= dt
+        clone["anim_time"] += dt
+        var owner_id = int(clone["owner"])
+        if owner_id < 0 or owner_id >= players.size() or players[owner_id]["lives"] <= 0:
+            clone["time"] = 0.0
+            continue
+        var owner: Dictionary = players[owner_id]
+        var target: Dictionary = {}
+        var nearest := INF
+        for enemy in enemies:
+            if float(enemy["hp"]) <= 0.0 or float(enemy["spawn"]) > 0.0:
+                continue
+            var distance: float = clone["pos"].distance_squared_to(enemy["pos"])
+            if distance < nearest:
+                nearest = distance
+                target = enemy
+        var destination: Vector2
+        if target.is_empty():
+            destination = owner["pos"] + Vector2(-44 if owner_id == 0 else 44, 30)
+        else:
+            var away = (clone["pos"] - target["pos"]).normalized()
+            if away == Vector2.ZERO:
+                away = Vector2.DOWN
+            destination = target["pos"] + away * 125.0
+            clone["aim"] = (target["pos"] - clone["pos"]).normalized()
+        var delta_to_target: Vector2 = destination - clone["pos"]
+        if delta_to_target.length() > 8.0:
+            clone["pos"] += delta_to_target.normalized() * minf(delta_to_target.length(), 330.0 * dt)
+            clone["pos"] = _clamp_room(clone["pos"], 26.0)
+        if target.is_empty() or float(clone["fire_timer"]) > 0.0 or shots.size() > 416:
+            continue
+        var w: Dictionary = weapons[owner["weapon"]]
+        var direction: Vector2 = clone["aim"]
+        var origin: Vector2 = clone["pos"] + Vector2(0, -18)
+        clone["fire_timer"] = maxf(.18, float(w["fire_interval"]) * .8)
+        shots.append({"pos": origin + direction * 22.0, "old": origin,
+            "vel": direction * float(w["projectile_speed"]), "owner": owner_id, "kind": w["projectile"],
+            "damage": float(w["damage"]) * .55, "life": w["lifetime"], "pierce": false,
+            "splash": float(w["splash_radius"]) * .4, "chain": 0, "hit_ids": []})
+        _effect("muzzle_plasma" if w["projectile"] == "plasma" else "muzzle_pulse", origin + direction * 27.0, .14, direction.angle())
+    player_clones = player_clones.filter(func(clone): return float(clone["time"]) > 0.0)
 
 func _hurt_player(p: Dictionary, amount: float, finisher_source: String = "") -> void:
     if god_mode or p["respawn"] > 0 or (finisher_source != "floor" and (p["invuln"] > 0 or p["buffs"].has("invulnerability"))):
@@ -2079,6 +2137,7 @@ func _update_drops(dt: float) -> void:
                         audio.announce_sequence(["voice_whoo.wav"], false, 12.0)
                     "bomb": p["buffs"]["damage_boost"] = 8.0
                     "reflect_shield": p["buffs"]["reflect_shield"] = 10.0
+                    "combat_clone": _spawn_combat_clone(p)
                     "lightning_bolt":
                         p["lightning_level"] = mini(5, int(p["lightning_level"]) + 1)
                         _popup("LIGHTNING LV.%d — SPEED + BOMB SIZE" % p["lightning_level"], p["pos"] + Vector2(0, -52), Color(.35, .9, 1))
@@ -2704,6 +2763,13 @@ func _draw_game_entities() -> void:
                 draw_colored_polygon(bolt, Color(1, .92, .18, pulse))
                 draw_polyline(bolt, Color(.35, .92, 1, pulse), 4, true)
                 _label("LIGHTNING UPGRADE", drop["pos"] + Vector2(0, -34), 12, Color(.45, .95, 1), true)
+            elif drop["id"] == "combat_clone":
+                var clone_color = Color(.25, 1, .92, .9)
+                var clone_pulse = 16.0 + sin(game_time * 9.0) * 3.0
+                draw_circle(drop["pos"], clone_pulse, Color(.12, .8, .75, .16))
+                draw_arc(drop["pos"], clone_pulse + 5.0, 0, TAU, 28, clone_color, 3)
+                _label("×2", drop["pos"] + Vector2(0, 6), 18, Color.WHITE, true)
+                _label("COMBAT CLONE", drop["pos"] + Vector2(0, -34), 12, clone_color, true)
             else:
                 _sprite("sprites/pickups/" + drop["id"] + ".png", drop["pos"], int(game_time * 10) % 8)
                 _label(String(drop["id"]).replace("_", " ").to_upper(), drop["pos"] + Vector2(0, -32), 11, Color(1, .8, .3), true)
@@ -2718,6 +2784,18 @@ func _draw_game_entities() -> void:
     sorted.sort_custom(func(a, b): return a["pos"].y < b["pos"].y)
     for enemy in sorted:
         _actor(enemy)
+    for clone in player_clones:
+        var owner_id = int(clone["owner"])
+        if owner_id < 0 or owner_id >= players.size():
+            continue
+        var owner: Dictionary = players[owner_id]
+        var clone_color = Color(.2, 1, .92, .72) if owner_id == 0 else Color(1, .35, .82, .72)
+        var clone_dir = _direction(clone["aim"])
+        var frame = int(float(clone["anim_time"]) * 11.0) % 4
+        _sprite("sprites/effects/ground_shadow.png", clone["pos"] + Vector2(0, 9), 0, 0, Vector2(-1, -1), Color(0.2, 1, .9, .45), .85)
+        draw_arc(clone["pos"] + Vector2(0, 5), 25.0 + sin(game_time * 10.0) * 2.0, 0, TAU, 32, clone_color, 3)
+        _sprite("sprites/players/" + String(owner["name"]) + "_fire.png", clone["pos"], frame, DIRS.find(clone_dir), Vector2(-1, -1), clone_color, .86)
+        _label("CLONE %.1f" % float(clone["time"]), clone["pos"] + Vector2(0, -43), 11, clone_color, true)
     for p in players:
         if p["id"] == 1 and not p2_enabled:
             continue

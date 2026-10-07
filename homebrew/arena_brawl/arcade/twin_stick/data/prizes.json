@@ -36,6 +36,10 @@
     "duration_seconds": 10
   },
   {
+    "id": "combat_clone",
+    "duration_seconds": 5
+  },
+  {
     "id": "bomb",
     "duration_seconds": 0
   },
