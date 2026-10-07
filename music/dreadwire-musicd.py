@@ -4,6 +4,7 @@
 import json
 import os
 import random
+import re
 import signal
 import socket
 import subprocess
@@ -99,6 +100,31 @@ class Jukebox:
                 self.process.wait()
         self.process = None
 
+    def adjust_live_stream(self, delta):
+        """Adjust VLC's existing Pulse stream without restarting the song."""
+        if not self.process or self.process.poll() is not None or self.paused:
+            return
+        try:
+            listing = subprocess.check_output(
+                ["pactl", "list", "sink-inputs"], text=True,
+                stderr=subprocess.DEVNULL,
+            )
+            stream_id = None
+            for block in re.split(r"(?=Sink Input #)", listing):
+                if f'application.process.id = "{self.process.pid}"' not in block:
+                    continue
+                match = re.search(r"Sink Input #(\d+)", block)
+                if match:
+                    stream_id = match.group(1)
+                    break
+            if stream_id and abs(delta) > 0.0001:
+                subprocess.run(
+                    ["pactl", "set-sink-input-volume", stream_id, f"{delta * 100:+.0f}%"],
+                    check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                )
+        except (OSError, subprocess.SubprocessError):
+            pass
+
     def start_next(self):
         if not self.enabled or self.game_paused:
             return
@@ -138,11 +164,11 @@ class Jukebox:
     def command(self, command):
         command = command.strip().lower()
         if command.startswith("volume:"):
+            previous = self.volume
             try: self.volume = max(0.0, min(1.25, float(command.split(":", 1)[1]) / 100.0))
             except ValueError: return
             self.save_config()
-            if self.process and self.process.poll() is None and not self.paused:
-                self.terminate(); self.start_current()
+            self.adjust_live_stream(self.volume - previous)
             self.write_state("Volume set")
             return
         if command in ("next", "skip"):
@@ -200,18 +226,16 @@ class Jukebox:
                 self.start_next()
             self.was_playing_before_game = False
         elif command in ("volumeup", "volup"):
+            previous = self.volume
             self.volume = min(1.25, self.volume + 0.08)
             self.save_config()
-            if self.process and self.process.poll() is None and not self.paused:
-                self.terminate()
-                self.start_current()
+            self.adjust_live_stream(self.volume - previous)
             self.write_state("Volume increased")
         elif command in ("volumedown", "voldown"):
+            previous = self.volume
             self.volume = max(0.15, self.volume - 0.08)
             self.save_config()
-            if self.process and self.process.poll() is None and not self.paused:
-                self.terminate()
-                self.start_current()
+            self.adjust_live_stream(self.volume - previous)
             self.write_state("Volume decreased")
         elif command == "status":
             self.write_state()
