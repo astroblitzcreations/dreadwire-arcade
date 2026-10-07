@@ -2,6 +2,7 @@
 """Two-button safety shortcuts for the Raspberry Pi arcade cabinet."""
 
 import os
+import fcntl
 import select
 import socket
 import struct
@@ -24,6 +25,8 @@ SIMULTANEOUS_WINDOW = 0.45
 FLIPPER_REPEAT_DELAY = 0.55
 FLIPPER_REPEAT_SECONDS = 0.22
 EVENT = struct.Struct("llHHI")
+KEY_BITMAP_BYTES = 96
+EVIOCGKEY = (2 << 30) | (KEY_BITMAP_BYTES << 16) | (ord("E") << 8) | 0x18
 overlay_process = None
 volume_mode = False
 
@@ -100,6 +103,16 @@ def adjust_menu_music(command):
     """Change only jukebox gain; game/master volume remains untouched."""
     run("/usr/local/bin/dreadwire-musicctl.py", command)
     log("EmulationStation flipper: jukebox " + command)
+
+
+def key_is_down(fd, code):
+    """Read the controller's real key state, recovering missed releases."""
+    bitmap = bytearray(KEY_BITMAP_BYTES)
+    try:
+        fcntl.ioctl(fd, EVIOCGKEY, bitmap, True)
+    except OSError:
+        return False
+    return bool(bitmap[code // 8] & (1 << (code % 8)))
 
 
 def pipewire(*arguments, capture=False):
@@ -234,7 +247,10 @@ def monitor(fd):
         now = time.monotonic()
         for code in (LEFT_SIDE, RIGHT_SIDE):
             if flipper_held[code] and now >= flipper_next[code]:
-                if emulationstation_has_focus():
+                if not key_is_down(fd, code):
+                    flipper_held[code] = False
+                    pressed[code] = False
+                elif emulationstation_has_focus():
                     adjust_menu_music("volumedown" if code == LEFT_SIDE else "volumeup")
                     flipper_next[code] = now + FLIPPER_REPEAT_SECONDS
                 else:
