@@ -446,7 +446,9 @@ func _process(delta: float) -> void:
         if phase == "entrance":
             _update_entrance(dt)
         else:
-            if phase in ["combat", "route", "clear_hold", "intermission"]:
+            # Players remain live during every between-round countdown. The
+            # warning used to create a noticeable one-second input freeze.
+            if phase in ["combat", "route", "clear_hold", "intermission", "warning"]:
                 _update_players(dt)
             _update_waves(dt)
             if phase in ["combat", "corridor"]:
@@ -998,11 +1000,17 @@ func _update_players(dt: float) -> void:
                     nearest = distance
                     target_enemy = enemy
             if not target_enemy.is_empty():
-                aim = (target_enemy["pos"] - p["pos"]).normalized()
-                firing = true
-                fire_button = true
-                var orbit = Vector2.from_angle(game_time * .75 + p["id"] * PI)
-                move = (orbit + (p["pos"] - target_enemy["pos"]).normalized() * .45).normalized()
+                # Demo contestants deliberately play like good humans rather
+                # than perfect turrets: reaction bursts, slight aim drift and
+                # imperfect spacing keep waves readable and survivable.
+                var raw_aim: Vector2 = (target_enemy["pos"] - p["pos"]).normalized()
+                aim = raw_aim.rotated(sin(game_time * 2.1 + p["id"] * 2.7) * .11)
+                var burst_active := fmod(game_time + p["id"] * .63, 1.55) < .88
+                firing = burst_active
+                fire_button = burst_active
+                var orbit = Vector2.from_angle(game_time * .48 + p["id"] * PI)
+                var spacing = (p["pos"] - target_enemy["pos"]).normalized() * (.58 if nearest < 42000 else .18)
+                move = (orbit * .72 + spacing).normalized()
         # FIRE and LOCK AIM are intentionally separate. FIRE normally follows
         # travel direction. Pressing LOCK snapshots that direction; while it is
         # held, the player can move anywhere without rotating the stream.
@@ -1022,7 +1030,7 @@ func _update_players(dt: float) -> void:
         elif firing:
             p["dir"] = _direction(p["aim"])
         var lightning_speed = 1.0 + float(p["lightning_level"]) * .10
-        var speed = 230.0 * lightning_speed * (1.4 if p["buffs"].has("speed_boost") else 1.0)
+        var speed = 230.0 * lightning_speed * (1.4 if p["buffs"].has("speed_boost") else 1.0) * (.84 if attract_mode else 1.0)
         p["pos"] = _clamp_room(p["pos"] + move * speed * dt)
         if phase == "combat":
             _update_floor_paint(p)
@@ -1052,7 +1060,9 @@ func _fire_player(p: Dictionary) -> void:
     if shots.size() > 420:
         return
     var w: Dictionary = weapons[p["weapon"]]
-    p["fire_timer"] = w["fire_interval"] * (0.55 if p["buffs"].has("rapid_fire") else 1.0)
+    var demo_rate := 1.45 if attract_mode else 1.0
+    var demo_damage := .64 if attract_mode else 1.0
+    p["fire_timer"] = w["fire_interval"] * (0.55 if p["buffs"].has("rapid_fire") else 1.0) * demo_rate
     var count = int(w["projectile_count"]) + (2 if p["buffs"].has("spread_shot") else 0)
     var spread = maxf(float(w["spread_degrees"]), 7 if count > 1 else 0)
     var origin: Vector2 = p["pos"] + Vector2(0, -18)
@@ -1061,7 +1071,7 @@ func _fire_player(p: Dictionary) -> void:
         var direction = Vector2.from_angle(angle + deg_to_rad((j - (count - 1) * 0.5) * spread))
         shots.append({"pos": origin + direction * 28, "old": origin,
             "vel": direction * w["projectile_speed"], "owner": p["id"], "kind": w["projectile"],
-            "damage": w["damage"] * (1.6 if p["buffs"].has("damage_boost") else 1),
+            "damage": w["damage"] * (1.6 if p["buffs"].has("damage_boost") else 1) * demo_damage,
             "life": w["lifetime"], "pierce": w["piercing"] or p["buffs"].has("piercing"),
             "splash": w["splash_radius"], "chain": w["chain_targets"], "hit_ids": []})
     # The orbit robot is a companion upgrade, not a replacement weapon.  It
@@ -1073,7 +1083,7 @@ func _fire_player(p: Dictionary) -> void:
             var direction = p["aim"].normalized()
             shots.append({"pos": drone_origin + direction * 18, "old": drone_origin,
                 "vel": direction * float(w["projectile_speed"]), "owner": p["id"], "kind": w["projectile"],
-                "damage": float(w["damage"]) * (.55 + drone_index * .12), "life": w["lifetime"],
+                "damage": float(w["damage"]) * (.55 + drone_index * .12) * demo_damage, "life": w["lifetime"],
                 "pierce": false, "splash": float(w["splash_radius"]) * .45, "chain": 0, "hit_ids": []})
     if w["id"] != "flame_projector" or int(game_time * 10) % 5 == 0:
         if sfx_enabled:

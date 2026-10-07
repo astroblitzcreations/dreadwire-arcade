@@ -12,8 +12,7 @@ var music: AudioStreamPlayer
 var elapsed := 0.0
 var idle_elapsed := 0.0
 var starting_game := false
-var logo_left: TextureRect
-var logo_right: TextureRect
+var logo_left: Control
 
 func _ready() -> void:
     texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -39,23 +38,36 @@ func _build_scene() -> void:
     shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
     add_child(shade)
 
-    var logo_texture: Texture2D = load(BASE + "assets/ui/menus/arena_brawl_logo.png")
-    logo_left = _logo_half(logo_texture, Rect2(0, 0, logo_texture.get_width() / 2.0, logo_texture.get_height()), Vector2(-300, 87))
-    logo_right = _logo_half(logo_texture, Rect2(logo_texture.get_width() / 2.0, 0, logo_texture.get_width() / 2.0, logo_texture.get_height()), Vector2(768, 87))
+    # Render the cabinet title as real text. The old split bitmap ignored its
+    # crop bounds on GLES and drew both 1000px halves over one another.
+    logo_left = _logo_title(Vector2(-680, 112))
+
+    var tagline = Label.new()
+    tagline.text = "FIGHT  •  SURVIVE  •  WIN BIG"
+    tagline.position = Vector2(84, 218)
+    tagline.size = Vector2(600, 30)
+    tagline.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    tagline.add_theme_font_size_override("font_size", 16)
+    tagline.add_theme_color_override("font_color", Color(1, .72, .18))
+    tagline.add_theme_color_override("font_outline_color", Color(.03, .01, .08))
+    tagline.add_theme_constant_override("outline_size", 5)
+    add_child(tagline)
 
     var subtitle = Label.new()
     subtitle.text = "TWIN-STICK CARNAGE // CABINET EDITION"
-    subtitle.position = Vector2(90, 260)
-    subtitle.size = Vector2(588, 40)
+    subtitle.position = Vector2(84, 248)
+    subtitle.size = Vector2(600, 34)
     subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    subtitle.add_theme_font_size_override("font_size", 18)
+    subtitle.add_theme_font_size_override("font_size", 15)
     subtitle.add_theme_color_override("font_color", Color(.25, .92, 1))
+    subtitle.add_theme_color_override("font_outline_color", Color(.02, .03, .1))
+    subtitle.add_theme_constant_override("outline_size", 4)
     add_child(subtitle)
     var score_config = ConfigFile.new()
     if score_config.load("user://arena_brawl_scores.cfg") == OK:
         var champion = Label.new()
         champion.text = "HOUSE CHAMPION: %s  %08d" % [String(score_config.get_value("champion", "name", "---")), int(score_config.get_value("champion", "score", 0))]
-        champion.position = Vector2(90, 292)
+        champion.position = Vector2(90, 279)
         champion.size = Vector2(588, 34)
         champion.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
         champion.add_theme_font_size_override("font_size", 16)
@@ -63,7 +75,7 @@ func _build_scene() -> void:
         add_child(champion)
 
     card = Panel.new()
-    card.position = Vector2(92, 340)
+    card.position = Vector2(92, 322)
     card.size = Vector2(584, 540)
     var panel_style = StyleBoxFlat.new()
     panel_style.bg_color = Color(.018, .025, .085, .96)
@@ -95,7 +107,7 @@ func _build_scene() -> void:
 
     var footer = Label.new()
     footer.text = "JOYSTICK: SELECT   FIRE/A: CONFIRM   START: LAUNCH"
-    footer.position = Vector2(44, 915)
+    footer.position = Vector2(44, 890)
     footer.size = Vector2(680, 44)
     footer.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     footer.add_theme_font_size_override("font_size", 15)
@@ -130,30 +142,30 @@ func _menu_button(label: String, y: float, callback: Callable) -> Button:
     card.add_child(button)
     return button
 
-func _logo_half(texture: Texture2D, region: Rect2, start: Vector2) -> TextureRect:
-    var atlas = AtlasTexture.new()
-    atlas.atlas = texture
-    atlas.region = region
-    var half = TextureRect.new()
-    half.texture = atlas
-    half.position = start
-    half.size = Vector2(288, 185)
-    half.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-    half.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-    add_child(half)
-    return half
+func _logo_title(start: Vector2) -> Label:
+    var title = Label.new()
+    title.text = "ARENA BRAWL"
+    title.position = start
+    title.size = Vector2(640, 92)
+    title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+    title.add_theme_font_size_override("font_size", 68)
+    title.add_theme_color_override("font_color", Color(.91, .97, 1))
+    title.add_theme_color_override("font_outline_color", Color(.04, .8, 1))
+    title.add_theme_constant_override("outline_size", 5)
+    add_child(title)
+    return title
 
 func _process(delta: float) -> void:
     elapsed += delta
     idle_elapsed += delta
     var slide = clampf(elapsed / 1.15, 0.0, 1.0)
     slide = 1.0 - pow(1.0 - slide, 3.0)
-    logo_left.position.x = lerpf(-300.0, 96.0, slide)
-    logo_right.position.x = lerpf(768.0, 384.0, slide)
+    logo_left.position.x = lerpf(-680.0, 64.0, slide)
     card.modulate.a = clampf((elapsed - .75) / .55, 0.0, 1.0)
     if card:
         card.rotation = sin(elapsed * .75) * .004
-        card.position.y = 340 + sin(elapsed * 1.15) * 4
+        card.position.y = 322 + sin(elapsed * 1.15) * 4
     if idle_elapsed >= 30.0 and not starting_game:
         _start_attract()
     queue_redraw()
