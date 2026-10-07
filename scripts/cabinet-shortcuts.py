@@ -14,6 +14,7 @@ EV_KEY = 1
 START = 295  # joystick button 7
 SELECT = 293  # joystick button 5
 LEFT_SIDE = 297  # joystick button 9 / BTN_BASE4
+RIGHT_SIDE = 296  # joystick button 8 / BTN_BASE3
 ARM_SECONDS = 3.0
 GAME_EXIT_SECONDS = 3.0
 PARTY_QR_SECONDS = 2.0
@@ -71,6 +72,32 @@ def perform(action):
     elif action == "both":
         run("pkill", "-KILL", "-x", "retroarch")
         run("systemctl", "restart", "getty@tty1.service")
+
+
+def emulationstation_has_focus():
+    """True only while browsing ES, never while a launched game owns it."""
+    if subprocess.run(
+        ["pgrep", "-f", "/opt/retropie/supplementary/emulationstation/emulationstation"],
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False,
+    ).returncode != 0:
+        return False
+    game_patterns = [
+        "runcommand.sh", "retroarch", "arena-brawl", "speedbike", "goldmaze",
+        "void_run", "mupen64plus", "ppsspp", "dolphin-emu", "dosbox", "scummvm",
+    ]
+    for pattern in game_patterns:
+        if subprocess.run(
+            ["pgrep", "-f", pattern],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False,
+        ).returncode == 0:
+            return False
+    return True
+
+
+def adjust_menu_music(command):
+    """Change only jukebox gain; game/master volume remains untouched."""
+    run("/usr/local/bin/dreadwire-musicctl.py", command)
+    log("EmulationStation flipper: jukebox " + command)
 
 
 def pipewire(*arguments, capture=False):
@@ -153,7 +180,7 @@ def close_party_overlay():
 
 def monitor(fd):
     global volume_mode
-    pressed = {START: False, SELECT: False, LEFT_SIDE: False}
+    pressed = {START: False, SELECT: False, LEFT_SIDE: False, RIGHT_SIDE: False}
     chord_since = None
     game_exit_since = None
     game_exit_fired = False
@@ -176,6 +203,12 @@ def monitor(fd):
                 if event_type != EV_KEY or value == 2:
                     continue
                 if value == 1 and close_party_overlay():
+                    continue
+                if value == 1 and code in (LEFT_SIDE, RIGHT_SIDE) and emulationstation_has_focus():
+                    adjust_menu_music("volumedown" if code == LEFT_SIDE else "volumeup")
+                    # Consume the cabinet shortcut internally. EmulationStation
+                    # still receives its own input device event, while games
+                    # never see volume handling from this daemon.
                     continue
                 if code not in pressed:
                     continue
