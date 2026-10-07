@@ -513,10 +513,11 @@ func _save_high_score() -> void:
         if old_score > 0:
             entries.append({"name": String(config.get_value("champion", "name", "---")),
                 "score": old_score, "cash": int(config.get_value("champion", "cash", 0)),
-                "gold": int(config.get_value("champion", "gold", 0)), "stamp": 0})
+                "gold": int(config.get_value("champion", "gold", 0)), "level": 1, "stamp": 0})
     var stamp = int(Time.get_unix_time_from_system())
     entries.append({"name": initials, "score": int(players[winner]["score"]),
-        "cash": int(players[winner]["cash"]), "gold": int(players[winner]["gold"]), "stamp": stamp})
+        "cash": int(players[winner]["cash"]), "gold": int(players[winner]["gold"]),
+        "level": wave_index + 1, "floor": floor_in_room, "stamp": stamp})
     entries.sort_custom(func(a, b):
         if int(a["score"]) == int(b["score"]):
             return int(a.get("stamp", 0)) < int(b.get("stamp", 0))

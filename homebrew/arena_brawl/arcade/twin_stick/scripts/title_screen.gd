@@ -129,6 +129,7 @@ func _build_leaderboard() -> void:
                 "gold": int(score_config.get_value("champion", "gold", 0)), "stamp": 0})
             score_config.set_value("leaderboard", "entries", leaderboard_entries)
             score_config.save("user://arena_brawl_scores.cfg")
+    _import_pending_run(score_config)
     leaderboard_panel = Panel.new()
     leaderboard_panel.position = Vector2(66, 302)
     leaderboard_panel.size = Vector2(636, 624)
@@ -151,7 +152,7 @@ func _build_leaderboard() -> void:
     heading.add_theme_color_override("font_color", Color(1, .76, .16))
     leaderboard_panel.add_child(heading)
     var columns = Label.new()
-    columns.text = "RANK   PLAYER        SCORE       CASH   GOLD"
+    columns.text = "RANK  PLAYER    SCORE       LEVEL   GOLD"
     columns.position = Vector2(40, 72)
     columns.size = Vector2(556, 28)
     columns.add_theme_font_size_override("font_size", 15)
@@ -160,9 +161,9 @@ func _build_leaderboard() -> void:
     for i in range(10):
         var row = Label.new()
         var entry: Dictionary = leaderboard_entries[i] if i < leaderboard_entries.size() else {}
-        row.text = "%2d     %-3s      %08d    %6d    %2d" % [i + 1,
+        row.text = "%2d     %-3s    %08d      %2d      %2d" % [i + 1,
             String(entry.get("name", "---")).left(3), int(entry.get("score", 0)),
-            int(entry.get("cash", 0)), int(entry.get("gold", 0))]
+            int(entry.get("level", 1)), int(entry.get("gold", 0))]
         row.position = Vector2(40, 108 + i * 43)
         row.size = Vector2(556, 36)
         row.add_theme_font_size_override("font_size", 18)
@@ -176,6 +177,37 @@ func _build_leaderboard() -> void:
     footer.add_theme_font_size_override("font_size", 15)
     footer.add_theme_color_override("font_color", Color(1, .28, .72))
     leaderboard_panel.add_child(footer)
+
+func _import_pending_run(score_config: ConfigFile) -> void:
+    var pending = ConfigFile.new()
+    if pending.load("user://arena_brawl_pending_run.cfg") != OK:
+        return
+    var stamp = int(pending.get_value("pending", "stamp", 0))
+    var already_present = false
+    for entry in leaderboard_entries:
+        if int(entry.get("stamp", -1)) == stamp and stamp > 0:
+            already_present = true
+            break
+    if not already_present and int(pending.get_value("pending", "score", 0)) > 0:
+        leaderboard_entries.append({"name": String(pending.get_value("pending", "name", "P1")),
+            "score": int(pending.get_value("pending", "score", 0)),
+            "cash": int(pending.get_value("pending", "cash", 0)),
+            "gold": int(pending.get_value("pending", "gold", 0)),
+            "level": int(pending.get_value("pending", "level", 1)),
+            "floor": int(pending.get_value("pending", "floor", 1)), "stamp": stamp})
+        leaderboard_entries.sort_custom(func(a, b): return int(a["score"]) > int(b["score"]))
+        if leaderboard_entries.size() > 10:
+            leaderboard_entries.resize(10)
+        score_config.set_value("leaderboard", "entries", leaderboard_entries)
+        if not leaderboard_entries.is_empty():
+            score_config.set_value("champion", "name", leaderboard_entries[0]["name"])
+            score_config.set_value("champion", "score", leaderboard_entries[0]["score"])
+            score_config.set_value("champion", "cash", leaderboard_entries[0]["cash"])
+            score_config.set_value("champion", "gold", leaderboard_entries[0]["gold"])
+        score_config.save("user://arena_brawl_scores.cfg")
+    var pending_path = ProjectSettings.globalize_path("user://arena_brawl_pending_run.cfg")
+    if FileAccess.file_exists(pending_path):
+        DirAccess.remove_absolute(pending_path)
 
 func _menu_button(label: String, y: float, callback: Callable) -> Button:
     var button = Button.new()
