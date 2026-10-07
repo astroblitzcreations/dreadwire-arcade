@@ -128,7 +128,8 @@ func _build_leaderboard() -> void:
                 "score": champion_score, "cash": int(score_config.get_value("champion", "cash", 0)),
                 "gold": int(score_config.get_value("champion", "gold", 0)), "level": 1, "floor": 1,
                 "kills": 0, "boss_kills": 0, "deaths": 0, "pickups": 0,
-                "continues_used": 0, "play_time": 0, "stamp": 0})
+                "continues_used": 0, "keys": 0, "stage_wins": 0,
+                "loot_totals": {}, "play_time": 0, "stamp": 0})
             score_config.set_value("leaderboard", "entries", leaderboard_entries)
             score_config.save("user://arena_brawl_scores.cfg")
     _import_pending_run(score_config)
@@ -174,10 +175,10 @@ func _build_leaderboard() -> void:
     var footer = Label.new()
     var leader: Dictionary = leaderboard_entries[0] if not leaderboard_entries.is_empty() else {}
     var seconds = int(leader.get("play_time", 0))
-    footer.text = "#1  CASH %d  GOLD %d  BOSSES %d  DEATHS %d  CONT %d  TIME %02d:%02d" % [
+    footer.text = "#1 CASH %d  GOLD %d  KEYS %d  WINS %d  BOSSES %d  TIME %02d:%02d" % [
         int(leader.get("cash", 0)), int(leader.get("gold", 0)),
-        int(leader.get("boss_kills", 0)), int(leader.get("deaths", 0)),
-        int(leader.get("continues_used", 0)), int(seconds / 60), seconds % 60]
+        int(leader.get("keys", 0)), int(leader.get("stage_wins", 0)),
+        int(leader.get("boss_kills", 0)), int(seconds / 60), seconds % 60]
     footer.position = Vector2(24, 548)
     footer.size = Vector2(588, 42)
     footer.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -207,6 +208,9 @@ func _import_pending_run(score_config: ConfigFile) -> void:
             "deaths": int(pending.get_value("pending", "deaths", 0)),
             "pickups": int(pending.get_value("pending", "pickups", 0)),
             "continues_used": int(pending.get_value("pending", "continues_used", 0)),
+            "keys": int(pending.get_value("pending", "keys", 0)),
+            "stage_wins": int(pending.get_value("pending", "stage_wins", 0)),
+            "loot_totals": pending.get_value("pending", "loot_totals", {}),
             "play_time": int(pending.get_value("pending", "play_time", 0)), "stamp": stamp})
         leaderboard_entries.sort_custom(func(a, b): return int(a["score"]) > int(b["score"]))
         if leaderboard_entries.size() > 10:

@@ -115,6 +115,20 @@ var enemy_finisher_cooldown := 0.0
 const CINEMATIC_FINISHERS = ["LADDER PLANK", "TRASH COMPACTOR", "ROCKET CHAIR", "NEON TRAIN"]
 const FLOORS_PER_ROOM := 10
 const CORRIDOR_LENGTH := 1350.0
+const PRIZE_ORDER := ["toaster", "vcr", "microwave", "camcorder", "luxury_car", "vacation", "silver_bar", "gold_bar", "cash_pile", "key"]
+const PRIZE_VALUES := {
+    "toaster": {"label": "TOASTERS", "cash": 100, "score": 1000},
+    "vcr": {"label": "VCRS", "cash": 500, "score": 2000},
+    "microwave": {"label": "MICROWAVES", "cash": 800, "score": 3000},
+    "camcorder": {"label": "CAMCORDERS", "cash": 1500, "score": 5000},
+    "luxury_car": {"label": "LUXURY CARS", "cash": 15000, "score": 20000},
+    "vacation": {"label": "VACATIONS", "cash": 10000, "score": 15000},
+    "silver_bar": {"label": "SILVER BARS", "cash": 1000, "score": 5000},
+    "gold_bar": {"label": "GOLD BARS", "cash": 5000, "score": 10000},
+    "cash_pile": {"label": "CASH PILES", "cash": 500, "score": 500},
+    "key": {"label": "SECRET KEYS", "cash": 0, "score": 0},
+}
+const STAGE_WINNER_BONUS := 100000
 const RECOVERY_PATH := "user://arena_brawl_recovery.cfg"
 const RECOVERY_TEMP_PATH := "user://arena_brawl_recovery.cfg.tmp"
 const RECOVERY_VERSION := 1
@@ -129,6 +143,14 @@ var name_entry_cursor := 0
 var high_score_saved := false
 var high_score_rank := -1
 var name_axis_latched: Dictionary = {}
+var boss_tally_row := 0
+var boss_tally_counts: Array = [{}, {}]
+var boss_tally_cash: Array[int] = [0, 0]
+var boss_tally_tick := 0.0
+var boss_tally_pause := 0.0
+var boss_tally_finish := 0.0
+var boss_tally_winner := -2
+var boss_tally_bonus_awarded := false
 
 func _ready() -> void:
     texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -266,6 +288,10 @@ func _save_recovery_checkpoint() -> void:
         var section = "player_%d" % i
         for key in ["health", "armor", "lives", "score", "cash", "gold", "weapon", "bombs", "drone_level", "lightning_level", "continues", "kills", "boss_kills", "deaths", "pickups", "continues_used"]:
             config.set_value(section, key, p[key])
+        config.set_value(section, "stage_loot", p["stage_loot"])
+        config.set_value(section, "loot_totals", p["loot_totals"])
+        config.set_value(section, "keys", p["keys"])
+        config.set_value(section, "stage_wins", p["stage_wins"])
     if config.save(RECOVERY_TEMP_PATH) != OK:
         return
     var target = ProjectSettings.globalize_path(RECOVERY_PATH)
@@ -303,6 +329,15 @@ func _restore_recovery_checkpoint() -> void:
         p["continues"] = clampi(int(config.get_value(section, "continues", 3)), 0, 3)
         for stat in ["kills", "boss_kills", "deaths", "pickups", "continues_used"]:
             p[stat] = maxi(0, int(config.get_value(section, stat, 0)))
+        var saved_loot: Dictionary = config.get_value(section, "stage_loot", {})
+        var saved_loot_totals: Dictionary = config.get_value(section, "loot_totals", {})
+        p["stage_loot"] = _empty_stage_loot()
+        p["loot_totals"] = _empty_stage_loot()
+        for prize_id in PRIZE_ORDER:
+            p["stage_loot"][prize_id] = maxi(0, int(saved_loot.get(prize_id, 0)))
+            p["loot_totals"][prize_id] = maxi(0, int(saved_loot_totals.get(prize_id, p["stage_loot"][prize_id])))
+        p["keys"] = maxi(0, int(config.get_value(section, "keys", 0)))
+        p["stage_wins"] = maxi(0, int(config.get_value(section, "stage_wins", 0)))
         p["invuln"] = 3.0
     phase = "warning"
     phase_timer = 3.0
@@ -349,6 +384,8 @@ func _new_player(index: int, point: Vector2) -> Dictionary:
     return {"id": index, "name": "volt" if index == 0 else "nova", "pos": point,
         "health": 100.0, "armor": 0.0, "lives": 3, "score": 0, "cash": 0, "gold": 0,
         "kills": 0, "boss_kills": 0, "deaths": 0, "pickups": 0, "continues_used": 0,
+        "stage_loot": _empty_stage_loot(), "loot_totals": _empty_stage_loot(),
+        "keys": 0, "stage_wins": 0,
         "weapon": "pulse_pistol", "fire_timer": 0.0, "aim": Vector2.UP,
         "move": Vector2.ZERO, "dir": "s", "invuln": 2.5,
         "respawn": 0.0, "damage_flash": 0.0, "buffs": {}, "anim_time": 0.0,
@@ -360,6 +397,12 @@ func _new_player(index: int, point: Vector2) -> Dictionary:
         "trail_last_step": 0.0, "lightning_level": 0,
         "floor_falling": false,
         "continue_timer": 0.0, "continues": 3}
+
+func _empty_stage_loot() -> Dictionary:
+    var result := {}
+    for prize_id in PRIZE_ORDER:
+        result[prize_id] = 0
+    return result
 
 func _input(event: InputEvent) -> void:
     if control_wizard_open:
@@ -518,7 +561,8 @@ func _save_high_score() -> void:
                 "score": old_score, "cash": int(config.get_value("champion", "cash", 0)),
                 "gold": int(config.get_value("champion", "gold", 0)), "level": 1, "floor": 1,
                 "kills": 0, "boss_kills": 0, "deaths": 0, "pickups": 0,
-                "continues_used": 0, "play_time": 0, "stamp": 0})
+                "continues_used": 0, "keys": 0, "stage_wins": 0,
+                "loot_totals": _empty_stage_loot(), "play_time": 0, "stamp": 0})
     var stamp = int(Time.get_unix_time_from_system())
     entries.append({"name": initials, "score": int(players[winner]["score"]),
         "cash": int(players[winner]["cash"]), "gold": int(players[winner]["gold"]),
@@ -528,6 +572,9 @@ func _save_high_score() -> void:
         "deaths": int(players[winner]["deaths"]),
         "pickups": int(players[winner]["pickups"]),
         "continues_used": int(players[winner]["continues_used"]),
+        "keys": int(players[winner]["keys"]),
+        "stage_wins": int(players[winner]["stage_wins"]),
+        "loot_totals": players[winner]["loot_totals"].duplicate(true),
         "play_time": int(game_time), "stamp": stamp})
     entries.sort_custom(func(a, b):
         if int(a["score"]) == int(b["score"]):
@@ -1368,6 +1415,9 @@ func _share_reflect_shields() -> void:
 
 func _update_waves(dt: float) -> void:
     door_open_timer = maxf(0.0, door_open_timer - dt)
+    if phase == "boss_tally":
+        _update_boss_tally(dt)
+        return
     if phase == "route":
         _update_route_choice()
         return
@@ -1457,17 +1507,77 @@ func _finish_floor_clear() -> void:
     if randf() < .32:
         _add_pickup("lightning_bolt", Vector2(randf_range(170, 598), randf_range(410, 720)))
     if defeated_boss:
-        phase = "route"
-        phase_timer = 0.0
-        audio.announce_sequence(["voice_lets_go.wav"])
-        _popup("STAGE CLEARED — CHOOSE A DOOR", Vector2(384, 470), Color(0.3, 1, 0.65))
-        _add_pickup("prize_box", Vector2(384, 560))
+        _start_boss_tally()
     else:
         wave_index += 1
         floor_in_room += 1
         phase = "intermission"
         phase_timer = 0.8
     _save_recovery_checkpoint()
+
+func _start_boss_tally() -> void:
+    phase = "boss_tally"
+    phase_timer = 0.0
+    boss_tally_row = 0
+    boss_tally_counts = [_empty_stage_loot(), _empty_stage_loot()]
+    boss_tally_cash = [0, 0]
+    boss_tally_tick = 0.0
+    boss_tally_pause = 0.55
+    boss_tally_finish = 0.0
+    boss_tally_winner = -2
+    boss_tally_bonus_awarded = false
+    shots.clear()
+    hazards.clear()
+    drops.clear()
+    audio.play_sfx("wave_clear")
+    _popup("STAGE COMPLETE — PRIZE SETTLEMENT", Vector2(384, 430), Color(1, .76, .16))
+
+func _update_boss_tally(dt: float) -> void:
+    if boss_tally_pause > 0.0:
+        boss_tally_pause -= dt
+        return
+    if boss_tally_row < PRIZE_ORDER.size():
+        boss_tally_tick -= dt
+        if boss_tally_tick > 0.0:
+            return
+        boss_tally_tick = 0.06
+        var prize_id: String = PRIZE_ORDER[boss_tally_row]
+        var complete := true
+        for i in range(2 if p2_enabled else 1):
+            var target = int(players[i]["stage_loot"].get(prize_id, 0))
+            var shown = int(boss_tally_counts[i].get(prize_id, 0))
+            if shown < target:
+                var step = 10 if target - shown > 40 else 5 if target - shown > 20 else 1
+                step = mini(step, target - shown)
+                boss_tally_counts[i][prize_id] = shown + step
+                boss_tally_cash[i] += step * int(PRIZE_VALUES[prize_id]["cash"])
+                complete = false
+        if complete:
+            boss_tally_row += 1
+            boss_tally_pause = .3
+        else:
+            audio.play_sfx("credits_pickup")
+        return
+    if not boss_tally_bonus_awarded:
+        boss_tally_bonus_awarded = true
+        if p2_enabled:
+            boss_tally_winner = 0 if boss_tally_cash[0] > boss_tally_cash[1] else 1 if boss_tally_cash[1] > boss_tally_cash[0] else -1
+        else:
+            boss_tally_winner = 0 if boss_tally_cash[0] >= 15000 else -1
+        if boss_tally_winner >= 0:
+            players[boss_tally_winner]["score"] += STAGE_WINNER_BONUS
+            players[boss_tally_winner]["stage_wins"] += 1
+            audio.announce_sequence(["voice_i_love_it.wav"], true, 3.0)
+        boss_tally_finish = 3.4
+        return
+    boss_tally_finish -= dt
+    if boss_tally_finish <= 0.0:
+        for p in players:
+            p["stage_loot"] = _empty_stage_loot()
+        phase = "route"
+        audio.announce_sequence(["voice_lets_go.wav"])
+        _popup("CHOOSE YOUR PATH", Vector2(384, 470), Color(.3, 1, .65))
+        _save_recovery_checkpoint()
 
 func _prepare_floor_erosion() -> void:
     erosion_cells.clear()
@@ -2200,12 +2310,9 @@ func _update_drops(dt: float) -> void:
                         p["lightning_level"] = mini(5, int(p["lightning_level"]) + 1)
                         _popup("LIGHTNING LV.%d — SPEED + BOMB SIZE" % p["lightning_level"], p["pos"] + Vector2(0, -52), Color(.35, .9, 1))
                     "credits":
-                        p["score"] += 5000
-                        p["cash"] += 5000
+                        _collect_stage_prize(p, "cash_pile")
                     "prize_box":
-                        p["score"] += 10000
-                        p["cash"] += 7500
-                        p["gold"] += 1
+                        _collect_stage_prize(p, _roll_game_show_prize())
                         audio.announce("pickup")
                     _: p["buffs"][id] = 12.0
                 audio.play_sfx("extra_life" if id == "extra_life" else "health_pickup" if id == "health" else "credits_pickup")
@@ -2215,6 +2322,31 @@ func _update_drops(dt: float) -> void:
             item["life"] = 0
             break
     drops = drops.filter(func(item): return item["life"] > 0)
+
+func _roll_game_show_prize() -> String:
+    var roll := randf()
+    if roll < .23: return "toaster"
+    if roll < .43: return "vcr"
+    if roll < .59: return "microwave"
+    if roll < .72: return "camcorder"
+    if roll < .80: return "silver_bar"
+    if roll < .87: return "gold_bar"
+    if roll < .93: return "vacation"
+    if roll < .98: return "luxury_car"
+    return "key"
+
+func _collect_stage_prize(player: Dictionary, prize_id: String) -> void:
+    if not PRIZE_VALUES.has(prize_id):
+        return
+    player["stage_loot"][prize_id] = int(player["stage_loot"].get(prize_id, 0)) + 1
+    player["loot_totals"][prize_id] = int(player["loot_totals"].get(prize_id, 0)) + 1
+    player["cash"] += int(PRIZE_VALUES[prize_id]["cash"])
+    player["score"] += int(PRIZE_VALUES[prize_id]["score"])
+    if prize_id == "gold_bar":
+        player["gold"] += 1
+    elif prize_id == "key":
+        player["keys"] += 1
+    _popup(String(PRIZE_VALUES[prize_id]["label"]) + "!", player["pos"] + Vector2(0, -72), Color(1, .82, .18))
 
 func _spawn_hazard(id: String, point: Vector2) -> void:
     if hazards.size() >= 24:
@@ -3014,9 +3146,11 @@ func _hud() -> void:
         _label("START PAUSE  F1 HELP  R RESTART  ESC EXIT", Vector2(28, 998), 14, Color(.55, .76, .87))
     if debug_info:
         _label("FPS %d | ENEMIES %d | SHOTS %d" % [Engine.get_frames_per_second(), enemies.size(), shots.size()], Vector2(16, 1015), 13, Color(1, .85, .3))
-    if demo_paused or game_over or victory:
+    if demo_paused or game_over or victory or phase == "boss_tally":
         draw_rect(Rect2(0, 128, 768, 896), Color(.015, .025, .05, .86))
-        if demo_paused:
+        if phase == "boss_tally":
+            _draw_boss_tally()
+        elif demo_paused:
             _draw_pause_menu()
         elif victory:
             _draw_prize_tally()
@@ -3037,6 +3171,36 @@ func _hud() -> void:
                     _label(over_initials, Vector2(384, 612), 34, Color(1, .78, .16), true)
                     var over_cursor_x = 357 + name_entry_cursor * 20
                     draw_line(Vector2(over_cursor_x, 624), Vector2(over_cursor_x + 17, 624), Color(1, .2, .62), 3)
+
+func _draw_boss_tally() -> void:
+    _label("STAGE %d COMPLETE" % (int(wave_index / FLOORS_PER_ROOM) + 1), Vector2(384, 190), 36, Color(1, .76, .16), true)
+    _label("DREADWIRE PRIZE SETTLEMENT", Vector2(384, 225), 17, Color(.35, .9, 1), true)
+    for i in range(2 if p2_enabled else 1):
+        var x = 24 + i * 372 if p2_enabled else 128
+        var width = 348 if p2_enabled else 512
+        var color = Color(.15, .85, 1) if i == 0 else Color(1, .3, .72)
+        draw_rect(Rect2(x, 248, width, 650), Color(.018, .03, .085, .97))
+        draw_rect(Rect2(x, 248, width, 650), color, false, 3)
+        _label("PLAYER %d" % (i + 1), Vector2(x + width * .5, 286), 24, color, true)
+        for row in range(PRIZE_ORDER.size()):
+            var prize_id: String = PRIZE_ORDER[row]
+            var y = 330 + row * 43
+            if row == boss_tally_row and boss_tally_row < PRIZE_ORDER.size():
+                draw_rect(Rect2(x + 10, y - 25, width - 20, 35), Color(color.r, color.g, color.b, .18))
+            _label(String(PRIZE_VALUES[prize_id]["label"]), Vector2(x + 20, y), 14, Color(.76, .86, 1))
+            _label("%03d" % int(boss_tally_counts[i].get(prize_id, 0)), Vector2(x + width - 64, y), 17, Color.WHITE)
+        draw_line(Vector2(x + 18, 766), Vector2(x + width - 18, 766), color, 2)
+        _label("TOTAL CASH", Vector2(x + 20, 805), 17, Color(.7, .85, 1))
+        _label("$%09d" % boss_tally_cash[i], Vector2(x + width - 150, 805), 19, Color(1, .82, .2))
+        _label("SECRET KEYS  %02d" % players[i]["keys"], Vector2(x + 20, 842), 16, Color(.7, 1, .72))
+        if boss_tally_bonus_awarded:
+            if i == boss_tally_winner:
+                _label("★ WINNER +%d ★" % STAGE_WINNER_BONUS, Vector2(x + width * .5, 879), 20, Color(1, .78, .14), true)
+            elif boss_tally_winner < 0:
+                _label("TIE — NO BONUS", Vector2(x + width * .5, 879), 17, Color(.75, .82, .95), true)
+    if boss_tally_bonus_awarded:
+        _label("UPDATED SCORES  P1 %08d%s" % [players[0]["score"], "   P2 %08d" % players[1]["score"] if p2_enabled else ""], Vector2(384, 950), 19, Color.WHITE, true)
+        _label("NEXT: CHOOSE YOUR PATH", Vector2(384, 985), 16, Color(.35, 1, .72), true)
 
 func _draw_prize_tally() -> void:
     _label("FINAL PRIZE TALLY", Vector2(384, 205), 38, Color(1, .76, .16), true)
