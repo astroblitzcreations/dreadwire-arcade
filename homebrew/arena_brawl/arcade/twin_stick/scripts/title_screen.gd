@@ -13,6 +13,8 @@ var elapsed := 0.0
 var idle_elapsed := 0.0
 var starting_game := false
 var logo_left: Control
+var leaderboard_panel: Panel
+var leaderboard_entries: Array = []
 
 func _ready() -> void:
     texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -113,6 +115,67 @@ func _build_scene() -> void:
     footer.add_theme_font_size_override("font_size", 15)
     footer.add_theme_color_override("font_color", Color(.62, .75, .92))
     add_child(footer)
+    _build_leaderboard()
+
+func _build_leaderboard() -> void:
+    var score_config = ConfigFile.new()
+    score_config.load("user://arena_brawl_scores.cfg")
+    leaderboard_entries = score_config.get_value("leaderboard", "entries", [])
+    if leaderboard_entries.is_empty():
+        var champion_score = int(score_config.get_value("champion", "score", 0))
+        if champion_score > 0:
+            leaderboard_entries.append({"name": String(score_config.get_value("champion", "name", "---")),
+                "score": champion_score, "cash": int(score_config.get_value("champion", "cash", 0)),
+                "gold": int(score_config.get_value("champion", "gold", 0)), "stamp": 0})
+            score_config.set_value("leaderboard", "entries", leaderboard_entries)
+            score_config.save("user://arena_brawl_scores.cfg")
+    leaderboard_panel = Panel.new()
+    leaderboard_panel.position = Vector2(66, 302)
+    leaderboard_panel.size = Vector2(636, 624)
+    var style = StyleBoxFlat.new()
+    style.bg_color = Color(.008, .016, .052, .985)
+    style.border_color = Color(.15, .92, 1, .95)
+    style.set_border_width_all(4)
+    style.set_corner_radius_all(20)
+    style.shadow_color = Color(1, .04, .62, .62)
+    style.shadow_size = 18
+    leaderboard_panel.add_theme_stylebox_override("panel", style)
+    leaderboard_panel.visible = false
+    add_child(leaderboard_panel)
+    var heading = Label.new()
+    heading.text = "ARENA BRAWL // TOP 10"
+    heading.position = Vector2(24, 16)
+    heading.size = Vector2(588, 52)
+    heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    heading.add_theme_font_size_override("font_size", 29)
+    heading.add_theme_color_override("font_color", Color(1, .76, .16))
+    leaderboard_panel.add_child(heading)
+    var columns = Label.new()
+    columns.text = "RANK   PLAYER        SCORE       CASH   GOLD"
+    columns.position = Vector2(40, 72)
+    columns.size = Vector2(556, 28)
+    columns.add_theme_font_size_override("font_size", 15)
+    columns.add_theme_color_override("font_color", Color(.35, .88, 1))
+    leaderboard_panel.add_child(columns)
+    for i in range(10):
+        var row = Label.new()
+        var entry: Dictionary = leaderboard_entries[i] if i < leaderboard_entries.size() else {}
+        row.text = "%2d     %-3s      %08d    %6d    %2d" % [i + 1,
+            String(entry.get("name", "---")).left(3), int(entry.get("score", 0)),
+            int(entry.get("cash", 0)), int(entry.get("gold", 0))]
+        row.position = Vector2(40, 108 + i * 43)
+        row.size = Vector2(556, 36)
+        row.add_theme_font_size_override("font_size", 18)
+        row.add_theme_color_override("font_color", Color(1, .82, .28) if i == 0 else Color(.84, .92, 1))
+        leaderboard_panel.add_child(row)
+    var footer = Label.new()
+    footer.text = "PRESS ANY BUTTON TO PLAY  •  DEMO STARTING SOON"
+    footer.position = Vector2(24, 560)
+    footer.size = Vector2(588, 34)
+    footer.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    footer.add_theme_font_size_override("font_size", 15)
+    footer.add_theme_color_override("font_color", Color(1, .28, .72))
+    leaderboard_panel.add_child(footer)
 
 func _menu_button(label: String, y: float, callback: Callable) -> Button:
     var button = Button.new()
@@ -166,6 +229,11 @@ func _process(delta: float) -> void:
     if card:
         card.rotation = sin(elapsed * .75) * .004
         card.position.y = 322 + sin(elapsed * 1.15) * 4
+    var showing_scores = idle_elapsed >= 16.0 and idle_elapsed < 30.0 and not starting_game
+    if is_instance_valid(leaderboard_panel):
+        leaderboard_panel.visible = showing_scores
+        leaderboard_panel.modulate.a = clampf((idle_elapsed - 16.0) / .55, 0.0, 1.0) if showing_scores else 1.0
+    card.visible = not showing_scores
     if idle_elapsed >= 30.0 and not starting_game:
         _start_attract()
     queue_redraw()
@@ -185,6 +253,10 @@ func _draw() -> void:
 
 func _input(event: InputEvent) -> void:
     idle_elapsed = 0.0
+    if is_instance_valid(leaderboard_panel):
+        leaderboard_panel.visible = false
+    if is_instance_valid(card):
+        card.visible = true
     if event is InputEventKey and event.pressed and not event.echo:
         if event.physical_keycode in [KEY_U, KEY_SPACE, KEY_ENTER, KEY_KP_ENTER]:
             _press_focused()

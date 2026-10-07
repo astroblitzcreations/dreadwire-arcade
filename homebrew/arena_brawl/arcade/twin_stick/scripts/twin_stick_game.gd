@@ -127,6 +127,7 @@ const NAME_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 var name_entry_chars: Array[int] = [0, 0, 0]
 var name_entry_cursor := 0
 var high_score_saved := false
+var high_score_rank := -1
 var name_axis_latched: Dictionary = {}
 
 func _ready() -> void:
@@ -230,6 +231,7 @@ func restart(load_recovery: bool = true) -> void:
     name_entry_chars = [0, 0, 0]
     name_entry_cursor = 0
     high_score_saved = false
+    high_score_rank = -1
     name_axis_latched.clear()
     game_over = false
     victory = false
@@ -361,7 +363,7 @@ func _input(event: InputEvent) -> void:
         if _capture_control_event(event):
             get_viewport().set_input_as_handled()
         return
-    if victory and tally_time >= 7.0:
+    if (victory and tally_time >= 7.0) or (game_over and tally_time >= 3.0):
         if _handle_name_entry(event):
             get_viewport().set_input_as_handled()
         return
@@ -505,13 +507,36 @@ func _save_high_score() -> void:
     var winner = 0 if players[0]["score"] >= players[1]["score"] else 1
     var config = ConfigFile.new()
     config.load("user://arena_brawl_scores.cfg")
-    var old_score = int(config.get_value("champion", "score", 0))
-    if players[winner]["score"] >= old_score:
-        config.set_value("champion", "name", initials)
-        config.set_value("champion", "score", players[winner]["score"])
-        config.set_value("champion", "cash", players[winner]["cash"])
-        config.set_value("champion", "gold", players[winner]["gold"])
-        config.save("user://arena_brawl_scores.cfg")
+    var entries: Array = config.get_value("leaderboard", "entries", [])
+    if entries.is_empty():
+        var old_score = int(config.get_value("champion", "score", 0))
+        if old_score > 0:
+            entries.append({"name": String(config.get_value("champion", "name", "---")),
+                "score": old_score, "cash": int(config.get_value("champion", "cash", 0)),
+                "gold": int(config.get_value("champion", "gold", 0)), "stamp": 0})
+    var stamp = int(Time.get_unix_time_from_system())
+    entries.append({"name": initials, "score": int(players[winner]["score"]),
+        "cash": int(players[winner]["cash"]), "gold": int(players[winner]["gold"]), "stamp": stamp})
+    entries.sort_custom(func(a, b):
+        if int(a["score"]) == int(b["score"]):
+            return int(a.get("stamp", 0)) < int(b.get("stamp", 0))
+        return int(a["score"]) > int(b["score"]))
+    high_score_rank = -1
+    for i in range(entries.size()):
+        if int(entries[i].get("stamp", -1)) == stamp and String(entries[i]["name"]) == initials:
+            high_score_rank = i + 1
+            break
+    if entries.size() > 10:
+        entries.resize(10)
+    if high_score_rank > 10:
+        high_score_rank = -1
+    config.set_value("leaderboard", "entries", entries)
+    if not entries.is_empty():
+        config.set_value("champion", "name", entries[0]["name"])
+        config.set_value("champion", "score", entries[0]["score"])
+        config.set_value("champion", "cash", entries[0]["cash"])
+        config.set_value("champion", "gold", entries[0]["gold"])
+    config.save("user://arena_brawl_scores.cfg")
     high_score_saved = true
 
 func _cycle_weapon(player: Dictionary) -> void:
@@ -533,6 +558,13 @@ func _process(delta: float) -> void:
             _advance_control_wizard()
     if not demo_paused and not game_over and not victory:
         game_time += dt
+        if attract_mode and game_time >= 35.0:
+            var attract_config = ConfigFile.new()
+            attract_config.load("user://arena_brawl_game.cfg")
+            attract_config.set_value("game", "attract_mode", false)
+            attract_config.save("user://arena_brawl_game.cfg")
+            get_tree().change_scene_to_file(BASE + "scenes/TitleScreen.tscn")
+            return
         if phase == "entrance":
             _update_entrance(dt)
         else:
@@ -553,6 +585,15 @@ func _process(delta: float) -> void:
         if tally_time >= 7.0 and not high_score_music_started:
             high_score_music_started = true
             audio.play_music("high_score")
+    elif game_over:
+        tally_time += dt
+        if attract_mode and tally_time >= 3.0:
+            var demo_config = ConfigFile.new()
+            demo_config.load("user://arena_brawl_game.cfg")
+            demo_config.set_value("game", "attract_mode", false)
+            demo_config.save("user://arena_brawl_game.cfg")
+            get_tree().change_scene_to_file(BASE + "scenes/TitleScreen.tscn")
+            return
     _update_visuals(dt if not demo_paused else 0.0)
     _fade_floor_marks()
     recovery_save_timer -= dt
@@ -2963,7 +3004,21 @@ func _hud() -> void:
             _draw_prize_tally()
         else:
             _label("GAME OVER", Vector2(384, 450), 52, Color(1, .76, .22), true)
-            _label("START: TITLE    R: RESTART    ESC: EXIT", Vector2(384, 515), 20, Color.WHITE, true)
+            var game_over_winner = 0 if players[0]["score"] >= players[1]["score"] else 1
+            _label("FINAL SCORE %08d" % players[game_over_winner]["score"], Vector2(384, 515), 22, Color.WHITE, true)
+            if tally_time >= 3.0:
+                if high_score_saved:
+                    var over_message = "TOP TEN #%d SAVED" % high_score_rank if high_score_rank > 0 else "SCORE SAVED — OUTSIDE TOP TEN"
+                    _label(over_message, Vector2(384, 574), 18, Color(.3, 1, .7), true)
+                    _label("PRESS ANY BUTTON", Vector2(384, 610), 16, Color(.7, .82, 1), true)
+                else:
+                    var over_initials = ""
+                    for index in name_entry_chars:
+                        over_initials += NAME_CHARS[index]
+                    _label("ENTER YOUR INITIALS", Vector2(384, 565), 18, Color(.65, .9, 1), true)
+                    _label(over_initials, Vector2(384, 612), 34, Color(1, .78, .16), true)
+                    var over_cursor_x = 357 + name_entry_cursor * 20
+                    draw_line(Vector2(over_cursor_x, 624), Vector2(over_cursor_x + 17, 624), Color(1, .2, .62), 3)
 
 func _draw_prize_tally() -> void:
     _label("FINAL PRIZE TALLY", Vector2(384, 205), 38, Color(1, .76, .16), true)
@@ -2989,7 +3044,8 @@ func _draw_prize_tally() -> void:
         draw_rect(Rect2(164, 936, 440, 76), Color(.03, .01, .06, .96))
         draw_rect(Rect2(164, 936, 440, 76), Color(1, .18, .62), false, 3)
         if high_score_saved:
-            _label("CHAMPION SAVED — PRESS ANY BUTTON", Vector2(384, 982), 18, Color(.3, 1, .7), true)
+            var saved_message = "TOP TEN #%d SAVED" % high_score_rank if high_score_rank > 0 else "SCORE SAVED — OUTSIDE TOP TEN"
+            _label(saved_message + " — PRESS ANY BUTTON", Vector2(384, 982), 17, Color(.3, 1, .7), true)
         else:
             var initials = ""
             for index in name_entry_chars:
