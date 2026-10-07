@@ -1678,10 +1678,9 @@ func _arm_floor_trail_bomb(player: Dictionary, cells: Array) -> void:
         center += point
     center /= float(cells.size())
     center = _clamp_room(center, 82.0)
-    # Completing any valid loop produces the same readable, compact cage.
-    # The player's rough drawing is only the activation gesture—not a giant
-    # polygon that can cover half of the portrait screen.
-    var half := 70.0
+    # Completing a compact loop arms a four-wall ricochet bomb. Its size stays
+    # fixed so drawing a giant loop never creates a room-clearing weapon.
+    var half := 64.0
     var points = PackedVector2Array([
         center + Vector2(-half, -half), center + Vector2(half, -half),
         center + Vector2(half, half), center + Vector2(-half, half)])
@@ -1689,12 +1688,12 @@ func _arm_floor_trail_bomb(player: Dictionary, cells: Array) -> void:
     for enemy in enemies:
         if float(enemy["hp"]) > 0.0 and Geometry2D.is_point_in_polygon(enemy["pos"], points):
             trapped_uids.append(int(enemy["uid"]))
-    var wall_hp := [randf_range(68.0, 136.0), randf_range(68.0, 136.0), randf_range(68.0, 136.0), randf_range(68.0, 136.0)]
+    var wall_hp := [randf_range(90.0, 125.0), randf_range(90.0, 125.0), randf_range(90.0, 125.0), randf_range(90.0, 125.0)]
     floor_trail_bombs.append({"owner": int(player["id"]), "points": points,
-        "center": center, "time": 0.0, "fuse": 6.5, "hp": 1.0, "max_hp": 1.0,
+        "center": center, "time": 0.0, "fuse": 5.5, "hp": 1.0, "max_hp": 1.0,
         "wall_hp": wall_hp, "wall_max_hp": wall_hp.duplicate(),
         "trapped_uids": trapped_uids, "dead": false})
-    _popup("CONTAINMENT CAGE: %d TRAPPED" % trapped_uids.size(), center + Vector2(0, -92), Color(.2, 1, .95) if int(player["id"]) == 0 else Color(1, .2, .78))
+    _popup("RICOCHET BOMB: %d TRAPPED" % trapped_uids.size(), center + Vector2(0, -88), Color(.2, 1, .95) if int(player["id"]) == 0 else Color(1, .2, .78))
     audio.play_sfx("electric_floor")
 
 func _update_floor_trail_bombs(dt: float) -> void:
@@ -1707,9 +1706,14 @@ func _update_floor_trail_bombs(dt: float) -> void:
             continue
         var owner = int(bomb["owner"])
         var center: Vector2 = bomb["center"]
-        _popup("CAGE BREACHED" if intact_walls <= 0 else "CAGE RELEASED", center + Vector2(0, -84), Color(.25, 1, .9))
-        _effect("electric_arcs", center, .8)
-        audio.play_sfx("shield_block")
+        var blast_damage = 18.0 if intact_walls <= 0 else 38.0
+        var blast_radius = 105.0 if intact_walls <= 0 else 138.0
+        for enemy in enemies:
+            if enemy["hp"] > 0 and enemy["pos"].distance_to(center) <= blast_radius:
+                _hurt_enemy(enemy, 14.0 if enemy["boss"] else blast_damage, owner)
+        _popup("BOMB IMPLODED" if intact_walls <= 0 else "RICOCHET BOMB!", center + Vector2(0, -84), Color(.25, 1, .9))
+        _effect("explosion_medium", center, .8)
+        audio.play_sfx("explosion_medium")
         bomb["dead"] = true
         if owner >= 0 and owner < players.size():
             players[owner]["trail_cooldown"] = 3.0
@@ -1972,7 +1976,8 @@ func _spawn_enemy(id: String, point: Vector2, is_boss: bool) -> void:
         "boss": is_boss, "hp": health, "max_hp": health,
         "speed": speed, "radius": float(definition["radius"]), "dir": "s",
         "timer": randf_range(1.0, 2.2), "flash": 0.0, "attack_flash": 0.0, "spawn": 0.7,
-        "attack_index": 0, "boss_phase": 0, "score": definition["score"], "anim_time": randf() * 2})
+        "attack_index": 0, "boss_phase": 0, "boss_mode": "normal", "special_timer": 0.0,
+        "invulnerable": false, "cloak": 0.0, "score": definition["score"], "anim_time": randf() * 2})
     next_enemy_uid += 1
     _effect("enemy_spawn", point, 0.65)
 
@@ -1996,6 +2001,8 @@ func _update_enemies(dt: float) -> void:
             continue
         var target = _nearest_player(enemy["pos"])
         if target.is_empty():
+            continue
+        if enemy["boss"] and _update_boss_special(enemy, dt, target, pending):
             continue
         var distance: float = enemy["pos"].distance_to(target["pos"])
         var aim: Vector2 = (target["pos"] - enemy["pos"]).normalized()
@@ -2023,7 +2030,8 @@ func _update_enemies(dt: float) -> void:
         enemy["pos"] = _clamp_room(enemy["pos"] + enemy["vel"] * dt, enemy["radius"])
         _confine_caged_enemy(enemy, previous_pos)
         if distance < enemy["radius"] + 20:
-            _hurt_player(target, 22.0 if enemy["boss"] else float(enemy_defs[enemy["id"]]["contact_damage"]), String(enemy["id"]))
+            var contact_damage = 22.0 if enemy["boss"] else 9.0 if enemy.has("minion_kind") else float(enemy_defs[enemy["id"]]["contact_damage"])
+            _hurt_player(target, contact_damage, String(enemy.get("minion_kind", enemy["id"])))
         enemy["timer"] -= dt
         if enemy["timer"] > 0:
             continue
@@ -2033,9 +2041,21 @@ func _update_enemies(dt: float) -> void:
             enemy["attack_index"] += 1
             enemy["timer"] = (1.7 if enemy["hp"] < enemy["max_hp"] * 0.4 else 2.6) * enemy_fire_scale
             if enemy["id"] == "enforcer":
-                if attack == 0:
+                var enforcer_phase = int(enemy["boss_phase"])
+                if enforcer_phase == 0 and attack == 0:
                     for j in range(7):
                         _enemy_shot(enemy, aim.rotated((j - 3) * 0.16), "enemy_bolt", 245)
+                elif enforcer_phase == 1:
+                    _spawn_hazard("crusher", target["pos"])
+                    enemy["pos"] = _clamp_room(enemy["pos"] + aim * 135, 48)
+                    for j in range(5): _enemy_shot(enemy, aim.rotated((j - 2) * .24), "enemy_bolt", 285)
+                elif enforcer_phase == 2:
+                    for j in range(12): _enemy_shot(enemy, Vector2.from_angle(j * TAU / 12 + game_time), "arc_bolt", 220)
+                    _spawn_hazard("crusher", _clamp_room(target["pos"] + target["move"] * 90))
+                elif enforcer_phase >= 3:
+                    enemy["pos"] = _clamp_room(enemy["pos"] + aim * 175, 48)
+                    for j in range(16): _enemy_shot(enemy, Vector2.from_angle(j * TAU / 16), "enemy_bolt", 250)
+                    _spawn_hazard("electric_floor", target["pos"])
                 elif attack == 1:
                     _spawn_hazard("crusher", target["pos"])
                     enemy["pos"] = _clamp_room(enemy["pos"] + aim * 65, 48)
@@ -2043,25 +2063,36 @@ func _update_enemies(dt: float) -> void:
                     for j in range(10):
                         _enemy_shot(enemy, Vector2.from_angle(j * TAU / 10), "enemy_bolt", 185)
             elif enemy["id"] == "prize_crusher":
-                for j in range(8):
-                    _enemy_shot(enemy, Vector2.from_angle(j * TAU / 8 + game_time), "rocket", 175)
-                if attack == 2:
+                var crusher_phase = int(enemy["boss_phase"])
+                var rocket_count = 8 + crusher_phase * 2
+                for j in range(rocket_count):
+                    _enemy_shot(enemy, Vector2.from_angle(j * TAU / rocket_count + game_time), "rocket", 175 + crusher_phase * 18)
+                if attack == 2 or crusher_phase >= 2:
                     _spawn_hazard("mine", target["pos"])
                     _add_pickup("prize_box", _clamp_room(enemy["pos"] + Vector2(80, 80)))
             elif enemy["id"] == "neon_widow":
-                for j in range(9):
-                    _enemy_shot(enemy, aim.rotated((j - 4) * .17), "arc_bolt", 205)
-                if attack == 1:
-                    pending.append({"id": "drone", "pos": enemy["pos"] + Vector2(-90, 20)})
-                    pending.append({"id": "drone", "pos": enemy["pos"] + Vector2(90, 20)})
-                elif attack == 2:
+                var widow_phase = int(enemy["boss_phase"])
+                var web_count = 7 + widow_phase * 2
+                for j in range(web_count):
+                    _enemy_shot(enemy, aim.rotated((j - (web_count - 1) / 2.0) * .15), "arc_bolt", 205 + widow_phase * 16)
+                if attack == 2:
                     _spawn_hazard("electric_floor", target["pos"])
             else:
-                for j in range(18):
-                    _enemy_shot(enemy, Vector2.from_angle(j * TAU / 18 + game_time * .1), "plasma", 230)
-                _spawn_hazard("rotating_laser" if attack == 0 else "electric_floor", target["pos"])
-                if attack == 2:
-                    pending.append({"id": "heavy", "pos": enemy["pos"] + Vector2(100, 0)})
+                var executive_phase = int(enemy["boss_phase"])
+                if executive_phase == 0:
+                    for j in range(14): _enemy_shot(enemy, Vector2.from_angle(j * TAU / 14 + game_time * .1), "plasma", 220)
+                    _spawn_hazard("rotating_laser", target["pos"])
+                elif executive_phase == 1:
+                    for offset in [-130, 0, 130]: _spawn_hazard("electric_floor", _clamp_room(target["pos"] + Vector2(offset, 0)))
+                    pending.append({"id": "turret", "pos": enemy["pos"] + Vector2(110, 0)})
+                elif executive_phase == 2:
+                    pending.append({"id": "heavy", "pos": enemy["pos"] + Vector2(-120, 0)})
+                    pending.append({"id": "bomber", "pos": enemy["pos"] + Vector2(120, 0)})
+                    for j in range(18): _enemy_shot(enemy, Vector2.from_angle(j * TAU / 18), "plasma", 245)
+                else:
+                    enemy["pos"] = _clamp_room(Vector2(768, 1100) - target["pos"], 90)
+                    for j in range(24): _enemy_shot(enemy, Vector2.from_angle(j * TAU / 24 + game_time), "plasma", 275)
+                    _spawn_hazard("rotating_laser", Vector2(384, 555))
             audio.play_sfx("laser_charge")
         elif enemy["id"] in ["drone", "turret", "heavy", "shield_guard"]:
             var count = 5 if enemy["id"] == "heavy" else 3 if enemy["id"] == "turret" else 1
@@ -2075,7 +2106,146 @@ func _update_enemies(dt: float) -> void:
         else:
             enemy["timer"] = 1.0
     for request in pending:
-        _spawn_enemy(request["id"], request["pos"], false)
+        if request["id"] == "widowling":
+            _spawn_widowling(request["pos"])
+        else:
+            _spawn_enemy(request["id"], request["pos"], false)
+
+func _begin_boss_phase(enemy: Dictionary, phase_index: int) -> void:
+    enemy["boss_phase"] = phase_index
+    enemy["timer"] = .45
+    if enemy["id"] == "neon_widow":
+        enemy["boss_mode"] = "widow_fade"
+        enemy["special_timer"] = .9
+        enemy["invulnerable"] = true
+        enemy["cloak"] = 0.0
+        _popup("NEON WIDOW BURROWS!", enemy["pos"] + Vector2(0, -100), Color(.35, 1, .8))
+    elif enemy["id"] == "prize_crusher":
+        enemy["boss_mode"] = "crusher_exit"
+        enemy["special_timer"] = 1.0
+        enemy["invulnerable"] = true
+        _popup("PRIZE CRUSHER LEAVES THE SET!", Vector2(384, 300), Color(1, .45, .12))
+    elif enemy["id"] == "enforcer":
+        enemy["boss_mode"] = "enforcer_break"
+        enemy["special_timer"] = 1.1
+        enemy["invulnerable"] = true
+        _popup(["CHARGE PROTOCOL", "CROSSFIRE PROTOCOL", "BERSERK PROTOCOL"][phase_index - 1], Vector2(384, 300), Color(1, .3, .18))
+    else:
+        enemy["boss_mode"] = "executive_shift"
+        enemy["special_timer"] = 1.0
+        enemy["invulnerable"] = true
+        _popup(["LASER LOCKDOWN", "HOSTILE TAKEOVER", "TOTAL LIQUIDATION"][phase_index - 1], Vector2(384, 300), Color(.7, .35, 1))
+
+func _update_boss_special(enemy: Dictionary, dt: float, target: Dictionary, pending: Array) -> bool:
+    var mode = String(enemy.get("boss_mode", "normal"))
+    if mode == "normal":
+        return false
+    enemy["special_timer"] = float(enemy.get("special_timer", 0.0)) - dt
+    if mode == "widow_fade":
+        enemy["cloak"] = clampf(1.0 - float(enemy["special_timer"]) / .9, 0.0, 1.0)
+        if enemy["special_timer"] <= 0.0:
+            enemy["pos"] = _clamp_room(Vector2(768, 1100) - target["pos"], 85)
+            enemy["cloak"] = 1.0
+            enemy["boss_mode"] = "widow_hatch"
+            enemy["special_timer"] = .55
+        return true
+    if mode == "widow_hatch":
+        if enemy["special_timer"] <= 0.0:
+            var count = 4 + int(enemy["boss_phase"]) * 2
+            for i in range(count):
+                pending.append({"id": "widowling", "pos": _clamp_room(enemy["pos"] + Vector2.from_angle(i * TAU / count) * 75.0, 35)})
+            enemy["boss_mode"] = "widow_wait"
+            enemy["special_timer"] = 1.0
+            _popup("SPIDER BABIES HATCH!", enemy["pos"] + Vector2(0, -105), Color(.4, 1, .65))
+        return true
+    if mode == "widow_wait":
+        var babies_alive := false
+        for other in enemies:
+            if other.has("minion_kind") and other["minion_kind"] == "widowling" and other["hp"] > 0:
+                babies_alive = true
+                break
+        if not babies_alive:
+            enemy["boss_mode"] = "widow_return"
+            enemy["special_timer"] = .9
+        return true
+    if mode == "widow_return":
+        enemy["cloak"] = clampf(float(enemy["special_timer"]) / .9, 0.0, 1.0)
+        if enemy["special_timer"] <= 0.0:
+            enemy["cloak"] = 0.0
+            enemy["invulnerable"] = false
+            enemy["boss_mode"] = "normal"
+            enemy["timer"] = .35
+        return true
+    if mode == "crusher_exit":
+        var exit_direction = -1.0 if enemy["pos"].x < 384 else 1.0
+        enemy["pos"].x += exit_direction * 620.0 * dt
+        enemy["cloak"] = clampf(1.0 - float(enemy["special_timer"]), 0.0, 1.0)
+        if enemy["special_timer"] <= 0.0:
+            var squad = ["runner", "grunt"] if int(enemy["boss_phase"]) == 1 else ["bomber", "shield_guard"] if int(enemy["boss_phase"]) == 2 else ["heavy", "turret", "runner"]
+            for i in range(3 + int(enemy["boss_phase"])):
+                pending.append({"id": squad[i % squad.size()], "pos": Vector2(90 if i % 2 == 0 else 678, 300 + (i % 3) * 220)})
+            enemy["boss_mode"] = "crusher_wait"
+            enemy["special_timer"] = 1.0
+        return true
+    if mode == "crusher_wait":
+        var squad_alive := false
+        for other in enemies:
+            if not other["boss"] and other["hp"] > 0:
+                squad_alive = true
+                break
+        if not squad_alive:
+            enemy["pos"] = Vector2(-90 if target["pos"].x > 384 else 858, target["pos"].y)
+            enemy["boss_mode"] = "crusher_charge"
+            enemy["special_timer"] = 2.2
+            enemy["cloak"] = 0.0
+            _popup("INCOMING!", target["pos"] + Vector2(0, -70), Color(1, .2, .12))
+        return true
+    if mode == "crusher_charge":
+        var charge_dir = 1.0 if enemy["pos"].x < 0 else -1.0
+        enemy["pos"].x += charge_dir * (620.0 + int(enemy["boss_phase"]) * 80.0) * dt
+        enemy["pos"].y = move_toward(float(enemy["pos"].y), float(target["pos"].y), 90.0 * dt)
+        if enemy["pos"].distance_to(target["pos"]) < 72:
+            _hurt_player(target, 32.0, "prize_crusher")
+        if (charge_dir > 0 and enemy["pos"].x >= 700) or (charge_dir < 0 and enemy["pos"].x <= 68) or enemy["special_timer"] <= 0.0:
+            enemy["pos"] = _clamp_room(enemy["pos"], 70)
+            enemy["boss_mode"] = "crusher_dizzy"
+            enemy["special_timer"] = 2.8
+            enemy["invulnerable"] = false
+            shake = 9.0
+            _effect("explosion_large", enemy["pos"], .9)
+            _popup("DIZZY — OPEN FIRE!", enemy["pos"] + Vector2(0, -110), Color(1, .9, .2))
+        return true
+    if mode == "crusher_dizzy":
+        enemy["vel"] = Vector2.ZERO
+        enemy["attack_flash"] = abs(sin(game_time * 9.0)) * .35
+        if enemy["special_timer"] <= 0.0:
+            enemy["boss_mode"] = "normal"
+            enemy["timer"] = .25
+        return true
+    if mode in ["enforcer_break", "executive_shift"]:
+        enemy["cloak"] = .25 + abs(sin(game_time * 14.0)) * .25
+        if mode == "executive_shift":
+            enemy["pos"] = _clamp_room(Vector2(768, 1100) - target["pos"], 90)
+        if enemy["special_timer"] <= 0.0:
+            enemy["cloak"] = 0.0
+            enemy["invulnerable"] = false
+            enemy["boss_mode"] = "normal"
+            enemy["timer"] = .2
+        return true
+    return false
+
+func _spawn_widowling(point: Vector2) -> void:
+    if enemies.size() >= 120:
+        return
+    var phase_health = 65.0 + wave_index * 4.0
+    enemies.append({"id": "neon_widow", "minion_kind": "widowling", "uid": next_enemy_uid,
+        "pos": _clamp_room(point, 22), "vel": Vector2.ZERO, "boss": false,
+        "hp": phase_health, "max_hp": phase_health, "speed": 145.0 + wave_index * 2.0,
+        "radius": 18.0, "dir": "s", "timer": .8, "flash": 0.0, "attack_flash": 0.0,
+        "spawn": .45, "attack_index": 0, "boss_phase": 0, "score": 350,
+        "anim_time": randf() * 2.0})
+    next_enemy_uid += 1
+    _effect("enemy_spawn", point, .45)
 
 func _segment_hit(a: Vector2, b: Vector2, center: Vector2, radius: float) -> bool:
     var ab = b - a
@@ -2182,14 +2352,22 @@ func _ricochet_from_floor_shield(shot: Dictionary) -> bool:
             var hit = Geometry2D.segment_intersects_segment(shot["old"], shot["pos"], a, b)
             if hit == null:
                 continue
-            # Enemy fire is absorbed by the wall and chips away at its health.
+            # Enemy fire bounces back into the arena as weakened friendly fire,
+            # while each impact chips away at that individual wall.
             shot["pos"] = hit
-            shot["life"] = 0.0
-            bomb["wall_hp"][i] -= maxf(11.0, float(shot["damage"]) * .62)
+            var tangent: Vector2 = (b - a).normalized()
+            var normal := Vector2(-tangent.y, tangent.x)
+            shot["vel"] = shot["vel"] - 2.0 * shot["vel"].dot(normal) * normal
+            shot["owner"] = int(bomb["owner"])
+            shot["damage"] = maxf(10.0, float(shot["damage"]) * .72)
+            shot["shield_cooldown"] = .12
+            shot["old"] = hit
+            shot["hit_ids"] = []
+            bomb["wall_hp"][i] -= maxf(8.0, float(shot["damage"]) * .4)
             _effect("electric_arcs", hit, .2)
             audio.play_sfx("shield_block")
             if float(bomb["wall_hp"][i]) <= 0.0:
-                _popup("CAGE WALL BREACHED", hit + Vector2(0, -28), Color(1, .35, .18))
+                _popup("BOMB WALL BREACHED", hit + Vector2(0, -28), Color(1, .35, .18))
                 _effect("explosion_small", hit, .55)
             return true
     return false
@@ -2197,13 +2375,15 @@ func _ricochet_from_floor_shield(shot: Dictionary) -> bool:
 func _hurt_enemy(enemy: Dictionary, amount: float, owner: int) -> void:
     if enemy["hp"] <= 0:
         return
+    if bool(enemy.get("invulnerable", false)):
+        enemy["flash"] = .05
+        return
     enemy["hp"] -= amount
     enemy["flash"] = .09
     if enemy["boss"] and enemy["hp"] > 0:
         var next_phase = clampi(4 - int(ceil(float(enemy["hp"]) / float(enemy["max_hp"]) * 4.0)), 0, 3)
         if next_phase > int(enemy["boss_phase"]):
-            enemy["boss_phase"] = next_phase
-            enemy["timer"] = minf(float(enemy["timer"]), 0.45)
+            _begin_boss_phase(enemy, next_phase)
             audio.play_sfx("boss_stagger")
             audio.announce_sequence(["voice_aaargh.wav" if next_phase == 3 else "voice_urk.wav"], true, 5.0, true)
             _popup("BOSS PHASE %d" % (next_phase + 1), enemy["pos"] + Vector2(0, -90), Color(1, .2, .15) if next_phase == 3 else Color(1, .62, .12))
@@ -2223,7 +2403,7 @@ func _hurt_enemy(enemy: Dictionary, amount: float, owner: int) -> void:
         shake = 7.0
         _add_pickup("extra_life", enemy["pos"])
         audio.announce_sequence(["voice_aaargh.wav"], true, 2.0, true)
-    elif randf() < enemy_defs[enemy["id"]]["drop_chance"]:
+    elif not enemy.has("minion_kind") and randf() < enemy_defs[enemy["id"]]["drop_chance"]:
         _add_pickup(pickup_ids[randi() % pickup_ids.size()], enemy["pos"])
     if not enemy["boss"] and owner >= 0 and owner < players.size() and enemy_finisher_cooldown <= 0.0 and cinematic_finisher.is_empty() and randf() < .14:
         _start_cinematic_finisher(CINEMATIC_FINISHERS[randi() % CINEMATIC_FINISHERS.size()], "enemy", int(enemy["uid"]), String(enemy["id"]), owner, enemy["pos"])
@@ -2412,9 +2592,10 @@ func _sprite(path: String, point: Vector2, index: int = 0, row: int = 0, pivot: 
 
 func _actor(enemy: Dictionary) -> void:
     var action: String
-    var category = "bosses" if enemy["boss"] else "enemies"
-    var row = 0 if enemy["boss"] else DIRS.find(enemy["dir"])
-    if enemy["boss"]:
+    var is_widowling = enemy.get("minion_kind", "") == "widowling"
+    var category = "bosses" if enemy["boss"] or is_widowling else "enemies"
+    var row = 0 if enemy["boss"] or is_widowling else DIRS.find(enemy["dir"])
+    if enemy["boss"] or is_widowling:
         action = "attack" if enemy["attack_flash"] > 0 else "walk"
     else:
         action = enemy_defs[enemy["id"]]["move_animation"]
@@ -2426,10 +2607,19 @@ func _actor(enemy: Dictionary) -> void:
     var tint = Color(1.8, 1.8, 1.8, 1) if enemy["flash"] > 0 else Color.WHITE
     if enemy["boss"] and enemy["flash"] <= 0:
         tint = [Color.WHITE, Color(1.15, .9, .55), Color(1.2, .5, .22), Color(1.35, .14, .12)][int(enemy.get("boss_phase", 0))]
+    var cloak = float(enemy.get("cloak", 0.0))
+    tint.a *= 1.0 - cloak
     if enemy["spawn"] > 0:
         tint.a = 0.45
-    _sprite("sprites/effects/ground_shadow.png", enemy["pos"] + Vector2(0, 9))
-    _sprite(path, enemy["pos"], frame, row, Vector2(-1, -1), tint)
+    if tint.a <= .02:
+        return
+    _sprite("sprites/effects/ground_shadow.png", enemy["pos"] + Vector2(0, 9), 0, 0, Vector2(-1, -1), Color(1, 1, 1, tint.a))
+    if is_widowling:
+        draw_set_transform(enemy["pos"], 0.0, Vector2.ONE * .34)
+        _sprite(path, Vector2.ZERO, frame, row, Vector2(-1, -1), tint)
+        draw_set_transform(Vector2.ZERO)
+    else:
+        _sprite(path, enemy["pos"], frame, row, Vector2(-1, -1), tint)
 
 func _draw_finisher_player(player_id: int, point: Vector2, rotation: float = 0.0, scale: Vector2 = Vector2.ONE, defeated: bool = false) -> void:
     var safe_id = clampi(player_id, 0, players.size() - 1)
@@ -2724,19 +2914,27 @@ func _draw_floor_trails() -> void:
             total_max += float(bomb["wall_max_hp"][i])
         var health_ratio = clampf(total_hp / maxf(1.0, total_max), 0.0, 1.0)
         var flicker = health_ratio if health_ratio > .3 else health_ratio * (.35 + abs(sin(game_time * 18.0)) * .65)
-        draw_colored_polygon(points, Color(color.r, color.g, color.b, .025 + flicker * .035))
+        var pulse = .65 + abs(sin(game_time * 7.0)) * .35
+        draw_colored_polygon(points, Color(color.r, color.g, color.b, .018 + flicker * .025))
+        var scan_y = lerpf(points[0].y, points[2].y, fmod(game_time * .7, 1.0))
+        draw_line(Vector2(points[0].x, scan_y), Vector2(points[1].x, scan_y), Color(color.r, color.g, color.b, .08 * health_ratio), 2)
         # Draw all four sides explicitly. PackedVector2Array polylines do not
         # close themselves, which was why the cage always looked three-sided.
         for i in range(4):
             var side_ratio = clampf(float(bomb["wall_hp"][i]) / float(bomb["wall_max_hp"][i]), 0.0, 1.0)
             if side_ratio > 0.0:
-                draw_line(points[i], points[(i + 1) % 4], Color(color.r, color.g, color.b, .24 + side_ratio * .62), 3.0 + side_ratio, true)
+                for glow in range(4, 0, -1):
+                    draw_line(points[i], points[(i + 1) % 4], Color(color.r, color.g, color.b, .025 * glow * side_ratio), 3.0 + glow * 2.2, true)
+                draw_line(points[i], points[(i + 1) % 4], Color(color.r * pulse, color.g * pulse, color.b * pulse, .32 + side_ratio * .68), 2.5 + side_ratio, true)
             else:
                 var middle := points[i].lerp(points[(i + 1) % 4], .5)
                 draw_line(points[i], points[i].lerp(middle, .55), Color(color.r, color.g, color.b, .16), 2, true)
                 draw_line(points[(i + 1) % 4], points[(i + 1) % 4].lerp(middle, .55), Color(color.r, color.g, color.b, .16), 2, true)
+        for corner in points:
+            draw_circle(corner, 8.0 + pulse * 2.0, Color(color.r, color.g, color.b, .12 * health_ratio))
+            draw_circle(corner, 3.5, Color(1, 1, 1, .7 * health_ratio))
         var trapped_count: int = bomb["trapped_uids"].size()
-        _label("CAGE %d%%  •  %d TRAPPED  •  %.1fs" % [roundi(health_ratio * 100.0), trapped_count, remaining], bomb["center"] + Vector2(0, 7), 12, Color(1, 1, 1, .78), true)
+        _label("RICOCHET %d%% • %d TRAPPED • %.1fs" % [roundi(health_ratio * 100.0), trapped_count, remaining], bomb["center"] + Vector2(0, 7), 12, Color(1, 1, 1, .82), true)
 
 func _draw_matrix_floor_tile(cell: Vector2i, rect: Rect2) -> void:
     var room_palette = int(wave_index / 11) % 4
