@@ -264,7 +264,7 @@ func _save_recovery_checkpoint() -> void:
     for i in range(players.size()):
         var p: Dictionary = players[i]
         var section = "player_%d" % i
-        for key in ["health", "armor", "lives", "score", "cash", "gold", "weapon", "bombs", "drone_level", "lightning_level", "continues"]:
+        for key in ["health", "armor", "lives", "score", "cash", "gold", "weapon", "bombs", "drone_level", "lightning_level", "continues", "kills", "boss_kills", "deaths", "pickups", "continues_used"]:
             config.set_value(section, key, p[key])
     if config.save(RECOVERY_TEMP_PATH) != OK:
         return
@@ -301,6 +301,8 @@ func _restore_recovery_checkpoint() -> void:
         p["drone_level"] = maxi(0, int(config.get_value(section, "drone_level", 0)))
         p["lightning_level"] = maxi(0, int(config.get_value(section, "lightning_level", 0)))
         p["continues"] = clampi(int(config.get_value(section, "continues", 3)), 0, 3)
+        for stat in ["kills", "boss_kills", "deaths", "pickups", "continues_used"]:
+            p[stat] = maxi(0, int(config.get_value(section, stat, 0)))
         p["invuln"] = 3.0
     phase = "warning"
     phase_timer = 3.0
@@ -346,6 +348,7 @@ func _setup_intro_video() -> void:
 func _new_player(index: int, point: Vector2) -> Dictionary:
     return {"id": index, "name": "volt" if index == 0 else "nova", "pos": point,
         "health": 100.0, "armor": 0.0, "lives": 3, "score": 0, "cash": 0, "gold": 0,
+        "kills": 0, "boss_kills": 0, "deaths": 0, "pickups": 0, "continues_used": 0,
         "weapon": "pulse_pistol", "fire_timer": 0.0, "aim": Vector2.UP,
         "move": Vector2.ZERO, "dir": "s", "invuln": 2.5,
         "respawn": 0.0, "damage_flash": 0.0, "buffs": {}, "anim_time": 0.0,
@@ -513,11 +516,19 @@ func _save_high_score() -> void:
         if old_score > 0:
             entries.append({"name": String(config.get_value("champion", "name", "---")),
                 "score": old_score, "cash": int(config.get_value("champion", "cash", 0)),
-                "gold": int(config.get_value("champion", "gold", 0)), "level": 1, "stamp": 0})
+                "gold": int(config.get_value("champion", "gold", 0)), "level": 1, "floor": 1,
+                "kills": 0, "boss_kills": 0, "deaths": 0, "pickups": 0,
+                "continues_used": 0, "play_time": 0, "stamp": 0})
     var stamp = int(Time.get_unix_time_from_system())
     entries.append({"name": initials, "score": int(players[winner]["score"]),
         "cash": int(players[winner]["cash"]), "gold": int(players[winner]["gold"]),
-        "level": wave_index + 1, "floor": floor_in_room, "stamp": stamp})
+        "level": wave_index + 1, "floor": floor_in_room,
+        "kills": int(players[winner]["kills"]),
+        "boss_kills": int(players[winner]["boss_kills"]),
+        "deaths": int(players[winner]["deaths"]),
+        "pickups": int(players[winner]["pickups"]),
+        "continues_used": int(players[winner]["continues_used"]),
+        "play_time": int(game_time), "stamp": stamp})
     entries.sort_custom(func(a, b):
         if int(a["score"]) == int(b["score"]):
             return int(a.get("stamp", 0)) < int(b.get("stamp", 0))
@@ -1035,6 +1046,7 @@ func _update_players(dt: float) -> void:
             p["continue_timer"] = maxf(0.0, p["continue_timer"] - dt)
             if p["continue_timer"] > 0 and p["continues"] > 0 and _continue_requested(int(p["id"])):
                 p["continues"] -= 1
+                p["continues_used"] += 1
                 p["lives"] = 3
                 p["health"] = 100.0
                 p["respawn"] = 0.0
@@ -1292,6 +1304,7 @@ func _hurt_player(p: Dictionary, amount: float, finisher_source: String = "") ->
     _effect("blood_damage", p["pos"], 0.45)
     if p["health"] <= 0:
         p["lives"] -= 1
+        p["deaths"] += 1
         p["respawn"] = 3.2
         var death_moves = ["CRUSHED", "SHRINK + STOMP", "VAPORIZED", "LAUNCHED", "FROZEN SHATTER", "FLATTENED", "ELECTROCUTED", "CAMERA SMASH", "FIELD GOAL", "UPPERCUT", "SPUN OUT", "DISINTEGRATED", "LADDER PLANK", "TRASH COMPACTOR", "ROCKET CHAIR", "NEON TRAIN"]
         p["death_move"] = "FLOOR SWALLOWED" if finisher_source == "floor" else death_moves[randi() % death_moves.size()]
@@ -2091,6 +2104,9 @@ func _hurt_enemy(enemy: Dictionary, amount: float, owner: int) -> void:
     if owner >= 0 and owner < players.size():
         var p: Dictionary = players[owner]
         p["score"] += int(enemy["score"]) * (2 if p["buffs"].has("score_multiplier") else 1)
+        p["kills"] += 1
+        if enemy["boss"]:
+            p["boss_kills"] += 1
     _effect("explosion_large" if enemy["boss"] else "explosion_small", enemy["pos"], 1.0 if enemy["boss"] else .55)
     audio.play_sfx("explosion_large" if enemy["boss"] else "enemy_death")
     if enemy["boss"]:
@@ -2195,6 +2211,7 @@ func _update_drops(dt: float) -> void:
                 audio.play_sfx("extra_life" if id == "extra_life" else "health_pickup" if id == "health" else "credits_pickup")
                 _popup(id.replace("_", " ").to_upper(), p["pos"] + Vector2(0, -48), Color(1, .75, .25))
             _effect("pickup_flash", item["pos"], .5)
+            p["pickups"] += 1
             item["life"] = 0
             break
     drops = drops.filter(func(item): return item["life"] > 0)

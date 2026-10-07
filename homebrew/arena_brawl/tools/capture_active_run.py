@@ -16,6 +16,14 @@ def section_value(text: str, section: str, key: str, default: int = 0) -> int:
     return int(value.group(1)) if value else default
 
 
+def section_number(text: str, section: str, key: str, default: float = 0.0) -> float:
+    match = re.search(rf"\[{re.escape(section)}\](.*?)(?=\n\[|\Z)", text, re.S)
+    if not match:
+        return default
+    value = re.search(rf"^{re.escape(key)}=(-?\d+(?:\.\d+)?)", match.group(1), re.M)
+    return float(value.group(1)) if value else default
+
+
 def main() -> int:
     if len(sys.argv) != 4:
         return 2
@@ -52,10 +60,16 @@ def main() -> int:
             "score": section_value(text, section, "score"),
             "cash": section_value(text, section, "cash"),
             "gold": section_value(text, section, "gold"),
+            "kills": section_value(text, section, "kills"),
+            "boss_kills": section_value(text, section, "boss_kills"),
+            "deaths": section_value(text, section, "deaths"),
+            "pickups": section_value(text, section, "pickups"),
+            "continues_used": section_value(text, section, "continues_used"),
         })
     winner = max(candidates, key=lambda item: item["score"])
     winner["level"] = section_value(text, "campaign", "wave_index") + 1
     winner["floor"] = section_value(text, "campaign", "floor_in_room", 1)
+    winner["play_time"] = int(section_number(text, "campaign", "game_time"))
     winner["stamp"] = section_value(text, "recovery", "saved_unix", int(time.time()))
     temporary = pending.with_suffix(".tmp")
     temporary.write_text(
@@ -66,6 +80,12 @@ def main() -> int:
         f'gold={winner["gold"]}\n'
         f'level={winner["level"]}\n'
         f'floor={winner["floor"]}\n'
+        f'kills={winner["kills"]}\n'
+        f'boss_kills={winner["boss_kills"]}\n'
+        f'deaths={winner["deaths"]}\n'
+        f'pickups={winner["pickups"]}\n'
+        f'continues_used={winner["continues_used"]}\n'
+        f'play_time={winner["play_time"]}\n'
         f'stamp={winner["stamp"]}\n',
         encoding="utf-8",
     )

@@ -126,7 +126,9 @@ func _build_leaderboard() -> void:
         if champion_score > 0:
             leaderboard_entries.append({"name": String(score_config.get_value("champion", "name", "---")),
                 "score": champion_score, "cash": int(score_config.get_value("champion", "cash", 0)),
-                "gold": int(score_config.get_value("champion", "gold", 0)), "stamp": 0})
+                "gold": int(score_config.get_value("champion", "gold", 0)), "level": 1, "floor": 1,
+                "kills": 0, "boss_kills": 0, "deaths": 0, "pickups": 0,
+                "continues_used": 0, "play_time": 0, "stamp": 0})
             score_config.set_value("leaderboard", "entries", leaderboard_entries)
             score_config.save("user://arena_brawl_scores.cfg")
     _import_pending_run(score_config)
@@ -152,7 +154,7 @@ func _build_leaderboard() -> void:
     heading.add_theme_color_override("font_color", Color(1, .76, .16))
     leaderboard_panel.add_child(heading)
     var columns = Label.new()
-    columns.text = "RANK  PLAYER    SCORE       LEVEL   GOLD"
+    columns.text = "RANK  PLAYER    SCORE       LEVEL   KILLS"
     columns.position = Vector2(40, 72)
     columns.size = Vector2(556, 28)
     columns.add_theme_font_size_override("font_size", 15)
@@ -161,18 +163,23 @@ func _build_leaderboard() -> void:
     for i in range(10):
         var row = Label.new()
         var entry: Dictionary = leaderboard_entries[i] if i < leaderboard_entries.size() else {}
-        row.text = "%2d     %-3s    %08d      %2d      %2d" % [i + 1,
+        row.text = "%2d     %-3s    %08d      %2d      %4d" % [i + 1,
             String(entry.get("name", "---")).left(3), int(entry.get("score", 0)),
-            int(entry.get("level", 1)), int(entry.get("gold", 0))]
+            int(entry.get("level", 1)), int(entry.get("kills", 0))]
         row.position = Vector2(40, 108 + i * 43)
         row.size = Vector2(556, 36)
         row.add_theme_font_size_override("font_size", 18)
         row.add_theme_color_override("font_color", Color(1, .82, .28) if i == 0 else Color(.84, .92, 1))
         leaderboard_panel.add_child(row)
     var footer = Label.new()
-    footer.text = "PRESS ANY BUTTON TO PLAY  •  DEMO STARTING SOON"
-    footer.position = Vector2(24, 560)
-    footer.size = Vector2(588, 34)
+    var leader: Dictionary = leaderboard_entries[0] if not leaderboard_entries.is_empty() else {}
+    var seconds = int(leader.get("play_time", 0))
+    footer.text = "#1  CASH %d  GOLD %d  BOSSES %d  DEATHS %d  CONT %d  TIME %02d:%02d" % [
+        int(leader.get("cash", 0)), int(leader.get("gold", 0)),
+        int(leader.get("boss_kills", 0)), int(leader.get("deaths", 0)),
+        int(leader.get("continues_used", 0)), int(seconds / 60), seconds % 60]
+    footer.position = Vector2(24, 548)
+    footer.size = Vector2(588, 42)
     footer.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     footer.add_theme_font_size_override("font_size", 15)
     footer.add_theme_color_override("font_color", Color(1, .28, .72))
@@ -194,7 +201,13 @@ func _import_pending_run(score_config: ConfigFile) -> void:
             "cash": int(pending.get_value("pending", "cash", 0)),
             "gold": int(pending.get_value("pending", "gold", 0)),
             "level": int(pending.get_value("pending", "level", 1)),
-            "floor": int(pending.get_value("pending", "floor", 1)), "stamp": stamp})
+            "floor": int(pending.get_value("pending", "floor", 1)),
+            "kills": int(pending.get_value("pending", "kills", 0)),
+            "boss_kills": int(pending.get_value("pending", "boss_kills", 0)),
+            "deaths": int(pending.get_value("pending", "deaths", 0)),
+            "pickups": int(pending.get_value("pending", "pickups", 0)),
+            "continues_used": int(pending.get_value("pending", "continues_used", 0)),
+            "play_time": int(pending.get_value("pending", "play_time", 0)), "stamp": stamp})
         leaderboard_entries.sort_custom(func(a, b): return int(a["score"]) > int(b["score"]))
         if leaderboard_entries.size() > 10:
             leaderboard_entries.resize(10)
