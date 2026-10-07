@@ -1454,6 +1454,9 @@ func _update_waves(dt: float) -> void:
         phase_timer -= dt
         floor_transition = 1.0 - clampf(phase_timer / 1.35, 0.0, 1.0)
         if phase_timer <= 0:
+            if wave_index + 1 >= waves.size():
+                _start_campaign_victory()
+                return
             wave_index += 1
             floor_in_room = 1
             phase = "intermission"
@@ -1574,10 +1577,30 @@ func _update_boss_tally(dt: float) -> void:
     if boss_tally_finish <= 0.0:
         for p in players:
             p["stage_loot"] = _empty_stage_loot()
+        if wave_index + 1 >= waves.size():
+            _start_campaign_victory()
+            return
         phase = "route"
         audio.announce_sequence(["voice_lets_go.wav"])
         _popup("CHOOSE YOUR PATH", Vector2(384, 470), Color(.3, 1, .65))
         _save_recovery_checkpoint()
+
+func _start_campaign_victory() -> void:
+    # The fourth boss is the final campaign entry.  Never expose a route door
+    # that can advance past the end of the wave table; finish the run and keep
+    # its complete score/loot statistics available for the high-score entry.
+    if victory:
+        return
+    phase = "complete"
+    victory = true
+    tally_time = 0.0
+    shots.clear()
+    hazards.clear()
+    enemies.clear()
+    player_bombs.clear()
+    audio.play_music("win_game")
+    audio.announce("victory", true)
+    _popup("CAMPAIGN COMPLETE!", Vector2(384, 430), Color(1, .76, .16))
 
 func _prepare_floor_erosion() -> void:
     erosion_cells.clear()
@@ -1756,6 +1779,9 @@ func _update_floor_erosion(dt: float) -> void:
             _hurt_enemy(enemy, enemy["hp"] + 1.0, -1)
 
 func _update_route_choice() -> void:
+    if wave_index + 1 >= waves.size():
+        _start_campaign_victory()
+        return
     var exits = {
         "NORTH": Vector2(384, 185), "SOUTH": Vector2(384, 930),
         "WEST": Vector2(65, 555), "EAST": Vector2(703, 555)}
@@ -1887,6 +1913,9 @@ func _move_map(route: String) -> void:
         _popup("DEAD END AHEAD - REMEMBER THE WAY BACK", Vector2(384, 490), Color(1, .35, .3))
 
 func _begin_wave() -> void:
+    if wave_index < 0 or wave_index >= waves.size():
+        _start_campaign_victory()
+        return
     var wave: Dictionary = waves[wave_index]
     phase = "combat"
     wave_spawned = false
@@ -3371,7 +3400,7 @@ func _hud() -> void:
                     draw_line(Vector2(over_cursor_x, 624), Vector2(over_cursor_x + 17, 624), Color(1, .2, .62), 3)
 
 func _draw_boss_tally() -> void:
-    _label("STAGE %d COMPLETE" % (int(wave_index / FLOORS_PER_ROOM) + 1), Vector2(384, 190), 36, Color(1, .76, .16), true)
+    _label("STAGE %d COMPLETE" % (int(wave_index / (FLOORS_PER_ROOM + 1)) + 1), Vector2(384, 190), 36, Color(1, .76, .16), true)
     _label("DREADWIRE PRIZE SETTLEMENT", Vector2(384, 225), 17, Color(.35, .9, 1), true)
     for i in range(2 if p2_enabled else 1):
         var x = 24 + i * 372 if p2_enabled else 128
@@ -3398,7 +3427,8 @@ func _draw_boss_tally() -> void:
                 _label("TIE — NO BONUS", Vector2(x + width * .5, 879), 17, Color(.75, .82, .95), true)
     if boss_tally_bonus_awarded:
         _label("UPDATED SCORES  P1 %08d%s" % [players[0]["score"], "   P2 %08d" % players[1]["score"] if p2_enabled else ""], Vector2(384, 950), 19, Color.WHITE, true)
-        _label("NEXT: CHOOSE YOUR PATH", Vector2(384, 985), 16, Color(.35, 1, .72), true)
+        var next_label = "NEXT: FINAL PRIZE TALLY" if wave_index + 1 >= waves.size() else "NEXT: CHOOSE YOUR PATH"
+        _label(next_label, Vector2(384, 985), 16, Color(.35, 1, .72), true)
 
 func _draw_prize_tally() -> void:
     _label("FINAL PRIZE TALLY", Vector2(384, 205), 38, Color(1, .76, .16), true)
