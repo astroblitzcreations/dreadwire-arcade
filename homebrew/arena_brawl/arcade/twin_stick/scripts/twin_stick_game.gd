@@ -109,6 +109,9 @@ var erosion_active := false
 var floor_tile_states: Dictionary = {}
 var floor_tile_changed_at: Dictionary = {}
 var floor_trail_bombs: Array = []
+var cinematic_finisher: Dictionary = {}
+var enemy_finisher_cooldown := 0.0
+const CINEMATIC_FINISHERS = ["LADDER PLANK", "TRASH COMPACTOR", "ROCKET CHAIR", "NEON TRAIN"]
 const FLOORS_PER_ROOM := 10
 const CORRIDOR_LENGTH := 1350.0
 var prize_spawn_timer := 12.0
@@ -212,6 +215,8 @@ func restart() -> void:
     floor_tile_states.clear()
     floor_tile_changed_at.clear()
     floor_trail_bombs.clear()
+    cinematic_finisher.clear()
+    enemy_finisher_cooldown = 0.0
     prize_spawn_timer = randf_range(10.0, 16.0)
     tally_time = 0.0
     high_score_music_started = false
@@ -436,6 +441,7 @@ func _process(delta: float) -> void:
     # up delta, so a clamp here only makes overloaded hardware run slower.
     var dt = delta
     controller_help_timer = maxf(0.0, controller_help_timer - dt)
+    enemy_finisher_cooldown = maxf(0.0, enemy_finisher_cooldown - dt)
     if control_wizard_open and control_wizard_hold_button >= 0:
         control_wizard_hold_time += dt
         if control_wizard_hold_time >= 0.9:
@@ -443,21 +449,24 @@ func _process(delta: float) -> void:
             _advance_control_wizard()
     if not demo_paused and not game_over and not victory:
         game_time += dt
-        if phase == "entrance":
-            _update_entrance(dt)
-        else:
-            # Players remain live during every between-round countdown. The
-            # warning used to create a noticeable one-second input freeze.
-            if phase in ["combat", "route", "clear_hold", "intermission", "warning"]:
-                _update_players(dt)
-            _update_waves(dt)
-            if phase in ["combat", "corridor"]:
-                _update_enemies(dt)
-        _update_shots(dt)
-        _update_floor_trail_bombs(dt)
-        _update_drops(dt)
-        _update_hazards(dt)
-        _update_random_prizes(dt)
+        # A cinematic finisher is a true television cutaway. Combat freezes
+        # underneath it so neither contestant is killed while watching.
+        if cinematic_finisher.is_empty():
+            if phase == "entrance":
+                _update_entrance(dt)
+            else:
+                # Players remain live during every between-round countdown. The
+                # warning used to create a noticeable one-second input freeze.
+                if phase in ["combat", "route", "clear_hold", "intermission", "warning"]:
+                    _update_players(dt)
+                _update_waves(dt)
+                if phase in ["combat", "corridor"]:
+                    _update_enemies(dt)
+            _update_shots(dt)
+            _update_floor_trail_bombs(dt)
+            _update_drops(dt)
+            _update_hazards(dt)
+            _update_random_prizes(dt)
     elif victory:
         tally_time += dt
         if tally_time >= 7.0 and not high_score_music_started:
@@ -1103,10 +1112,13 @@ func _hurt_player(p: Dictionary, amount: float, finisher_source: String = "") ->
     if p["health"] <= 0:
         p["lives"] -= 1
         p["respawn"] = 3.2
-        var death_moves = ["CRUSHED", "SHRINK + STOMP", "VAPORIZED", "LAUNCHED", "FROZEN SHATTER", "FLATTENED", "ELECTROCUTED", "CAMERA SMASH", "FIELD GOAL", "UPPERCUT", "SPUN OUT", "DISINTEGRATED"]
+        var death_moves = ["CRUSHED", "SHRINK + STOMP", "VAPORIZED", "LAUNCHED", "FROZEN SHATTER", "FLATTENED", "ELECTROCUTED", "CAMERA SMASH", "FIELD GOAL", "UPPERCUT", "SPUN OUT", "DISINTEGRATED", "LADDER PLANK", "TRASH COMPACTOR", "ROCKET CHAIR", "NEON TRAIN"]
         p["death_move"] = "FLOOR SWALLOWED" if finisher_source == "floor" else death_moves[randi() % death_moves.size()]
         p["death_progress"] = 0.0
         p["death_direction"] = -1.0 if randf() < .5 else 1.0
+        if String(p["death_move"]) in CINEMATIC_FINISHERS:
+            _start_cinematic_finisher(String(p["death_move"]), "player", int(p["id"]), finisher_source)
+            p["respawn"] = 0.15
         _popup(p["death_move"], p["pos"] + Vector2(0, -62), Color(1, .2, .32))
         _effect("explosion_medium", p["pos"], 0.8)
         audio.play_sfx("player_death")
@@ -1906,6 +1918,27 @@ func _hurt_enemy(enemy: Dictionary, amount: float, owner: int) -> void:
         audio.announce_sequence(["voice_aaargh.wav"], true, 2.0, true)
     elif randf() < enemy_defs[enemy["id"]]["drop_chance"]:
         _add_pickup(pickup_ids[randi() % pickup_ids.size()], enemy["pos"])
+    if not enemy["boss"] and owner >= 0 and owner < players.size() and enemy_finisher_cooldown <= 0.0 and cinematic_finisher.is_empty() and randf() < .14:
+        _start_cinematic_finisher(CINEMATIC_FINISHERS[randi() % CINEMATIC_FINISHERS.size()], "enemy", int(enemy["uid"]), String(enemy["id"]), owner)
+
+func _start_cinematic_finisher(move: String, victim_kind: String, victim_id: int, victim_actor: String = "", attacker_player: int = -1) -> void:
+    if not cinematic_finisher.is_empty():
+        return
+    var duration = 6.4 if move == "LADDER PLANK" else 5.4 if move == "NEON TRAIN" else 4.8
+    var attacker_enemy = victim_actor if victim_kind == "player" and enemy_defs.has(victim_actor) else "grunt"
+    cinematic_finisher = {
+        "move": move, "time": 0.0, "duration": duration,
+        "victim_kind": victim_kind, "victim_id": victim_id,
+        "victim_enemy": victim_actor if victim_kind == "enemy" else "",
+        "victim_player": victim_id if victim_kind == "player" else -1,
+        "attacker_player": attacker_player,
+        "attacker_enemy": attacker_enemy,
+        "direction": -1.0 if randf() < .5 else 1.0,
+    }
+    enemy_finisher_cooldown = 13.0
+    shake = 5.0
+    _popup(move + "!", Vector2(384, 260), Color(1, .26, .56))
+    audio.play_sfx("boss_stagger")
 
 func _add_pickup(id: String, point: Vector2) -> void:
     drops.append({"kind": "pickup", "id": id, "pos": point, "life": 22.0})
@@ -2016,6 +2049,10 @@ func _popup(label: String, point: Vector2, color: Color) -> void:
     popups.append({"text": label, "pos": point, "color": color, "life": 1.7})
 
 func _update_visuals(dt: float) -> void:
+    if not cinematic_finisher.is_empty():
+        cinematic_finisher["time"] += dt
+        if float(cinematic_finisher["time"]) >= float(cinematic_finisher["duration"]):
+            cinematic_finisher.clear()
     for effect in effects:
         effect["life"] -= dt
     for popup in popups:
@@ -2060,6 +2097,124 @@ func _actor(enemy: Dictionary) -> void:
     _sprite("sprites/effects/ground_shadow.png", enemy["pos"] + Vector2(0, 9))
     _sprite(path, enemy["pos"], frame, row, Vector2(-1, -1), tint)
 
+func _draw_finisher_player(player_id: int, point: Vector2, rotation: float = 0.0, scale: Vector2 = Vector2.ONE, defeated: bool = false) -> void:
+    var safe_id = clampi(player_id, 0, players.size() - 1)
+    var player_name = String(players[safe_id]["name"])
+    draw_set_transform(point, rotation, scale)
+    _sprite("sprites/players/" + player_name + ("_death.png" if defeated else "_idle.png"), Vector2.ZERO, int(game_time * 9.0) % (8 if defeated else 4), 0)
+    draw_set_transform(Vector2.ZERO)
+
+func _draw_finisher_enemy(enemy_id: String, point: Vector2, rotation: float = 0.0, scale: Vector2 = Vector2.ONE) -> void:
+    if not enemy_defs.has(enemy_id):
+        enemy_id = "grunt"
+    var action = String(enemy_defs[enemy_id]["move_animation"])
+    var path = "sprites/enemies/" + enemy_id + "_" + action + ".png"
+    var meta = library.record(ART + path)
+    var frame = 0 if meta.is_empty() else int(game_time * 10.0) % int(meta["columns"])
+    draw_set_transform(point, rotation, scale)
+    _sprite(path, Vector2.ZERO, frame, 0)
+    draw_set_transform(Vector2.ZERO)
+
+func _draw_finisher_victim(point: Vector2, rotation: float = 0.0, scale: Vector2 = Vector2.ONE) -> void:
+    if String(cinematic_finisher["victim_kind"]) == "player":
+        _draw_finisher_player(int(cinematic_finisher["victim_player"]), point, rotation, scale, true)
+    else:
+        _draw_finisher_enemy(String(cinematic_finisher["victim_enemy"]), point, rotation, scale)
+
+func _draw_finisher_attacker(point: Vector2, rotation: float = 0.0, scale: Vector2 = Vector2.ONE) -> void:
+    if String(cinematic_finisher["victim_kind"]) == "player":
+        _draw_finisher_enemy(String(cinematic_finisher["attacker_enemy"]), point, rotation, scale)
+    else:
+        _draw_finisher_player(maxi(0, int(cinematic_finisher["attacker_player"])), point, rotation, scale)
+
+func _draw_cinematic_finisher() -> void:
+    if cinematic_finisher.is_empty():
+        return
+    var move = String(cinematic_finisher["move"])
+    var time = float(cinematic_finisher["time"])
+    var duration = float(cinematic_finisher["duration"])
+    var direction = float(cinematic_finisher["direction"])
+    draw_rect(Rect2(22, 142, 724, 824), Color(.008, .012, .028, .97))
+    draw_rect(Rect2(31, 151, 706, 806), Color(.03, .045, .085), false, 5)
+    for scanline in range(18):
+        var scan_y = 168.0 + scanline * 43.0
+        draw_line(Vector2(40, scan_y), Vector2(728, scan_y), Color(.08, .7, 1, .055), 2)
+    _label("DREADWIRE DEATH CAM", Vector2(384, 194), 24, Color(.25, .92, 1), true)
+    _label(move, Vector2(384, 232), 34, Color(1, .25, .62), true)
+
+    if move == "LADDER PLANK":
+        var climb = clampf(time / 2.35, 0.0, 1.0)
+        climb = climb * climb * (3.0 - 2.0 * climb)
+        var top_y = 330.0
+        var actor_y = lerpf(864.0, top_y, climb)
+        var ladder_left = 306.0
+        var ladder_right = 462.0
+        draw_line(Vector2(ladder_left, 300), Vector2(ladder_left, 895), Color(.72, .78, .86), 12)
+        draw_line(Vector2(ladder_right, 300), Vector2(ladder_right, 895), Color(.72, .78, .86), 12)
+        for rung_y in range(330, 890, 44):
+            draw_line(Vector2(ladder_left, rung_y), Vector2(ladder_right, rung_y), Color(.48, .58, .7), 8)
+        draw_rect(Rect2(180, 286, 408, 35), Color(.45, .24, .08))
+        draw_rect(Rect2(180, 286, 408, 35), Color(1, .68, .18), false, 4)
+        var victim_pos = Vector2(420, actor_y)
+        var attacker_pos = Vector2(348, actor_y + 18)
+        var victim_rotation = 0.0
+        if time >= 2.65 and time < 3.65:
+            victim_pos.x += direction * (24.0 + sin(time * 16.0) * 10.0)
+            victim_rotation = direction * .24
+            _label("SHOVE ONE!", Vector2(384, 410), 24, Color(1, .8, .2), true)
+        elif time >= 3.65:
+            var fall = clampf((time - 3.65) / 1.75, 0.0, 1.0)
+            victim_pos.x += direction * (42.0 + fall * 185.0)
+            victim_pos.y = top_y + fall * fall * 520.0
+            victim_rotation = direction * fall * 8.0
+            _label("SHOVE TWO!", Vector2(384, 410), 29, Color(1, .2, .22), true)
+            if fall > .92:
+                draw_set_transform(victim_pos + Vector2(0, 25), 0, Vector2(2.5, .32))
+                draw_circle(Vector2.ZERO, 30, Color(1, .06, .13, .75))
+                draw_set_transform(Vector2.ZERO)
+                _label("SPLAT!", victim_pos + Vector2(0, -45), 38, Color(1, .12, .2), true)
+        _draw_finisher_attacker(attacker_pos, -direction * .08)
+        _draw_finisher_victim(victim_pos, victim_rotation, Vector2.ONE if time < 5.25 else Vector2(1.7, .35))
+    elif move == "TRASH COMPACTOR":
+        var crush = clampf((time - 1.0) / 2.8, 0.0, 1.0)
+        var left_wall = lerpf(85.0, 322.0, crush)
+        var right_wall = lerpf(683.0, 446.0, crush)
+        draw_rect(Rect2(left_wall - 105, 315, 105, 470), Color(.2, .25, .31))
+        draw_rect(Rect2(right_wall, 315, 105, 470), Color(.2, .25, .31))
+        for hazard_y in range(350, 760, 58):
+            _label("⚠", Vector2(left_wall - 50, hazard_y), 28, Color(1, .72, .08), true)
+            _label("⚠", Vector2(right_wall + 50, hazard_y), 28, Color(1, .72, .08), true)
+        _draw_finisher_attacker(Vector2(220, 790), 0, Vector2.ONE)
+        _draw_finisher_victim(Vector2(384, 590), sin(time * 18.0) * crush * .12, Vector2(1.0 - crush * .45, 1.0 + crush * .15))
+        if crush > .9: _label("COMPACTED!", Vector2(384, 845), 35, Color(1, .34, .12), true)
+    elif move == "ROCKET CHAIR":
+        var launch = clampf((time - 1.15) / 2.8, 0.0, 1.0)
+        var chair_pos = Vector2(410 + direction * launch * 175.0, 710 - launch * launch * 520.0)
+        for trail in range(9):
+            var trail_pos = chair_pos + Vector2(-direction * trail * 19.0, 34 + trail * 8.0)
+            draw_circle(trail_pos, 18.0 - trail, Color(1, .25 + trail * .05, .05, .7 - trail * .06))
+        draw_rect(Rect2(chair_pos + Vector2(-28, -12), Vector2(56, 64)), Color(.28, .38, .5))
+        _draw_finisher_victim(chair_pos + Vector2(0, -20), direction * launch * 7.0)
+        _draw_finisher_attacker(Vector2(245, 800), 0, Vector2.ONE)
+        _label("EJECT! EJECT!", Vector2(384, 860), 32, Color(1, .6, .12), true)
+    else: # NEON TRAIN
+        var train = clampf((time - 1.45) / 2.5, 0.0, 1.0)
+        var train_x = lerpf(-270.0, 1030.0, train)
+        draw_line(Vector2(70, 720), Vector2(698, 720), Color(.35, .55, .7), 9)
+        draw_line(Vector2(70, 770), Vector2(698, 770), Color(.35, .55, .7), 9)
+        for tie_x in range(80, 700, 52):
+            draw_line(Vector2(tie_x, 700), Vector2(tie_x, 790), Color(.35, .18, .08), 12)
+        _draw_finisher_victim(Vector2(384, 680), sin(time * 11.0) * .08)
+        _draw_finisher_attacker(Vector2(250, 860), 0, Vector2.ONE)
+        draw_rect(Rect2(train_x - 170, 500, 340, 230), Color(.04, .12, .2))
+        draw_rect(Rect2(train_x - 170, 500, 340, 230), Color(.1, .9, 1), false, 7)
+        draw_circle(Vector2(train_x - 105, 735), 42, Color(.9, .18, .55))
+        draw_circle(Vector2(train_x + 105, 735), 42, Color(.9, .18, .55))
+        _label("NEON EXPRESS", Vector2(train_x, 610), 25, Color(1, .28, .7), true)
+        if train > .55: _label("NEXT STOP: OBLIVION", Vector2(384, 850), 28, Color(.35, 1, .85), true)
+    var remaining = maxf(0.0, duration - time)
+    draw_rect(Rect2(70, 925, 628 * (remaining / duration), 7), Color(1, .25, .68))
+
 func _draw() -> void:
     if players.is_empty() or font == null:
         return
@@ -2085,6 +2240,7 @@ func _draw() -> void:
         _label("ROUND CLEAR", Vector2(384, 420), 31, Color(.35, 1, .62), true)
         _label("NEXT ROUND IN %d" % maxi(1, ceili(phase_timer)), Vector2(384, 466), 22, Color(1, .82, .22), true)
     _draw_game_entities()
+    _draw_cinematic_finisher()
     if phase == "turn":
         _draw_screen_turn()
 
